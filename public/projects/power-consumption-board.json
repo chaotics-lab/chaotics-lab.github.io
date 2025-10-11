@@ -1,0 +1,14 @@
+{
+  "id": "power-consumption-board",
+  "title": "Power Consumption Measurement Board",
+  "date": "2024-08-21",
+  "titleColor": "#000000",
+  "description": "Developed a measurement board to evaluate product battery life and optimize real-time signal processing to handle billions of data points.",
+  "imageUrl": "/img/withings",
+  "logoUrl": "/img/withings/logo.png",
+  "themeColor": "#046307",
+  "category": ["software", "sp", "embedded-systems", "gui"],
+  "tags": ["C", "C++", "Python", "Kinetis K60", "Qt", "Ethernet"],
+  "status": "active",
+  "markdown": "## Deep Dive\nThis is a test section written in *Markdown*.\n- It supports lists\n- Code blocks too\n\n```c\nint main() { return 0; }\n```"
+}

@@ -1,0 +1,24 @@
+{
+  "title": "Porypal",
+  "date": "2025-03-28",
+  "titleColor": "#FFFFFF",
+  "description": "Image processing software and tileset editor for ROM hacks.",
+  "imageUrl": "/img/porypal",
+  "logoUrl": "/img/porypal/logo.png",
+  "themeColor": "#2139ef",
+  "logoBackgroundColor": "transparent",
+  "category": [
+    "software",
+    "gui",
+    "sp",
+    "app"
+  ],
+  "repoUrl": "https://github.com/Loxed/porypal",
+  "tags": [
+    "Python",
+    "Qt"
+  ],
+  "status": "completed",
+  "id": "porypal",
+  "markdown": ""
+}

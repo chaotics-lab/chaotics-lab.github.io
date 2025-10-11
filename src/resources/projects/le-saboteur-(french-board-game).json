@@ -1,0 +1,23 @@
+{
+  "title": "\u2800\u2800\u2800\u2800Le Saboteur\u2800\u2800\u2800\u2800 (French Board Game)",
+  "date": "2021-02-10",
+  "titleColor": "#FFFFFF",
+  "description": "A digital adaptation of 'Le Saboteur', a French board game, with a wild-west theme.",
+  "imageUrl": "/img/saboteur",
+  "logoUrl": "/img/saboteur/logo.png",
+  "themeColor": "#ffe7a5",
+  "logoBackgroundColor": "transparent",
+  "repoUrl": "https://github.com/Loxed/le-saboteur",
+  "category": [
+    "game",
+    "app"
+  ],
+  "tags": [
+    "C",
+    "Allegro 4",
+    "Pixel Art"
+  ],
+  "status": "completed",
+  "id": "le-saboteur-(french-board-game)",
+  "markdown": ""
+}

@@ -1,0 +1,27 @@
+{
+  "title": "\u2800\u2800\u2800\u2800PersonaPlay\u2800\u2800\u2800\u2800 (Netflix Clone)",
+  "date": "2023-03-10",
+  "titleColor": "#FFFFFF",
+  "description": "Developed a fullstack Netflix-like application for browsing and watching videos with features like forums, reviews, and search.",
+  "imageUrl": "/img/personaplay",
+  "logoUrl": "/img/personaplay/logo.png",
+  "repoUrl": "https://github.com/Loxed/PersonaPlayApplication",
+  "themeColor": "#393939",
+  "logoBackgroundColor": "transparent",
+  "category": [
+    "software",
+    "gui",
+    "app",
+    "back"
+  ],
+  "tags": [
+    "JavaFX",
+    "Hibernate",
+    "MySQL",
+    "MVC",
+    "APIs"
+  ],
+  "status": "completed",
+  "id": "personaplay-(netflix-clone)",
+  "markdown": ""
+}

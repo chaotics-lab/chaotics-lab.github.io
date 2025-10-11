@@ -1,0 +1,48 @@
+#root {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.glow-svg {
+  filter: drop-shadow(0 0 8px rgba(255,255,255,0.8))
+         drop-shadow(0 0 16px rgba(255,255,255,0.6));
+}
+
+.hover-invert-ray {
+  transition: filter 0.3s ease;
+}
+
+.hover-invert-ray:hover {
+  filter: invert(1) brightness(1.2) drop-shadow(0 0 10px rgba(255,255,255,0.9));
+}
+
+
+
+@keyframes logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  a:nth-of-type(2) .logo {
+    animation: logo-spin infinite 20s linear;
+  }
+}
+
+.card {
+  padding: 2em;
+}
+
+.read-the-docs {
+  color: #888;
+}
+
+
+.scene { perspective: 5px; position: relative; /* etc. */ }
+

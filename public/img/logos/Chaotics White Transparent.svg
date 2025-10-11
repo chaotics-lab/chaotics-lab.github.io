@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 691 271">
+  <defs>
+    <style>
+      .a {
+        font-size:120px;
+        font-family:KotoriRose-Bold, Kotori Rose;
+        font-weight:700;
+        letter-spacing:-0.03em;
+      }
+      .a, .b {
+        fill:#fff;
+      }
+    </style>
+  </defs>
+  <title>Chaotics Transparent</title>
+  <text class="a" transform="translate(83.93 180.63)">Chaotics</text>
+  <path class="b" d="M387,145.75a27,27,0,1,1-27-27A27,27,0,0,1,387,145.75Z" transform="translate(-1 1)"/>
+</svg>

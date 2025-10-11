@@ -1,0 +1,25 @@
+{
+  "title": "ECECOPTER (Remote Controlled Drone)",
+  "date": "2024-02-15",
+  "titleColor": "#FFFFFF",
+  "description": "Designed and built a fully functional drone and remote system, including PCBs, sensors, and communication protocols.",
+  "imageUrl": "/img/ececopter",
+  "logoUrl": "/img/ececopter/logo.png",
+  "themeColor": "#00848c",
+  "logoBackgroundColor": "#FFFFFF",
+  "category": [
+    "embedded-systems",
+    "robotics"
+  ],
+  "demoUrl": "https://www.linkedin.com/posts/leopold-rombaut_ececopter-embeddedsystems-dronetechnology-activity-7134805600864989185-h-t2",
+  "tags": [
+    "ATmega328p",
+    "KiCad",
+    "Fusion360",
+    "ToF",
+    "IMU"
+  ],
+  "status": "completed",
+  "id": "ececopter-(remote-controlled-drone)",
+  "markdown": ""
+}

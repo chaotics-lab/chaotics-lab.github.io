@@ -1,0 +1,24 @@
+{
+  "title": "Cluedo Knight",
+  "date": "2021-11-10",
+  "titleColor": "#FFFFFF",
+  "description": "A digital adaptation of the classic Cluedo board game, featuring a hollow knight theme and interactive gameplay.",
+  "imageUrl": "/img/cluedo",
+  "logoUrl": "/img/cluedo/logo.png",
+  "themeColor": "#42009c",
+  "logoBackgroundColor": "transparent",
+  "repoUrl": "https://github.com/Loxed/cluedo-knight",
+  "category": [
+    "game",
+    "app"
+  ],
+  "tags": [
+    "C++",
+    "Allegro 4",
+    "Pixel Art",
+    "OOP"
+  ],
+  "status": "completed",
+  "id": "cluedo-knight",
+  "markdown": ""
+}

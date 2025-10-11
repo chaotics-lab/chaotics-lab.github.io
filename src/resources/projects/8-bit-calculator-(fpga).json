@@ -1,0 +1,24 @@
+{
+  "title": "8-Bit Calculator (FPGA)",
+  "date": "2021-10-03",
+  "titleColor": "#FFFFFF",
+  "description": "An 8-bit signed calculator capable of performing basic operations on FPGA. Controlable with a remote.",
+  "imageUrl": "/img/FPGA",
+  "logoUrl": "/img/FPGA/logo.png",
+  "themeColor": "#18395A",
+  "logoBackgroundColor": "#FFFFFF",
+  "category": [
+    "embedded-systems",
+    "sp"
+  ],
+  "tags": [
+    "DE10-Lite",
+    "VHDL",
+    "FPGA",
+    "IR NEC Protocol",
+    "FSM"
+  ],
+  "status": "completed",
+  "id": "8-bit-calculator-(fpga)",
+  "markdown": ""
+}

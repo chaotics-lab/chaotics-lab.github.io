@@ -1,0 +1,27 @@
+{
+  "title": "Autonomous Racing Car",
+  "date": "2024-07-21",
+  "titleColor": "#FFFFFF",
+  "description": "Led a team of 30 students in developing a fully autonomous vehicle and implemented Edge AI for race trajectory.",
+  "imageUrl": "/img/arece",
+  "logoUrl": "/img/arece/logo.png",
+  "themeColor": "#21188c",
+  "logoBackgroundColor": "#FFFFFF",
+  "category": [
+    "ai",
+    "robotics",
+    "embedded-systems",
+    "sp"
+  ],
+  "repoUrl": "https://github.com/arece-fs",
+  "demoUrl": "https://arece.eu/en",
+  "tags": [
+    "Python",
+    "PyTorch",
+    "Graph Machine Learning",
+    "ROS2"
+  ],
+  "status": "completed",
+  "id": "autonomous-racing-car",
+  "markdown": ""
+}

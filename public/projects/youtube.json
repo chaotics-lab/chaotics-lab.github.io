@@ -1,0 +1,16 @@
+{
+  "id": "youtube-video-tracker",
+  "title": "YouTube Video Tracker",
+  "date": "2025-06-18",
+  "titleColor": "#FFFFFF",
+  "description": "A Firefox extension that automatically provides real-time progress tracking for educational content and courses.",
+  "imageUrl": "/img/youtube-tracker",
+  "logoUrl": "/img/youtube-tracker/logo.png",
+  "themeColor": "#A50000",
+  "logoBackgroundColor": "transparent",
+  "category": ["software", "web", "gui", "app"],
+  "repoUrl": "https://github.com/Loxed/youtube-video-tracker",
+  "demoUrl": "https://addons.mozilla.org/firefox/addon/youtube-video-tracker/",
+  "tags": ["JavaScript", "WebExtensions API", "Firefox", "Local Storage", "DOM Manipulation"],
+  "status": "active"
+}

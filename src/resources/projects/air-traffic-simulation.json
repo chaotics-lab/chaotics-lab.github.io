@@ -1,0 +1,26 @@
+{
+  "title": "Air Traffic Simulation",
+  "date": "2022-04-03",
+  "titleColor": "#000000",
+  "description": "An air traffic simulation using graph-theory enabling automatic planes, airport management, weather event rerouting.",
+  "imageUrl": "/img/kvl",
+  "logoUrl": "/img/kvl/logo.png",
+  "themeColor": "#9CFFF7",
+  "logoBackgroundColor": "#2991ce",
+  "repoUrl": "https://github.com/Loxed/flight-traffic-simulation",
+  "category": [
+    "game",
+    "app",
+    "software",
+    "gui"
+  ],
+  "tags": [
+    "C++",
+    "Allegro 4",
+    "Graph Theory",
+    "OOP"
+  ],
+  "status": "completed",
+  "id": "air-traffic-simulation",
+  "markdown": ""
+}

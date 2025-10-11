@@ -1,0 +1,25 @@
+{
+  "title": "Ace Attorney Guide",
+  "date": "2024-05-02",
+  "titleColor": "#FFFFFF",
+  "description": "Website made to easily access 'Ace Attorney' Series guides from StrategyWiki.",
+  "imageUrl": "/img/aag",
+  "logoUrl": "/img/aag/logo.png",
+  "themeColor": "#f7bd39",
+  "logoBackgroundColor": "transparent",
+  "repoUrl": "https://github.com/Loxed/AceAttorneyGuide",
+  "demoUrl": "https://aceattorneyguide.github.io/",
+  "category": [
+    "software",
+    "gui",
+    "app"
+  ],
+  "tags": [
+    "Rust",
+    "Web",
+    "mdbook"
+  ],
+  "status": "completed",
+  "id": "ace-attorney-guide",
+  "markdown": ""
+}

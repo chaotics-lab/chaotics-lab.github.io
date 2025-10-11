@@ -1,0 +1,24 @@
+{
+  "title": "Fintech App Development",
+  "date": "2023-01-12",
+  "titleColor": "#FFFFFF",
+  "description": "Built microservices (international fund transfers, transaction history, image compression)",
+  "imageUrl": "/img/payby",
+  "logoUrl": "/img/payby/logo.png",
+  "themeColor": "#4ade4a",
+  "logoBackgroundColor": "#FFFFFF",
+  "category": [
+    "software",
+    "back"
+  ],
+  "tags": [
+    "Rust",
+    "Back-end",
+    "Kanban",
+    "Microservices",
+    "Domain-Driven Design"
+  ],
+  "status": "completed",
+  "id": "fintech-app-development",
+  "markdown": ""
+}
