@@ -1,7 +1,7 @@
 {
   "title": "Power Consumption Measurement",
   "date": "2024-08-21",
-  "titleColor": "#000000",
+  "titleColor": "#FFFFFF",
   "description": "Developed a measurement board to evaluate product battery life and optimize real-time signal processing to handle billions of data points.",
   "imageUrl": "/img/withings",
   "logoUrl": "/img/withings/logo.png",

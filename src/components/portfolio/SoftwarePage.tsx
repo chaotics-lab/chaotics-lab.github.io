@@ -20,12 +20,14 @@ const SoftwarePage = () => {
   const modules = import.meta.glob('../../resources/projects/*.json', { eager: true });
   const projects = Object.values(modules).map(m => (m as any).default || m);
 
+  // Load project
   useEffect(() => {
     if (!projectId) return;
     const found = projects.find(p => p.id === projectId);
     setProject(found || null);
   }, [projectId]);
 
+  // Load frames
   useEffect(() => {
     if (!project?.imageUrl) return;
 
@@ -50,18 +52,17 @@ const SoftwarePage = () => {
     loadFrames();
   }, [project?.imageUrl]);
 
+  // Carousel auto-advance every 4s if not hovering
   useEffect(() => {
     if (frameCount <= 1) return;
 
-    if (isHovered && !isPausedByClick) {
-      const interval = setInterval(() => {
+    const interval = setInterval(() => {
+      if (!isHovered && !isPausedByClick) {
         setCurrentFrame(prev => (prev + 1) % frameCount);
-      }, 2000);
-      return () => clearInterval(interval);
-    } else if (!isHovered) {
-      setCurrentFrame(0);
-      setIsPausedByClick(false);
-    }
+      }
+    }, 4000);
+
+    return () => clearInterval(interval);
   }, [isHovered, frameCount, isPausedByClick]);
 
   useEffect(() => {
@@ -100,10 +101,9 @@ const SoftwarePage = () => {
 
   return (
     <div className="relative min-h-screen w-full">
-      {/* Starfield background (separate, full screen, fixed) */}
+      {/* Starfield background */}
       <div className="fixed inset-0 -z-10 starfield bg-black"></div>
 
-      {/* Page content */}
       <div className="relative z-10 flex flex-col min-h-screen text-white">
         {/* Header */}
         <div className="container mx-auto p-6">
@@ -138,7 +138,7 @@ const SoftwarePage = () => {
           {/* Image Carousel */}
           {project?.imageUrl && (
             <div
-              className="relative overflow-hidden rounded-lg border border-space-border max-h-[60vh]"
+              className="relative overflow-hidden rounded-lg border border-space-border aspect-[3/2] bg-black"
               onMouseEnter={() => { if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current); setIsHovered(true); }}
               onMouseLeave={() => { hoverTimeoutRef.current = setTimeout(() => setIsHovered(false), 500); }}
             >
@@ -147,13 +147,13 @@ const SoftwarePage = () => {
                 style={{ width: `${frameCount * 100}%`, transform: `translateX(-${currentFrame * frameWidth}%)` }}
               >
                 {Array.from({ length: frameCount }).map((_, i) => (
-                  <img
-                    key={i}
-                    src={`${project.imageUrl}/${i + 1}.png`}
-                    alt={`${project.title} frame ${i + 1}`}
-                    className="w-full h-full object-cover object-center flex-shrink-0"
-                    style={{ width: `${frameWidth}%` }}
-                  />
+                  <div key={i} className="flex-shrink-0 w-full h-full" style={{ width: `${frameWidth}%` }}>
+                    <img
+                      src={`${project.imageUrl}/${i + 1}.png`}
+                      alt={`${project.title} frame ${i + 1}`}
+                      className="w-full h-full object-cover object-center"
+                    />
+                  </div>
                 ))}
               </div>
 
