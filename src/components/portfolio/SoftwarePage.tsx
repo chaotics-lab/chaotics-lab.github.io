@@ -17,13 +17,13 @@ const SoftwarePage = () => {
   const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Load all projects at build time
-  const modules = import.meta.glob('../../resources/projects/*.json', { eager: true });
-  const projects = Object.values(modules).map(m => (m as any).default || m);
+  const modules = import.meta.glob("../../resources/projects/*.json", { eager: true });
+  const projects = Object.values(modules).map((m) => (m as any).default || m);
 
   // Load project
   useEffect(() => {
     if (!projectId) return;
-    const found = projects.find(p => p.id === projectId);
+    const found = projects.find((p) => p.id === projectId);
     setProject(found || null);
   }, [projectId]);
 
@@ -58,7 +58,7 @@ const SoftwarePage = () => {
 
     const interval = setInterval(() => {
       if (!isHovered && !isPausedByClick) {
-        setCurrentFrame(prev => (prev + 1) % frameCount);
+        setCurrentFrame((prev) => (prev + 1) % frameCount);
       }
     }, 4000);
 
@@ -88,11 +88,11 @@ const SoftwarePage = () => {
 
   const handlePrev = () => {
     setIsPausedByClick(true);
-    setCurrentFrame(prev => (prev - 1 + frameCount) % frameCount);
+    setCurrentFrame((prev) => (prev - 1 + frameCount) % frameCount);
   };
   const handleNext = () => {
     setIsPausedByClick(true);
-    setCurrentFrame(prev => (prev + 1) % frameCount);
+    setCurrentFrame((prev) => (prev + 1) % frameCount);
   };
 
   const showLeftArrow = frameCount > 1 && currentFrame > 0;
@@ -115,15 +115,49 @@ const SoftwarePage = () => {
         </div>
 
         <div className="flex-grow container mx-auto max-w-4xl py-6 space-y-4">
-          {/* Title & Status */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              {project?.logoUrl && <img src={project.logoUrl} alt="logo" className="h-12 w-12 object-contain" />}
-              <h1 className="text-4xl font-light" style={{ color: project?.titleColor || "inherit" }}>
+          {/* Title, Buttons & Status */}
+          <div className="flex items-center justify-between flex-wrap gap-3">
+            <div className="flex items-center gap-4 flex-wrap">
+              {project?.logoUrl && (
+                <img src={project.logoUrl} alt="logo" className="h-12 w-12 object-contain" />
+              )}
+
+              <h1
+                className="text-4xl font-light"
+                style={{ color: project?.titleColor || "inherit" }}
+              >
                 {project?.title}
               </h1>
+
+              {/* GitHub button */}
+              {project?.githubUrl && (
+                <a
+                  href={project.githubUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="ml-4 p-2 bg-gray-800 text-white rounded flex items-center gap-1 hover:bg-gray-700 transition"
+                >
+                  <Github size={16} /> GitHub
+                </a>
+              )}
+
+              {/* Demo button */}
+              {project?.demoUrl && (
+                <a
+                  href={project.demoUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="ml-2 p-2 bg-gray-800 text-white rounded flex items-center gap-1 hover:bg-gray-700 transition"
+                >
+                  <ExternalLink size={16} /> Live
+                </a>
+              )}
             </div>
-            <Badge variant="outline" className={`${getStatusColor(project?.status)} font-mono text-sm`}>
+
+            <Badge
+              variant="outline"
+              className={`${getStatusColor(project?.status)} font-mono text-sm`}
+            >
               {project?.status}
             </Badge>
           </div>
@@ -139,15 +173,27 @@ const SoftwarePage = () => {
           {project?.imageUrl && (
             <div
               className="relative overflow-hidden rounded-lg border border-space-border aspect-[3/2] bg-black"
-              onMouseEnter={() => { if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current); setIsHovered(true); }}
-              onMouseLeave={() => { hoverTimeoutRef.current = setTimeout(() => setIsHovered(false), 500); }}
+              onMouseEnter={() => {
+                if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
+                setIsHovered(true);
+              }}
+              onMouseLeave={() => {
+                hoverTimeoutRef.current = setTimeout(() => setIsHovered(false), 500);
+              }}
             >
               <div
                 className="flex h-full transition-transform duration-700 ease-in-out"
-                style={{ width: `${frameCount * 100}%`, transform: `translateX(-${currentFrame * frameWidth}%)` }}
+                style={{
+                  width: `${frameCount * 100}%`,
+                  transform: `translateX(-${currentFrame * frameWidth}%)`,
+                }}
               >
                 {Array.from({ length: frameCount }).map((_, i) => (
-                  <div key={i} className="flex-shrink-0 w-full h-full" style={{ width: `${frameWidth}%` }}>
+                  <div
+                    key={i}
+                    className="flex-shrink-0 w-full h-full"
+                    style={{ width: `${frameWidth}%` }}
+                  >
                     <img
                       src={`${project.imageUrl}/${i + 1}.png`}
                       alt={`${project.title} frame ${i + 1}`}
@@ -161,16 +207,24 @@ const SoftwarePage = () => {
               {frameCount > 1 && (
                 <>
                   <button
-                    className={`absolute left-2 top-1/2 transform -translate-y-1/2 bg-black/25 p-1 rounded-full text-white z-10 transition-opacity duration-300 ${isHovered && showLeftArrow ? "opacity-100" : "opacity-0"}`}
+                    className={`absolute left-2 top-1/2 transform -translate-y-1/2 bg-black/25 p-1 rounded-full text-white z-10 transition-opacity duration-300 ${
+                      isHovered && showLeftArrow ? "opacity-100" : "opacity-0"
+                    }`}
                     onClick={handlePrev}
-                    style={{ pointerEvents: isHovered && showLeftArrow ? "auto" : "none" }}
+                    style={{
+                      pointerEvents: isHovered && showLeftArrow ? "auto" : "none",
+                    }}
                   >
                     <ChevronLeft size={20} />
                   </button>
                   <button
-                    className={`absolute right-2 top-1/2 transform -translate-y-1/2 bg-black/25 p-1 rounded-full text-white z-10 transition-opacity duration-300 ${isHovered && showRightArrow ? "opacity-100" : "opacity-0"}`}
+                    className={`absolute right-2 top-1/2 transform -translate-y-1/2 bg-black/25 p-1 rounded-full text-white z-10 transition-opacity duration-300 ${
+                      isHovered && showRightArrow ? "opacity-100" : "opacity-0"
+                    }`}
                     onClick={handleNext}
-                    style={{ pointerEvents: isHovered && showRightArrow ? "auto" : "none" }}
+                    style={{
+                      pointerEvents: isHovered && showRightArrow ? "auto" : "none",
+                    }}
                   >
                     <ChevronRight size={20} />
                   </button>
@@ -181,7 +235,12 @@ const SoftwarePage = () => {
               {frameCount > 1 && (
                 <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex gap-1 z-10">
                   {Array.from({ length: frameCount }).map((_, idx) => (
-                    <div key={idx} className={`w-2 h-2 rounded-full transition-all duration-300 ${currentFrame === idx ? "bg-white" : "bg-white/50"}`} />
+                    <div
+                      key={idx}
+                      className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                        currentFrame === idx ? "bg-white" : "bg-white/50"
+                      }`}
+                    />
                   ))}
                 </div>
               )}
@@ -194,7 +253,11 @@ const SoftwarePage = () => {
           {/* Tags */}
           <div className="flex flex-wrap gap-2 mt-2">
             {(project?.tags || []).map((tag: string) => (
-              <Badge key={tag} variant="secondary" className="bg-space-elevated/50 text-space-muted border-space-border font-mono text-xs">
+              <Badge
+                key={tag}
+                variant="secondary"
+                className="bg-space-elevated/50 text-space-muted border-space-border font-mono text-xs"
+              >
                 {tag}
               </Badge>
             ))}
@@ -208,20 +271,6 @@ const SoftwarePage = () => {
               </ReactMarkdown>
             </div>
           )}
-
-          {/* Links */}
-          <div className="flex gap-3 mt-6 mb-6">
-            {project?.githubUrl && (
-              <a href={project.githubUrl} target="_blank" rel="noopener noreferrer" className="p-2 bg-gray-800 text-white rounded">
-                <Github size={16} />
-              </a>
-            )}
-            {project?.liveUrl && (
-              <a href={project.liveUrl} target="_blank" rel="noopener noreferrer" className="p-2 bg-gray-800 text-white rounded">
-                <ExternalLink size={16} />
-              </a>
-            )}
-          </div>
         </div>
       </div>
     </div>

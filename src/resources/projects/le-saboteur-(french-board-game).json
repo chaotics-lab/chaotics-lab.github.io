@@ -7,7 +7,7 @@
   "logoUrl": "/img/saboteur/logo.png",
   "themeColor": "#ffe7a5",
   "logoBackgroundColor": "transparent",
-  "repoUrl": "https://github.com/Loxed/le-saboteur",
+  "githubUrl": "https://github.com/Loxed/le-saboteur",
   "category": [
     "game",
     "app"

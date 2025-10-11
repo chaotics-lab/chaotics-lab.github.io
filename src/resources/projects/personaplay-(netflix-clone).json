@@ -5,7 +5,7 @@
   "description": "Developed a fullstack Netflix-like application for browsing and watching videos with features like forums, reviews, and search.",
   "imageUrl": "/img/personaplay",
   "logoUrl": "/img/personaplay/logo.png",
-  "repoUrl": "https://github.com/Loxed/PersonaPlayApplication",
+  "githubUrl": "https://github.com/Loxed/PersonaPlayApplication",
   "themeColor": "#393939",
   "logoBackgroundColor": "transparent",
   "category": [

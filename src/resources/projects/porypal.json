@@ -13,7 +13,7 @@
     "sp",
     "app"
   ],
-  "repoUrl": "https://github.com/Loxed/porypal",
+  "githubUrl": "https://github.com/Loxed/porypal",
   "tags": [
     "Python",
     "Qt"

@@ -7,7 +7,7 @@
   "logoUrl": "/img/kvl/logo.png",
   "themeColor": "#9CFFF7",
   "logoBackgroundColor": "#2991ce",
-  "repoUrl": "https://github.com/Loxed/flight-traffic-simulation",
+  "githubUrl": "https://github.com/Loxed/flight-traffic-simulation",
   "category": [
     "game",
     "app",

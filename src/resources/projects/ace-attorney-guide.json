@@ -7,7 +7,7 @@
   "logoUrl": "/img/aag/logo.png",
   "themeColor": "#f7bd39",
   "logoBackgroundColor": "transparent",
-  "repoUrl": "https://github.com/Loxed/AceAttorneyGuide",
+  "githubUrl": "https://github.com/Loxed/AceAttorneyGuide",
   "demoUrl": "https://aceattorneyguide.github.io/",
   "category": [
     "software",

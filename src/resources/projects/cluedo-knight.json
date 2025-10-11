@@ -7,7 +7,7 @@
   "logoUrl": "/img/cluedo/logo.png",
   "themeColor": "#42009c",
   "logoBackgroundColor": "transparent",
-  "repoUrl": "https://github.com/Loxed/cluedo-knight",
+  "githubUrl": "https://github.com/Loxed/cluedo-knight",
   "category": [
     "game",
     "app"
