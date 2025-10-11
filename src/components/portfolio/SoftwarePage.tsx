@@ -13,11 +13,15 @@ const SoftwarePage = () => {
   const [currentFrame, setCurrentFrame] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [isHovering, setIsHovering] = useState(false);
+  
+  const touchStartX = useRef(0);
+  const touchEndX = useRef(0);
 
   // --- responsive handling ---
   useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth < 1024);
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
@@ -46,15 +50,15 @@ const SoftwarePage = () => {
     checkFrame();
   }, [project?.imageUrl]);
 
-  // --- auto rotate carousel ---
+  // --- auto rotate carousel (pauses on hover/interaction) ---
   useEffect(() => {
-    if (frameCount <= 1 || isPaused) return;
+    if (frameCount <= 1 || isPaused || isHovering) return;
     const interval = setInterval(
       () => setCurrentFrame((prev) => (prev + 1) % frameCount),
       4000
     );
     return () => clearInterval(interval);
-  }, [frameCount, isPaused]);
+  }, [frameCount, isPaused, isHovering]);
 
   // --- mobile scroll to top button ---
   useEffect(() => {
@@ -69,11 +73,32 @@ const SoftwarePage = () => {
     setCurrentFrame((prev) => (prev - 1 + frameCount) % frameCount);
     setTimeout(() => setIsPaused(false), 5000);
   };
+  
   const handleNextFrame = () => {
     setIsPaused(true);
     setCurrentFrame((prev) => (prev + 1) % frameCount);
     setTimeout(() => setIsPaused(false), 5000);
   };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    touchEndX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchEnd = () => {
+    if (touchStartX.current - touchEndX.current > 50) {
+      // Swipe left - next frame
+      handleNextFrame();
+    }
+    if (touchStartX.current - touchEndX.current < -50) {
+      // Swipe right - previous frame
+      handlePrevFrame();
+    }
+  };
+
   const scrollToTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
 
   const hexToRgba = (hex: string = "#191970", alpha = 0.4) => {
@@ -127,7 +152,7 @@ const SoftwarePage = () => {
       `}</style>
 
       {/* --- main content --- */}
-      <div className="relative z-10 container mx-auto py-8 px-4 flex flex-col gap-8">
+      <div className="relative z-10 container mx-auto py-4 md:py-8 px-4 flex flex-col gap-4 md:gap-6 md:h-screen md:overflow-hidden">
         {/* Back Button */}
         <Link to="/">
           <Button variant="ghost" className="text-space-muted hover:text-space-primary flex items-center gap-2">
@@ -136,9 +161,11 @@ const SoftwarePage = () => {
         </Link>
 
         {/* --- HERO --- */}
-        <div className="grid lg:grid-cols-[1fr_auto] gap-4 items-start">
-          <div className="p-6 bg-space-surface/50 backdrop-blur-sm rounded-2xl shadow-lg flex flex-col">
-            <div className="flex items-center gap-4 mb-3 flex-wrap">
+        <div className="md:flex md:gap-4 md:flex-shrink-0 grid grid-cols-1 gap-4">
+          <div className="p-6 bg-gradient-to-br from-space-surface/80 to-space-surface/40 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/10 overflow-hidden flex flex-col min-h-0 md:flex-1 relative">
+            <div className="absolute inset-0 bg-gradient-to-br from-transparent via-white/5 to-transparent pointer-events-none"></div>
+            <div className="relative z-10 flex flex-col h-full">
+              <div className="flex items-center gap-4 mb-3 flex-wrap">
               {project.logoUrl && (
                 <img
                   src={project.logoUrl}
@@ -190,21 +217,21 @@ const SoftwarePage = () => {
                 </a>
               )}
             </div>
+            </div>
           </div>
 
-          {/* Date (hidden on mobile) */}
-          {!isMobile && date && (
-            <div className="flex justify-center lg:justify-start shrink-0">
+          {/* Date (desktop only - matches main section height) */}
+          {date && (
+            <div className="hidden md:block shrink-0 self-stretch">
               <div
-                className="relative bg-gradient-to-br from-space-surface/80 to-space-surface/40 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/10 overflow-hidden"
-                style={{ width: "180px", height: "180px" }}
+                className="relative bg-gradient-to-br from-space-surface/80 to-space-surface/40 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/10 overflow-hidden h-full aspect-square"
               >
                 <div className="absolute inset-0 bg-gradient-to-br from-transparent via-white/5 to-transparent"></div>
-                <div className="relative flex flex-col items-center justify-center h-full">
-                  <div className="text-7xl font-bold text-white leading-none mb-2">
+                <div className="relative flex flex-col items-center justify-center h-full w-full p-4">
+                  <div className="text-5xl lg:text-6xl xl:text-7xl font-bold text-white leading-none mb-2">
                     {date.getDate()}
                   </div>
-                  <div className="text-sm uppercase text-white/50 font-semibold tracking-widest text-center">
+                  <div className="text-xs lg:text-sm uppercase text-white/50 font-semibold tracking-widest text-center">
                     {date.toLocaleString("default", { month: "short" })}{" "}
                     {date.getFullYear()}
                   </div>
@@ -220,21 +247,25 @@ const SoftwarePage = () => {
           <div className="grid lg:grid-cols-2 gap-4 flex-1 min-h-0">
             {/* Markdown (scrollable) */}
             {project.markdown && (
-              <div
-                className="markdown-scroll p-6 bg-space-surface/50 rounded-2xl shadow-lg backdrop-blur-sm overflow-y-auto prose prose-invert prose-sm md:prose-base max-w-none"
-                style={{ height: "calc(100vh - 380px)" }}
-              >
-                <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                  {project.markdown}
-                </ReactMarkdown>
+              <div className="relative rounded-2xl shadow-2xl border border-white/10 overflow-hidden h-full bg-gradient-to-br from-space-surface/80 to-space-surface/40 backdrop-blur-xl">
+                <div className="absolute inset-0 bg-gradient-to-br from-transparent via-white/5 to-transparent pointer-events-none"></div>
+                <div
+                  className="markdown-scroll p-6 overflow-y-auto prose prose-invert prose-sm md:prose-base max-w-none h-full relative z-10"
+                >
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                    {project.markdown}
+                  </ReactMarkdown>
+                </div>
               </div>
             )}
 
             {/* Carousel + tags */}
-            <div className="flex flex-col">
+            <div className="flex flex-col min-h-0 gap-3">
               <div
-                className="carousel-container relative w-full"
-                style={{ paddingTop: "75%" }}
+                className="carousel-container relative w-full flex-shrink-0"
+                style={{ paddingTop: "56.25%" }}
+                onMouseEnter={() => setIsHovering(true)}
+                onMouseLeave={() => setIsHovering(false)}
               >
                 <div className="absolute inset-0 overflow-hidden rounded-2xl border border-space-border">
                   <div
@@ -251,18 +282,18 @@ const SoftwarePage = () => {
                         key={i}
                         src={`${project.imageUrl}/${i + 1}.png`}
                         alt={`Frame ${i + 1}`}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-cover object-center"
                       />
                     ))}
                   </div>
 
-                  {/* Arrows */}
-                  {frameCount > 1 && (
+                  {/* Arrows - Show on hover */}
+                  {frameCount > 1 && isHovering && (
                     <>
                       {currentFrame > 0 && (
                         <button
                           onClick={handlePrevFrame}
-                          className="carousel-arrow absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full"
+                          className="carousel-arrow absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition-opacity"
                         >
                           <ArrowLeft size={20} />
                         </button>
@@ -270,7 +301,7 @@ const SoftwarePage = () => {
                       {currentFrame < frameCount - 1 && (
                         <button
                           onClick={handleNextFrame}
-                          className="carousel-arrow absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full"
+                          className="carousel-arrow absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition-opacity"
                         >
                           <ArrowLeft size={20} className="rotate-180" />
                         </button>
@@ -282,7 +313,7 @@ const SoftwarePage = () => {
 
               {/* Dots */}
               {frameCount > 1 && (
-                <div className="flex justify-center gap-2 mt-4">
+                <div className="flex justify-center gap-2 flex-shrink-0">
                   {Array.from({ length: frameCount }, (_, i) => (
                     <button
                       key={i}
@@ -301,12 +332,12 @@ const SoftwarePage = () => {
 
               {/* Tags */}
               {project.tags && project.tags.length > 0 && (
-                <div className="mt-4 flex flex-wrap gap-2 justify-center">
+                <div className="flex flex-wrap gap-2 justify-center flex-shrink-0">
                   {project.tags.map((tag) => (
                     <Badge
                       key={tag}
                       variant="secondary"
-                      className="bg-space-elevated/50 text-space-muted border-space-border font-mono text-xs px-2 py-1"
+                      className="bg-space-elevated/50 text-space-muted border-space-border font-mono text-sm px-3 py-1.5"
                     >
                       {tag}
                     </Badge>
@@ -319,7 +350,13 @@ const SoftwarePage = () => {
           /* --- MOBILE: stacked layout --- */
           <div className="flex flex-col gap-6">
             {/* Carousel */}
-            <div className="relative w-full" style={{ paddingTop: "56.25%" }}>
+            <div 
+              className="relative w-full" 
+              style={{ paddingTop: "56.25%" }}
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
+            >
               <div className="absolute inset-0 overflow-hidden rounded-2xl border border-space-border">
                 <div
                   className="flex h-full transition-transform duration-700 ease-in-out"
@@ -335,12 +372,31 @@ const SoftwarePage = () => {
                       key={i}
                       src={`${project.imageUrl}/${i + 1}.png`}
                       alt={`Frame ${i + 1}`}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-cover object-center"
                     />
                   ))}
                 </div>
               </div>
             </div>
+
+            {/* Dots for mobile */}
+            {frameCount > 1 && (
+              <div className="flex justify-center gap-2">
+                {Array.from({ length: frameCount }, (_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => {
+                      setCurrentFrame(i);
+                      setIsPaused(true);
+                      setTimeout(() => setIsPaused(false), 5000);
+                    }}
+                    className={`h-2 rounded-full transition-all ${
+                      i === currentFrame ? "bg-white w-6" : "bg-white/40 w-2"
+                    }`}
+                  />
+                ))}
+              </div>
+            )}
 
             {/* Tags */}
             {project.tags && project.tags.length > 0 && (
@@ -359,10 +415,13 @@ const SoftwarePage = () => {
 
             {/* Markdown */}
             {project.markdown && (
-              <div className="p-6 bg-space-surface/50 rounded-2xl shadow-lg backdrop-blur-sm prose prose-invert prose-sm md:prose-base max-w-none">
-                <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                  {project.markdown}
-                </ReactMarkdown>
+              <div className="relative rounded-2xl shadow-2xl border border-white/10 overflow-hidden bg-gradient-to-br from-space-surface/80 to-space-surface/40 backdrop-blur-xl">
+                <div className="absolute inset-0 bg-gradient-to-br from-transparent via-white/5 to-transparent pointer-events-none"></div>
+                <div className="p-6 prose prose-invert prose-sm md:prose-base max-w-none relative z-10">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                    {project.markdown}
+                  </ReactMarkdown>
+                </div>
               </div>
             )}
           </div>
