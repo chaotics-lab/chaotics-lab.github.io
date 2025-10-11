@@ -60,17 +60,17 @@ export const SoftwareCard = (props: Partial<SoftwareCardProps>) => {
           cursor-pointer
         `}
         style={{
-          boxShadow: `0 0 0 2px ${themeColor}, 0 0 0 0 ${themeColor}00`,
+          boxShadow: `0 0 0 0 ${themeColor}, 0 0 0 0 ${themeColor}00`,
           transition: "box-shadow 0.25s ease-in-out",
           "--glow-origin": glowPosition,
         } as React.CSSProperties}
         onMouseEnter={(e) => {
           (e.currentTarget.style as any).boxShadow =
-            `0 0 0 2px ${themeColor}, 0 0 20px 5px ${themeColor}55`;
+            `0 0 0 0 ${themeColor}, 0 0 20px 5px ${themeColor}55`;
         }}
         onMouseLeave={(e) => {
           (e.currentTarget.style as any).boxShadow =
-            `0 0 0 2px ${themeColor}, 0 0 0 0 ${themeColor}00`;
+            `0 0 0 0 ${themeColor}, 0 0 0 0 ${themeColor}00`;
         }}
       >
         {/* Inner glow behind image */}

@@ -22,7 +22,7 @@ export const Header = ({ title = "Chaotics Lab" }: HeaderProps) => {
         {/* Chaotics logo */}
         <div className="flex justify-center items-center h-40">
           <img
-            src="/src/resources/img/logos/Chaotics White Transparent.svg"
+            src="/img/logos/Chaotics White Transparent.svg"
             alt="Chaotics Logo"
             className="w-full max-w-2xl object-contain"
           />
