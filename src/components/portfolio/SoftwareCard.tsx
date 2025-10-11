@@ -56,22 +56,13 @@ export const SoftwareCard = (props: Partial<SoftwareCardProps>) => {
         className={`
           relative overflow-hidden bg-space-surface/50
           backdrop-blur-sm flex flex-col transition-transform duration-150 ease-in-out
-          hover:scale-[1.05] hover:-translate-y-1 active:scale-[0.98]
-          cursor-pointer
+          md:hover:-translate-y-1
+          cursor-pointer h-full
+          md:min-h-[400px]
         `}
         style={{
-          boxShadow: `0 0 0 0 ${themeColor}, 0 0 0 0 ${themeColor}00`,
-          transition: "box-shadow 0.25s ease-in-out",
           "--glow-origin": glowPosition,
         } as React.CSSProperties}
-        onMouseEnter={(e) => {
-          (e.currentTarget.style as any).boxShadow =
-            `0 0 0 0 ${themeColor}, 0 0 20px 5px ${themeColor}55`;
-        }}
-        onMouseLeave={(e) => {
-          (e.currentTarget.style as any).boxShadow =
-            `0 0 0 0 ${themeColor}, 0 0 0 0 ${themeColor}00`;
-        }}
       >
         {/* Inner glow behind image */}
         <div
@@ -83,12 +74,13 @@ export const SoftwareCard = (props: Partial<SoftwareCardProps>) => {
           }}
         />
 
-        {/* Overlay icon for click indication */}
-        <div className="absolute bottom-2 right-2 z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-          <ArrowRight className="w-6 h-6 text-white/70 animate-bounce" />
+        {/* Overlay icon for click indication - Desktop only */}
+        <div className="hidden md:block absolute bottom-2 right-2 z-20">
+          <ArrowRight className="w-6 h-6 text-white/70" />
         </div>
 
-        <div className="relative z-10 flex flex-col pointer-events-none">
+        {/* Desktop Layout */}
+        <div className="hidden md:flex relative z-10 flex-col pointer-events-none">
           {/* Thumbnail */}
           {imageUrl && (
             <div
@@ -116,7 +108,7 @@ export const SoftwareCard = (props: Partial<SoftwareCardProps>) => {
               {description}
             </p>
 
-            <div className="flex flex-wrap gap-2 items-center line-clamp-1 overflow-hidden mb-4">
+            <div className="flex flex-wrap gap-2 items-center overflow-hidden mb-4 max-h-[28px]">
               {technologies.slice(0, 3).map((tech) => (
                 <Badge
                   key={tech}
@@ -132,6 +124,53 @@ export const SoftwareCard = (props: Partial<SoftwareCardProps>) => {
                   className="bg-space-elevated/50 text-space-muted border-space-border font-mono text-xs"
                 >
                   +{technologies.length - 3}
+                </Badge>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Mobile Layout */}
+        <div className="md:hidden relative z-10 flex flex-row pointer-events-none h-32">
+          {/* Thumbnail */}
+          {imageUrl && (
+            <div
+              className="w-32 h-32 flex-shrink-0 relative overflow-hidden rounded-l-md"
+              style={{ backgroundColor: themeColor + "22" }}
+            >
+              <img
+                src={`${imageUrl}/1.png`}
+                alt={`${title} Thumbnail`}
+                className="absolute inset-0 w-full h-full object-cover object-center"
+              />
+            </div>
+          )}
+
+          {/* Body */}
+          <div className="relative p-4 flex flex-col flex-grow">
+            <h3
+              className="text-base font-semibold font-inter line-clamp-2 mb-2"
+              style={{ color: titleColor || "inherit" }}
+            >
+              {title}
+            </h3>
+
+            <div className="flex flex-wrap gap-1.5 items-start max-h-[48px] overflow-hidden">
+              {technologies.slice(0, 2).map((tech) => (
+                <Badge
+                  key={tech}
+                  variant="secondary"
+                  className="bg-space-elevated/50 text-space-muted border-space-border font-mono text-xs"
+                >
+                  {tech}
+                </Badge>
+              ))}
+              {technologies.length > 2 && (
+                <Badge
+                  variant="secondary"
+                  className="bg-space-elevated/50 text-space-muted border-space-border font-mono text-xs"
+                >
+                  +{technologies.length - 2}
                 </Badge>
               )}
             </div>
