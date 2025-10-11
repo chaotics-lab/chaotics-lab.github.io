@@ -9,13 +9,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+
       - uses: actions/setup-node@v3
         with:
           node-version: 20
+
       - run: npm ci
       - run: npm run build
-      - uses: actions/upload-pages-artifact@v1
+
+      # Upload the build artifact for Pages (latest version)
+      - uses: actions/upload-pages-artifact@v2
         with:
           path: dist
+
+      # Configure Pages site
       - uses: actions/configure-pages@v3
+
+      # Deploy to GitHub Pages
       - uses: actions/deploy-pages@v1
