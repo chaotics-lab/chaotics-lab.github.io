@@ -32,6 +32,9 @@ const SoftwarePage = () => {
     const modules = import.meta.glob("../../resources/projects/*.json", { eager: true });
     const projects = Object.values(modules).map((m) => (m as any).default || m);
     setProject(projects.find((p) => p.id === projectId) || null);
+    
+    // Scroll to top when page loads
+    window.scrollTo(0, 0);
   }, [projectId]);
 
   // --- count frames in carousel ---
@@ -53,12 +56,15 @@ const SoftwarePage = () => {
   // --- auto rotate carousel (pauses on hover/interaction) ---
   useEffect(() => {
     if (frameCount <= 1 || isPaused || isHovering) return;
-    const interval = setInterval(
-      () => setCurrentFrame((prev) => (prev + 1) % frameCount),
-      4000
-    );
+    const interval = setInterval(() => {
+      setCurrentFrame((prev) => {
+        // Don't auto-advance past the last frame
+        if (prev >= frameCount - 1) return prev;
+        return prev + 1;
+      });
+    }, 4000);
     return () => clearInterval(interval);
-  }, [frameCount, isPaused, isHovering]);
+  }, [frameCount, isPaused, isHovering, currentFrame]);
 
   // --- mobile scroll to top button ---
   useEffect(() => {
@@ -69,14 +75,16 @@ const SoftwarePage = () => {
   }, [isMobile]);
 
   const handlePrevFrame = () => {
+    if (currentFrame === 0) return; // Don't go before first frame
     setIsPaused(true);
-    setCurrentFrame((prev) => (prev - 1 + frameCount) % frameCount);
+    setCurrentFrame((prev) => prev - 1);
     setTimeout(() => setIsPaused(false), 5000);
   };
   
   const handleNextFrame = () => {
+    if (currentFrame >= frameCount - 1) return; // Don't go past last frame
     setIsPaused(true);
-    setCurrentFrame((prev) => (prev + 1) % frameCount);
+    setCurrentFrame((prev) => prev + 1);
     setTimeout(() => setIsPaused(false), 5000);
   };
 
@@ -89,12 +97,13 @@ const SoftwarePage = () => {
   };
 
   const handleTouchEnd = () => {
-    if (touchStartX.current - touchEndX.current > 50) {
-      // Swipe left - next frame
+    const diff = touchStartX.current - touchEndX.current;
+    if (diff > 50 && currentFrame < frameCount - 1) {
+      // Swipe left - next frame (only if not at last frame)
       handleNextFrame();
     }
-    if (touchStartX.current - touchEndX.current < -50) {
-      // Swipe right - previous frame
+    if (diff < -50 && currentFrame > 0) {
+      // Swipe right - previous frame (only if not at first frame)
       handlePrevFrame();
     }
   };
@@ -429,10 +438,12 @@ const SoftwarePage = () => {
       </div>
 
       {/* Floating scroll-to-top for mobile */}
-      {isMobile && showScrollTop && (
+      {isMobile && (
         <button
           onClick={scrollToTop}
-          className="fixed bottom-6 right-6 bg-black rounded-full p-3 shadow-lg z-50"
+          className={`fixed bottom-6 right-6 bg-black rounded-full p-3 shadow-lg z-50 transition-transform duration-300 ease-in-out ${
+            showScrollTop ? 'translate-y-0' : 'translate-y-24'
+          }`}
         >
           <ArrowUp size={20} color="white" />
         </button>
