@@ -135,41 +135,6 @@ export const SoftwareCard = (props: Partial<SoftwareCardProps>) => {
                 </Badge>
               )}
             </div>
-
-            <div className="flex justify-between items-center pt-4 mt-auto">
-              <div className="flex gap-2">
-                {liveUrl && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="hover:scale-110 active:scale-95 transition-transform"
-                    asChild
-                  >
-                    <ExternalLink className="w-3 h-3" />
-                  </Button>
-                )}
-                {githubUrl && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="hover:scale-110 active:scale-95 transition-transform"
-                    asChild
-                  >
-                    <Github className="w-3 h-3" />
-                  </Button>
-                )}
-                {demoUrl && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="hover:scale-110 active:scale-95 transition-transform"
-                    asChild
-                  >
-                    <ExternalLink className="w-3 h-3" />
-                  </Button>
-                )}
-              </div>
-            </div>
           </div>
         </div>
       </Card>
