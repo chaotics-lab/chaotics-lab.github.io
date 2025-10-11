@@ -99,10 +99,22 @@ const SoftwarePage = () => {
   const showRightArrow = frameCount > 1 && currentFrame < frameCount - 1;
   const frameWidth = 100 / frameCount;
 
+  // Convert hex to rgba
+  const hexToRgba = (hex: string, alpha = 0.4) => {
+    if (!hex) return `rgba(25,25,112,${alpha})`;
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    return `rgba(${r},${g},${b},${alpha})`;
+  };
+
   return (
     <div className="relative min-h-screen w-full">
-      {/* Starfield background */}
-      <div className="fixed inset-0 -z-10 starfield bg-black"></div>
+      {/* Starfield background with themeColor */}
+      <div
+        className="fixed inset-0 -z-10 starfield bg-black"
+        style={{ '--deep-space-color': hexToRgba(project?.themeColor) } as React.CSSProperties}
+      ></div>
 
       <div className="relative z-10 flex flex-col min-h-screen text-white">
         {/* Header */}
@@ -129,7 +141,6 @@ const SoftwarePage = () => {
                 {project?.title}
               </h1>
 
-              {/* GitHub button */}
               {project?.githubUrl && (
                 <a
                   href={project.githubUrl}
@@ -141,7 +152,6 @@ const SoftwarePage = () => {
                 </a>
               )}
 
-              {/* Demo button */}
               {project?.demoUrl && (
                 <a
                   href={project.demoUrl}
@@ -265,7 +275,10 @@ const SoftwarePage = () => {
 
           {/* Markdown */}
           {project?.markdown && (
-            <div className="markdown-section max-w-none mt-8 p-6 bg-space-surface/50 rounded-lg border border-space-border backdrop-blur-sm atmospheric-glow">
+            <div
+              className="markdown-section max-w-none mt-8 p-6 bg-space-surface/50 rounded-lg border border-space-border backdrop-blur-sm atmospheric-glow"
+              style={{ '--deep-space-color': hexToRgba(project?.themeColor) } as React.CSSProperties}
+            >
               <ReactMarkdown remarkPlugins={[remarkGfm]}>
                 {project.markdown}
               </ReactMarkdown>
