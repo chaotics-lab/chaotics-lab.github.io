@@ -8,7 +8,7 @@ export interface ProjectData {
   technologies: string[];
   liveUrl?: string;
   githubUrl?: string;
-  type: 'active' | 'beta' | 'archived';
+  type: 'Personal Project' | 'Academic Project' | 'Internship';
   imageUrl?: string;
   logoUrl?: string;
   themeColor?: string;         // formerly themeColor

@@ -13,7 +13,7 @@ export interface SoftwareCardProps {
   liveUrl?: string;
   githubUrl?: string;
   demoUrl?: string;
-  type: "active" | "beta" | "archived" | "completed";
+  type: "Personal Project" | "Academic Project" | "Internship";
   imageUrl?: string;
   themeColor?: string;
   titleColor?: string;

@@ -58,13 +58,13 @@ const SoftwarePage = () => {
     if (frameCount <= 1 || isPaused || isHovering) return;
     const interval = setInterval(() => {
       setCurrentFrame((prev) => {
-        // Don't auto-advance past the last frame
-        if (prev >= frameCount - 1) return prev;
+        // Loop back to start when reaching the end
+        if (prev >= frameCount - 1) return 0;
         return prev + 1;
       });
     }, 4000);
     return () => clearInterval(interval);
-  }, [frameCount, isPaused, isHovering, currentFrame]);
+  }, [frameCount, isPaused, isHovering]);
 
   // --- mobile scroll to top button ---
   useEffect(() => {
@@ -76,16 +76,20 @@ const SoftwarePage = () => {
 
   const handlePrevFrame = () => {
     if (currentFrame === 0) return; // Don't go before first frame
-    setIsPaused(true);
+    if (isMobile) {
+      setIsPaused(true);
+      setTimeout(() => setIsPaused(false), 5000);
+    }
     setCurrentFrame((prev) => prev - 1);
-    setTimeout(() => setIsPaused(false), 5000);
   };
   
   const handleNextFrame = () => {
     if (currentFrame >= frameCount - 1) return; // Don't go past last frame
-    setIsPaused(true);
+    if (isMobile) {
+      setIsPaused(true);
+      setTimeout(() => setIsPaused(false), 5000);
+    }
     setCurrentFrame((prev) => prev + 1);
-    setTimeout(() => setIsPaused(false), 5000);
   };
 
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -100,11 +104,15 @@ const SoftwarePage = () => {
     const diff = touchStartX.current - touchEndX.current;
     if (diff > 50 && currentFrame < frameCount - 1) {
       // Swipe left - next frame (only if not at last frame)
-      handleNextFrame();
+      setIsPaused(true);
+      setCurrentFrame((prev) => prev + 1);
+      setTimeout(() => setIsPaused(false), 5000);
     }
     if (diff < -50 && currentFrame > 0) {
       // Swipe right - previous frame (only if not at first frame)
-      handlePrevFrame();
+      setIsPaused(true);
+      setCurrentFrame((prev) => prev - 1);
+      setTimeout(() => setIsPaused(false), 5000);
     }
   };
 
@@ -328,8 +336,10 @@ const SoftwarePage = () => {
                       key={i}
                       onClick={() => {
                         setCurrentFrame(i);
-                        setIsPaused(true);
-                        setTimeout(() => setIsPaused(false), 5000);
+                        if (!isMobile) {
+                          setIsPaused(true);
+                          setTimeout(() => setIsPaused(false), 5000);
+                        }
                       }}
                       className={`h-2 rounded-full transition-all ${
                         i === currentFrame ? "bg-white w-6" : "bg-white/40 w-2"
