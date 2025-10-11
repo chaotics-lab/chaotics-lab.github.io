@@ -55,52 +55,39 @@ export const SoftwareCard = (props: Partial<SoftwareCardProps>) => {
     return positions[Math.floor(Math.random() * positions.length)];
   }, []);
 
-  const getStatusColor = (status: string | undefined) => {
-    switch (status) {
-      case "active":
-        return "bg-green-500/20 text-green-300 border-green-500/30";
-      case "beta":
-        return "bg-yellow-500/20 text-yellow-300 border-yellow-500/30";
-      case "archived":
-        return "bg-gray-500/20 text-gray-300 border-gray-500/30";
-      case "completed":
-        return "bg-blue-500/20 text-blue-300 border-blue-500/30";
-      default:
-        return "bg-gray-500/20 text-gray-300 border-gray-500/30";
-    }
-  };
-
   return (
     <Link to={`/project/${id}`} className="block w-full select-none">
       <Card
         className={`
-          group relative overflow-hidden bg-space-surface/50
+          relative overflow-visible bg-space-surface/50
           backdrop-blur-sm flex flex-col transition-transform duration-150 ease-in-out
           hover:scale-[1.05] hover:-translate-y-1 active:scale-[0.98]
           cursor-pointer
         `}
-        style={{ "--glow-origin": glowPosition } as React.CSSProperties}
+        style={{
+          // Box-shadow replaces border + adds hover glow
+          boxShadow: `0 0 0 2px ${themeColor}, 0 0 0 0 ${themeColor}00`,
+          transition: "box-shadow 0.25s ease-in-out",
+          "--glow-origin": glowPosition,
+        } as React.CSSProperties}
+        onMouseEnter={(e) => {
+          (e.currentTarget.style as any).boxShadow = 
+            `0 0 0 2px ${themeColor}, 0 0 20px 5px ${themeColor}55`;
+        }}
+        onMouseLeave={(e) => {
+          (e.currentTarget.style as any).boxShadow = `0 0 0 2px ${themeColor}, 0 0 0 0 ${themeColor}00`;
+        }}
       >
-        {/* Glow behind content */}
+        {/* Inner pulse glow */}
         <div
-          className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500 ease-in-out rounded-md"
+          className="absolute inset-0 pointer-events-none rounded-md"
           style={{
             background: `radial-gradient(circle at var(--glow-origin), ${themeColor}44 0%, transparent 70%)`,
             filter: "blur(50px)",
             animation: "softPulse 3s ease-in-out infinite",
             zIndex: 0,
           }}
-        ></div>
-
-        {/* Border/outer glow overlay */}
-        <div
-          className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500 ease-in-out rounded-md"
-          style={{
-            border: `1px solid ${themeColor}`,
-            boxShadow: `0 0 20px 5px ${themeColor}55`,
-            zIndex: 20,
-          }}
-        ></div>
+        />
 
         {/* Overlay icon for click indication */}
         <div className="absolute bottom-2 right-2 z-30 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
@@ -111,21 +98,21 @@ export const SoftwareCard = (props: Partial<SoftwareCardProps>) => {
           {/* Thumbnail */}
           {imageUrl && (
             <div
-              className="aspect-video w-full flex items-center justify-center relative bg-gray-900"
+              className="aspect-video w-full flex items-center justify-center relative overflow-hidden rounded-md"
               style={{ backgroundColor: themeColor + "22" }}
             >
               {logoUrl && (
                 <img
                   src={logoUrl}
                   alt={`${title} Logo`}
-                  className="h-16 w-16 object-contain"
+                  className="h-16 w-16 object-contain z-10"
                   style={{ backgroundColor: logoBackgroundColor || "transparent" }}
                 />
               )}
               <img
                 src={`${imageUrl}/1.png`}
                 alt={`${title} Thumbnail`}
-                className="absolute inset-0 w-full h-full object-cover object-center"
+                className="absolute inset-0 w-full h-full object-cover object-center z-0"
               />
             </div>
           )}
@@ -219,3 +206,4 @@ style.textContent = `
 .line-clamp-3 { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 `;
 document.head.appendChild(style);
+export default SoftwareCard;
