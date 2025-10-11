@@ -8,10 +8,8 @@
   "themeColor": "#2139ef",
   "logoBackgroundColor": "transparent",
   "category": [
-    "software",
     "gui",
-    "sp",
-    "app"
+    "sp"
   ],
   "githubUrl": "https://github.com/Loxed/porypal",
   "tags": [

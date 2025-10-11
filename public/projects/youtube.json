@@ -8,7 +8,7 @@
   "logoUrl": "/img/youtube-tracker/logo.png",
   "themeColor": "#A50000",
   "logoBackgroundColor": "transparent",
-  "category": ["software", "web", "gui", "app"],
+  "category": [ "web", "gui", ],
   "githubUrl": "https://github.com/Loxed/youtube-video-tracker",
   "demoUrl": "https://addons.mozilla.org/firefox/addon/youtube-video-tracker/",
   "tags": ["JavaScript", "WebExtensions API", "Firefox", "Local Storage", "DOM Manipulation"],

@@ -9,10 +9,9 @@
   "themeColor": "#393939",
   "logoBackgroundColor": "transparent",
   "category": [
-    "software",
+    
     "gui",
-    "app",
-    "back"
+    "backend"
   ],
   "tags": [
     "JavaFX",

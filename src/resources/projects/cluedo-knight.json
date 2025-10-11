@@ -9,8 +9,7 @@
   "logoBackgroundColor": "transparent",
   "githubUrl": "https://github.com/Loxed/cluedo-knight",
   "category": [
-    "game",
-    "app"
+    "game"
   ],
   "tags": [
     "C++",
