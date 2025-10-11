@@ -57,7 +57,7 @@ export const SoftwareCard = (props: Partial<SoftwareCardProps>) => {
           relative overflow-hidden bg-space-surface/50
           backdrop-blur-sm flex flex-col transition-transform duration-150 ease-in-out
           hover:scale-[1.05] hover:-translate-y-1 active:scale-[0.98]
-          cursor-pointer rounded-md
+          cursor-pointer
         `}
         style={{
           boxShadow: `0 0 0 2px ${themeColor}, 0 0 0 0 ${themeColor}00`,

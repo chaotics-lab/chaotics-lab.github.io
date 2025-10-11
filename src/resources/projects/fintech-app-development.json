@@ -5,11 +5,12 @@
   "description": "Implemented microservices (international fund transfers, transaction history, image compression) into 300M+ users Fintech super app.",
   "imageUrl": "/img/payby",
   "logoUrl": "/img/payby/logo.png",
+  "demoUrl": "https://www.botim.money/point-of-sale",
   "themeColor": "#4ade4a",
   "logoBackgroundColor": "#FFFFFF",
   "category": [
     "software",
-    "back"
+    "backend"
   ],
   "tags": [
     "Rust",

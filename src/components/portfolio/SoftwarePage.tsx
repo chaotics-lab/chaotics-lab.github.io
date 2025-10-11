@@ -276,7 +276,7 @@ const SoftwarePage = () => {
           {/* Markdown */}
           {project?.markdown && (
             <div
-              className="markdown-section max-w-none mt-8 p-6 bg-space-surface/50 rounded-lg border border-space-border backdrop-blur-sm atmospheric-glow"
+              className="markdown-section max-w-none mt-8 p-6 bg-space-surface/50 rounded-lg border border-space-border backdrop-blur-sm"
               style={{ '--deep-space-color': hexToRgba(project?.themeColor) } as React.CSSProperties}
             >
               <ReactMarkdown remarkPlugins={[remarkGfm]}>
