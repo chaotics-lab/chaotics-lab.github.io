@@ -6,7 +6,7 @@ export interface ProjectData {
   technologies: string[];
   liveUrl?: string;
   githubUrl?: string;
-  status: 'active' | 'beta' | 'archived';
+  type: 'active' | 'beta' | 'archived';
   content?: string;
   slug: string;
 }

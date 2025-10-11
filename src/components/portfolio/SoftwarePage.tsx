@@ -188,12 +188,12 @@ const SoftwarePage = () => {
               >
                 {project.title}
               </h1>
-              {project.status && (
+              {project.type && (
                 <Badge
                   variant="outline"
                   className="font-mono text-xs md:text-sm bg-white/10 border-white/20 shrink-0"
                 >
-                  {project.status}
+                  {project.type}
                 </Badge>
               )}
             </div>

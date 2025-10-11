@@ -8,7 +8,7 @@ export interface ProjectData {
   technologies: string[];
   liveUrl?: string;
   githubUrl?: string;
-  status: 'active' | 'beta' | 'archived';
+  type: 'active' | 'beta' | 'archived';
   imageUrl?: string;
   logoUrl?: string;
   themeColor?: string;         // formerly themeColor
@@ -59,7 +59,7 @@ export const SoftwareGrid: React.FC = () => {
                 title={project.title}
                 description={project.description}
                 technologies={project.technologies || project.tags || []}
-                status={project.status}
+                type={project.type}
                 liveUrl={project.liveUrl}
                 githubUrl={project.githubUrl}
                 imageUrl={project.imageUrl}

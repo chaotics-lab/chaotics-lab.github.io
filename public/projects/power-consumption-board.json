@@ -9,6 +9,6 @@
   "themeColor": "#046307",
   "category": ["software", "sp", "embedded-systems", "gui"],
   "tags": ["C", "C++", "Python", "Kinetis K60", "Qt", "Ethernet"],
-  "status": "active",
+  "type": "active",
   "markdown": "## Deep Dive\nThis is a test section written in *Markdown*.\n- It supports lists\n- Code blocks too\n\n```c\nint main() { return 0; }\n```"
 }

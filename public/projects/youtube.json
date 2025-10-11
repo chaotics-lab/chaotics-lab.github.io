@@ -12,5 +12,5 @@
   "githubUrl": "https://github.com/Loxed/youtube-video-tracker",
   "demoUrl": "https://addons.mozilla.org/firefox/addon/youtube-video-tracker/",
   "tags": ["JavaScript", "WebExtensions API", "Firefox", "Local Storage", "DOM Manipulation"],
-  "status": "active"
+  "type": "active"
 }
