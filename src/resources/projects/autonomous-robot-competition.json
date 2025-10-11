@@ -1,8 +1,8 @@
 {
-  "title": "Autonomous Robot Competition",
+  "title": "Autonomous Robot (ECECUP)",
   "date": "2022-05-20",
   "titleColor": "#FFFFFF",
-  "description": "Built a fully autonomous robot from scratch with computer vision and graph-based pathfinding.",
+  "description": "Built a fully autonomous robot from scratch with computer vision, state machine and graph-based pathfinding.",
   "imageUrl": "/img/ececup",
   "logoUrl": "/img/ececup/logo.png",
   "themeColor": "#de2900",
@@ -14,9 +14,9 @@
     "sp"
   ],
   "tags": [
-    "OpenCV",
+    "OpenCV2",
     "C++",
-    "ESP8266",
+    "ESP32",
     "AJAX",
     "MQTT"
   ],

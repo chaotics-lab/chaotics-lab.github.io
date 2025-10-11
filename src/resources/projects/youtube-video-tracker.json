@@ -17,9 +17,9 @@
   "demoUrl": "https://addons.mozilla.org/firefox/addon/youtube-video-tracker/",
   "tags": [
     "JavaScript",
-    "WebExtensions API",
     "Firefox",
     "Local Storage",
+    "WebExtensions API",
     "DOM Manipulation"
   ],
   "status": "completed",

@@ -18,8 +18,8 @@
   "tags": [
     "Python",
     "PyTorch",
-    "Graph Machine Learning",
-    "ROS2"
+    "ROS2",
+    "Graph Machine Learning"
   ],
   "status": "completed",
   "id": "autonomous-racing-car",

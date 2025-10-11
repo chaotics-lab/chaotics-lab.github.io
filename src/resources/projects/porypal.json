@@ -2,7 +2,7 @@
   "title": "Porypal",
   "date": "2025-03-28",
   "titleColor": "#FFFFFF",
-  "description": "Image processing software and tileset editor for ROM hacks.",
+  "description": "Image processing, tileset editor and palette injector for automatic custom graphics in Gen 3 ROM hacks.",
   "imageUrl": "/img/porypal",
   "logoUrl": "/img/porypal/logo.png",
   "themeColor": "#2139ef",

@@ -1,5 +1,5 @@
 {
-  "title": "Power Consumption Measurement Board",
+  "title": "Power Consumption Measurement",
   "date": "2024-08-21",
   "titleColor": "#000000",
   "description": "Developed a measurement board to evaluate product battery life and optimize real-time signal processing to handle billions of data points.",
