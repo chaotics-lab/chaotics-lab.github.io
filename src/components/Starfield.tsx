@@ -50,7 +50,6 @@ interface ShootingStar {
   size: number;
   hue: number;
   opacity: number;
-  isNearBlackHole: boolean;
 }
 
 interface BlackHole {
@@ -60,48 +59,23 @@ interface BlackHole {
   effectRadius: number;
 }
 
-interface GlowStar {
-  angle: number;       // orbit angle
-  radius: number;      // distance from black hole
-  size: number;        // visual size
-  hue: number;         // color hue
-  speed: number;       // rotation speed
-  opacity: number;     // glow opacity
-}
-
 export const Starfield = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const starGroupsRef = useRef<StarGroup[]>([]);
   const hoverStarsRef = useRef<HoverStar[]>([]);
   const paintedStarsRef = useRef<PaintedStar[]>([]);
-  const glowStarsRef = useRef<GlowStar[]>([]);
   const shootingStarsRef = useRef<ShootingStar[]>([]);
   const animationRef = useRef<number>();
   const mousePos = useRef<{ x: number; y: number } | null>(null);
   const mouseDown = useRef<boolean>(false);
+  const lastFrameTime = useRef<number>(0);
 
   const blackHole: BlackHole = {
     x: window.innerWidth / 2,
     y: window.innerHeight / 2,
-    radius: 200,
-    effectRadius: 250,
+    radius: 150,
+    effectRadius: 200,
   };
-
-  // Initialize glow stars
-const createGlowStars = (count: number, blackHoleRadius: number) => {
-  const stars: GlowStar[] = [];
-  for (let i = 0; i < count; i++) {
-    stars.push({
-      angle: Math.random() * Math.PI,
-      radius: blackHoleRadius + 100 + Math.random() * 250,
-      size: 100 + Math.random() * 250,
-      hue: Math.random() * 180,
-      speed: 0.002 + Math.random() * 0.005,
-      opacity: 0.05 - Math.random() * 0.025,
-    });
-  }
-  return stars;
-};
 
   const createStarGroups = (width: number, height: number) => {
     const groups: StarGroup[] = [];
@@ -147,27 +121,26 @@ const createGlowStars = (count: number, blackHoleRadius: number) => {
       }
     };
 
-    createGroupedStars([0.5, 1], 80, [5, 15], [1.5, 2.5], 20);
-    createGroupedStars([1, 2.5], 20, [20, 40], [0.2, 0.5], 5);
-    createGroupedStars([2.5, 4], 10, [40, 80], [0.05, 0.1], 3);
-    createGroupedStars([4, 6], 5, [40, 120], [0.01, 0.05], 2  );
+    // Reduced star counts
+    createGroupedStars([0.5, 1], 40, [5, 15], [1.5, 2.5], 10);
+    createGroupedStars([1, 2.5], 10, [20, 40], [0.2, 0.5], 3);
+    createGroupedStars([2.5, 4], 5, [40, 80], [0.05, 0.1], 2);
+
     return groups;
   };
 
   const drawBlackHole = (ctx: CanvasRenderingContext2D, x: number, y: number, radius: number) => {
+    // Simplified gradient without blur filter
     const gradient = ctx.createRadialGradient(x, y, radius * 0.3, x, y, radius);
-    gradient.addColorStop(0, 'rgba(255, 228, 200, 1)');
-    gradient.addColorStop(0.15, 'rgba(255, 165, 0, 0.8)');
-    gradient.addColorStop(0.6, 'rgba(255, 42, 0, 0.6)');
+    gradient.addColorStop(0, 'rgba(255, 228, 200, 0.8)');
+    gradient.addColorStop(0.15, 'rgba(255, 165, 0, 0.6)');
+    gradient.addColorStop(0.6, 'rgba(255, 42, 0, 0.4)');
     gradient.addColorStop(1, 'rgba(0,0,0,0)');
 
-    ctx.save();
-    ctx.filter = 'blur(25px) brightness(2.8)';
     ctx.fillStyle = gradient;
     ctx.beginPath();
     ctx.arc(x, y, radius, 0, Math.PI * 2);
     ctx.fill();
-    ctx.restore();
 
     ctx.fillStyle = '#000';
     ctx.beginPath();
@@ -178,18 +151,16 @@ const createGlowStars = (count: number, blackHoleRadius: number) => {
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext('2d', { alpha: false });
     if (!ctx) return;
 
     const resize = () => {
       canvas.width = window.innerWidth;
-      canvas.height = canvas.parentElement?.clientHeight || window.innerHeight; // header height
+      canvas.height = canvas.parentElement?.clientHeight || window.innerHeight;
       starGroupsRef.current = createStarGroups(canvas.width, canvas.height);
-      // On resize or init
-      glowStarsRef.current = createGlowStars(2, blackHole.radius*2);
 
       blackHole.x = canvas.width / 2;
-      blackHole.y = canvas.height; // bottom-center
+      blackHole.y = canvas.height;
     };
 
     resize();
@@ -209,35 +180,34 @@ const createGlowStars = (count: number, blackHoleRadius: number) => {
     let time = 0;
     let shootTimer = 0;
 
-    const animate = () => {
+    const animate = (currentTime: number) => {
       if (!ctx) return;
+
+      // Throttle to ~30fps for low-end devices
+      const deltaTime = currentTime - lastFrameTime.current;
+      if (deltaTime < 33) {
+        animationRef.current = requestAnimationFrame(animate);
+        return;
+      }
+      lastFrameTime.current = currentTime;
+
       time += 0.016;
       shootTimer += 0.016;
 
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      // Fill background once instead of clearRect
+      ctx.fillStyle = '#000';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      const cx = canvas.width / 2;
-      const cy = canvas.height / 2;
+      // Simplified rotation without save/restore
+      const rotationAngle = (time * 2 * Math.PI) / 120;
+      const cosRot = Math.cos(rotationAngle);
+      const sinRot = Math.sin(rotationAngle);
 
-      // Rotate starfield around black hole
-      ctx.save();
-      ctx.translate(blackHole.x, blackHole.y);
-      ctx.rotate((time * 2 * Math.PI) / 120);
-      ctx.translate(-blackHole.x, -blackHole.y);
-
-      glowStarsRef.current.forEach((star) => {
-        star.angle += star.speed;
-        const x = blackHole.x + star.radius * Math.cos(star.angle);
-        const y = blackHole.y + star.radius * Math.sin(star.angle);
-
-        ctx.save();
-        ctx.filter = 'blur(20px)';
-        ctx.fillStyle = `hsla(${star.hue},50%,90%,${star.opacity})`;
-        ctx.beginPath();
-        ctx.arc(x, y, star.size, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.restore();
-      });
+      // Pre-calculate common values
+      const bhx = blackHole.x;
+      const bhy = blackHole.y;
+      const effectRad = blackHole.effectRadius;
+      const effectRadSq = effectRad * effectRad;
 
       // Draw star groups
       starGroupsRef.current.forEach((group) => {
@@ -248,51 +218,62 @@ const createGlowStars = (count: number, blackHoleRadius: number) => {
           let x = star.x + dxGroup;
           let y = star.y + dyGroup;
 
-          const dxBH = blackHole.x - x;
-          const dyBH = blackHole.y - y;
-          const dist = Math.sqrt(dxBH * dxBH + dyBH * dyBH);
-          if (dist < blackHole.effectRadius) {
-            const pull = ((blackHole.effectRadius - dist) / blackHole.effectRadius) ** 1.5 * 0.08;
+          // Optimized distance check
+          const dxBH = bhx - x;
+          const dyBH = bhy - y;
+          const distSq = dxBH * dxBH + dyBH * dyBH;
+          
+          if (distSq < effectRadSq) {
+            const dist = Math.sqrt(distSq);
+            const pull = ((effectRad - dist) / effectRad) ** 1.5 * 0.08;
             x += dxBH * pull;
             y += dyBH * pull;
           }
+
+          // Apply rotation
+          const dx = x - bhx;
+          const dy = y - bhy;
+          const rotatedX = dx * cosRot - dy * sinRot + bhx;
+          const rotatedY = dx * sinRot + dy * cosRot + bhy;
 
           const opacity = 0.9 + 0.1 * Math.sin(time * 2 + group.opacityPhase);
           const hue = star.hueBase + star.hueWeight * Math.sin(time * star.hueSpeed);
 
           ctx.fillStyle = `hsla(${hue},20%,97%,${opacity})`;
           ctx.beginPath();
-          ctx.arc(x, y, star.size, 0, 2 * Math.PI);
+          ctx.arc(rotatedX, rotatedY, star.size, 0, 2 * Math.PI);
           ctx.fill();
         });
       });
 
-      ctx.restore();
+      // Hover stars - reduced spawn rate
+      if (mousePos.current && Math.random() < 0.3) {
+        hoverStarsRef.current.push({
+          x: mousePos.current.x + (Math.random() - 0.5) * 30,
+          y: mousePos.current.y + (Math.random() - 0.5) * 30,
+          size: Math.random() * 2.5,
+          opacity: 0,
+          life: 0,
+          hue: 45 + Math.random() * 20,
+        });
+      }
 
-      // Hover stars
-      if (mousePos.current) {
-        const spawnCount = Math.random() < 0.5 ? 1 : 2;
-        for (let s = 0; s < spawnCount; s++) {
-          hoverStarsRef.current.push({
-            x: mousePos.current.x + (Math.random() - 0.5) * 30,
-            y: mousePos.current.y + (Math.random() - 0.5) * 30,
-            size: Math.random() * 2.5,
-            opacity: 0,
-            life: 0,
-            hue: 45 + Math.random() * 20,
-          });
-        }
+      // Limit hover stars array size
+      if (hoverStarsRef.current.length > 50) {
+        hoverStarsRef.current = hoverStarsRef.current.slice(-50);
       }
 
       hoverStarsRef.current.forEach((star, i) => {
         star.life += 0.04;
         star.opacity = star.life < 1 ? star.life : star.opacity - 0.02;
 
-        const dxBH = blackHole.x - star.x;
-        const dyBH = blackHole.y - star.y;
-        const dist = Math.sqrt(dxBH * dxBH + dyBH * dyBH);
-        if (dist < blackHole.effectRadius) {
-          const pull = ((blackHole.effectRadius - dist) / blackHole.effectRadius) ** 1.5 * 0.08;
+        const dxBH = bhx - star.x;
+        const dyBH = bhy - star.y;
+        const distSq = dxBH * dxBH + dyBH * dyBH;
+        
+        if (distSq < effectRadSq) {
+          const dist = Math.sqrt(distSq);
+          const pull = ((effectRad - dist) / effectRad) ** 1.5 * 0.08;
           star.x += dxBH * pull;
           star.y += dyBH * pull;
         }
@@ -301,42 +282,46 @@ const createGlowStars = (count: number, blackHoleRadius: number) => {
         ctx.beginPath();
         ctx.arc(star.x, star.y, star.size, 0, 2 * Math.PI);
         ctx.fill();
+        
         if (star.opacity <= 0) hoverStarsRef.current.splice(i, 1);
       });
 
-      // Painted stars
-      if (mouseDown.current && mousePos.current) {
-        const spawnCount = Math.random() < 0.5 ? 1 : 2;
-        for (let s = 0; s < spawnCount; s++) {
-          paintedStarsRef.current.push({
-            baseX: mousePos.current.x,
-            baseY: mousePos.current.y,
-            size:  Math.random() * 3.5,
-            hue: 45 + Math.random() * 20,
-            spawnTime: time,
-            opacity: 1,
-          });
-        }
+      // Painted stars - reduced spawn rate
+      if (mouseDown.current && mousePos.current && Math.random() < 0.3) {
+        paintedStarsRef.current.push({
+          baseX: mousePos.current.x,
+          baseY: mousePos.current.y,
+          size: Math.random() * 3.5,
+          hue: 45 + Math.random() * 20,
+          spawnTime: time,
+          opacity: 1,
+        });
+      }
+
+      // Limit painted stars array size
+      if (paintedStarsRef.current.length > 100) {
+        paintedStarsRef.current = paintedStarsRef.current.slice(-100);
       }
 
       paintedStarsRef.current.forEach((star, i) => {
         const life = time - star.spawnTime;
-        star.opacity = Math.max(0, 1 - life / 6); // last longer
+        star.opacity = Math.max(0, 1 - life / 6);
 
-        const dxBH = blackHole.x - star.baseX;
-        const dyBH = blackHole.y - star.baseY;
-        const dist = Math.sqrt(dxBH * dxBH + dyBH * dyBH);
-        if (dist < blackHole.effectRadius) {
-          const pull = ((blackHole.effectRadius - dist) / blackHole.effectRadius) ** 1.5 * 0.03;
+        const dxBH = bhx - star.baseX;
+        const dyBH = bhy - star.baseY;
+        const distSq = dxBH * dxBH + dyBH * dyBH;
+        
+        if (distSq < effectRadSq) {
+          const dist = Math.sqrt(distSq);
+          const pull = ((effectRad - dist) / effectRad) ** 1.5 * 0.03;
           star.baseX += dxBH * pull;
           star.baseY += dyBH * pull;
         }
 
-        const rotationAngle = (life * 2 * Math.PI) / 120;
-        const dx = star.baseX - blackHole.x;
-        const dy = star.baseY - blackHole.y;
-        const rotatedX = dx * Math.cos(rotationAngle) - dy * Math.sin(rotationAngle) + blackHole.x;
-        const rotatedY = dx * Math.sin(rotationAngle) + dy * Math.cos(rotationAngle) + blackHole.y;
+        const dx = star.baseX - bhx;
+        const dy = star.baseY - bhy;
+        const rotatedX = dx * cosRot - dy * sinRot + bhx;
+        const rotatedY = dx * sinRot + dy * cosRot + bhy;
 
         ctx.fillStyle = `hsla(${star.hue},20%,97%,${star.opacity})`;
         ctx.beginPath();
@@ -346,13 +331,12 @@ const createGlowStars = (count: number, blackHoleRadius: number) => {
         if (star.opacity <= 0) paintedStarsRef.current.splice(i, 1);
       });
 
-      // Shooting stars
-      if (shootTimer > 3.0) {
+      // Shooting stars - increased spawn interval
+      if (shootTimer > 4.0) {
         shootTimer = 0;
         const side = Math.floor(Math.random() * 3);
-        let x = 0,
-          y = 0,
-          angleOffset = 0;
+        let x = 0, y = 0, angleOffset = 0;
+        
         switch (side) {
           case 0:
             x = Math.random() * canvas.width;
@@ -370,15 +354,14 @@ const createGlowStars = (count: number, blackHoleRadius: number) => {
             angleOffset = Math.PI + (Math.random() - 0.5) * 0.3;
             break;
         }
+        
         shootingStarsRef.current.push({
-          x,
-          y,
+          x, y,
           vx: Math.cos(angleOffset) * 6,
           vy: Math.sin(angleOffset) * 6,
           size: 1 + Math.random() * 2,
           hue: 50 + Math.random() * 20,
           opacity: 1,
-          isNearBlackHole: false,
         });
       }
 
@@ -386,13 +369,13 @@ const createGlowStars = (count: number, blackHoleRadius: number) => {
         star.x += star.vx;
         star.y += star.vy;
 
-        const dxBH = blackHole.x - star.x;
-        const dyBH = blackHole.y - star.y;
-        const dist = Math.sqrt(dxBH * dxBH + dyBH * dyBH);
+        const dxBH = bhx - star.x;
+        const dyBH = bhy - star.y;
+        const distSq = dxBH * dxBH + dyBH * dyBH;
 
-        if (dist < blackHole.effectRadius) {
-          star.isNearBlackHole = true;
-          const pull = ((blackHole.effectRadius - dist) / blackHole.effectRadius) ** 1.5 * 0.1;
+        if (distSq < effectRadSq) {
+          const dist = Math.sqrt(distSq);
+          const pull = ((effectRad - dist) / effectRad) ** 1.5 * 0.1;
           star.x += dxBH * pull;
           star.y += dyBH * pull;
           star.opacity -= 0.05;
@@ -414,8 +397,8 @@ const createGlowStars = (count: number, blackHoleRadius: number) => {
         }
       });
 
-      // Draw black hole last so stars appear behind it
-      drawBlackHole(ctx, blackHole.x, blackHole.y, blackHole.radius);
+      // Draw black hole last
+      drawBlackHole(ctx, bhx, bhy, blackHole.radius);
 
       animationRef.current = requestAnimationFrame(animate);
     };
