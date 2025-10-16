@@ -1,7 +1,7 @@
 {
   "title": "Air Traffic Simulation",
   "date": "2022-04-03",
-  "titleColor": "#000000",
+  "titleColor": "#FFFFFF",
   "description": "An air traffic simulation using graph-theory enabling automatic planes, airport management, weather event rerouting.",
   "imageUrl": "/img/kvl",
   "logoUrl": "/img/kvl/logo.png",
