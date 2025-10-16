@@ -189,7 +189,7 @@ const SoftwarePage = () => {
       `}</style>
 
       {/* --- main content --- */}
-      <div className="relative z-10 container mx-auto py-4 md:py-8 px-4 flex flex-col gap-4 h-screen overflow-hidden">
+      <div className={`relative z-10 container mx-auto py-4 md:py-8 px-4 flex flex-col gap-4 ${isMobile ? '' : 'h-screen overflow-hidden'}`}>
         {/* Back Button */}
         <Link to="/" className="shrink-0">
           <Button className="flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white border-2 border-white/20 hover:border-white/40 backdrop-blur-sm transition-all">
@@ -198,7 +198,7 @@ const SoftwarePage = () => {
         </Link>
 
         {/* --- HERO --- */}
-        <div className="flex flex-col md:flex-row gap-4 md:h-[25%] md:min-h-[180px] md:max-h-[200px] shrink-0">
+        <div className={`flex flex-col md:flex-row gap-4 ${isMobile ? '' : 'md:h-[25%] md:min-h-[180px] md:max-h-[200px] shrink-0'}`}>
           {/* Hero Content - flex: 2 */}
           <div 
             className="relative p-6 backdrop-blur-xl rounded-2xl shadow-2xl border-2 overflow-hidden flex flex-col flex-1 md:flex-[2]"
@@ -488,40 +488,7 @@ const SoftwarePage = () => {
           </div>
         ) : (
           /* --- MOBILE: stacked layout --- */
-          <div className="flex flex-col gap-6 overflow-y-auto">
-            {/* Mobile Logo */}
-            {project.logoUrl && (
-              <div className="flex justify-center">
-                <div
-                  className="relative backdrop-blur-xl rounded-2xl shadow-2xl border-2 overflow-hidden w-32 h-32"
-                  style={{ borderColor: `${themeColor}30` }}
-                >
-                  <div
-                    className="absolute inset-0 pointer-events-none"
-                    style={{
-                      background: `radial-gradient(circle at center, ${themeColor}70 0%, transparent 70%)`,
-                      filter: "blur(40px)",
-                    }}
-                  />
-                  <div
-                    className="absolute inset-0 pointer-events-none"
-                    style={{
-                      background: 'radial-gradient(circle at center, rgba(255, 255, 255, 0.9) 0%, transparent 70%)',
-                      filter: "blur(30px)",
-                    }}
-                  />
-                  <div className="absolute inset-0 bg-white/5" />
-                  <div className="relative flex items-center justify-center h-full w-full p-4">
-                    <img
-                      src={project.logoUrl}
-                      alt={`${project.title} logo`}
-                      className="max-w-full max-h-full object-contain"
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
-
+          <div className="flex flex-col gap-6 pb-8">
             {/* Carousel */}
             <div 
               className="relative w-full" 
@@ -648,7 +615,7 @@ const SoftwarePage = () => {
         <button
           onClick={scrollToTop}
           className={`fixed bottom-6 right-6 rounded-full p-3 shadow-lg z-50 transition-all duration-300 ease-in-out ${
-            showScrollTop ? 'translate-y-0' : 'translate-y-24'
+            showScrollTop ? 'translate-y-0 opacity-100' : 'translate-y-24 opacity-0'
           }`}
           style={{
             backgroundColor: `${themeColor}80`,
