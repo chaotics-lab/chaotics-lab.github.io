@@ -35,20 +35,6 @@ const SoftwarePage = () => {
     ],
   }), [projectId]);
 
-  // Determine if logo needs light or dark contrast background
-  const getLogoContrast = (bgColor?: string) => {
-    if (!bgColor) return 'rgba(255, 255, 255, 0.9)';
-    
-    const hex = bgColor.replace('#', '');
-    const r = parseInt(hex.substr(0, 2), 16);
-    const g = parseInt(hex.substr(2, 2), 16);
-    const b = parseInt(hex.substr(4, 2), 16);
-    
-    const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-    
-    return luminance > 0.5 ? 'rgba(0, 0, 0, 0.9)' : 'rgba(255, 255, 255, 0.9)';
-  };
-
   // --- responsive handling ---
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
@@ -157,7 +143,6 @@ const SoftwarePage = () => {
 
   const date = project.date ? new Date(project.date) : null;
   const themeColor = project.themeColor || "#8888ff";
-  const logoContrast = getLogoContrast(project.logoBackgroundColor);
 
   return (
     <div className="relative w-full text-white flex flex-col overflow-hidden min-h-screen">
@@ -332,7 +317,7 @@ const SoftwarePage = () => {
                 <div
                   className="absolute inset-0 pointer-events-none z-0"
                   style={{
-                    background: `radial-gradient(circle at center, ${logoContrast} 0%, transparent 70%)`,
+                    background: 'radial-gradient(circle at center, rgba(255, 255, 255, 0.9) 0%, transparent 70%)',
                     filter: "blur(50px)",
                   }}
                 />
@@ -521,7 +506,7 @@ const SoftwarePage = () => {
                   <div
                     className="absolute inset-0 pointer-events-none"
                     style={{
-                      background: `radial-gradient(circle at center, ${logoContrast} 0%, transparent 70%)`,
+                      background: 'radial-gradient(circle at center, rgba(255, 255, 255, 0.9) 0%, transparent 70%)',
                       filter: "blur(30px)",
                     }}
                   />
