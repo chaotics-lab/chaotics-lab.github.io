@@ -1,73 +1,166 @@
-# Welcome to your Lovable project
+# Chaotics Lab Portfolio
 
-## Project info
+A modern, interactive portfolio website showcasing projects from the Chaotics Lab community. Built with React, TypeScript, and Tailwind CSS.
 
-**URL**: https://lovable.dev/projects/9c9de9f0-4102-4ff5-bee9-d003edcaf5f6
+## 🌟 Features
 
-## How can I edit this code?
+- **Project Showcase**: Browse a curated collection of projects with detailed descriptions, technologies, and links
+- **Interactive UI**: Smooth animations and responsive design built with Shadcn/UI components
+- **Dark Mode Support**: Theme switching capability using Next.js themes
+- **Category Filtering**: Filter projects by categories (GUI, Backend, AI, Robotics, Embedded Systems, etc.)
+- **Search Functionality**: Find projects quickly using integrated search
+- **Responsive Design**: Fully responsive layout optimized for mobile, tablet, and desktop
+- **Markdown Support**: Project descriptions support rich markdown formatting
+- **Form Handling**: Built-in form validation and submission with React Hook Form
 
-There are several ways of editing your application.
+## 🚀 Quick Start
 
-**Use Lovable**
+### Prerequisites
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/9c9de9f0-4102-4ff5-bee9-d003edcaf5f6) and start prompting.
+- Node.js (v18+)
+- Bun package manager (or npm/yarn)
 
-Changes made via Lovable will be committed automatically to this repo.
+### Installation
 
-**Use your preferred IDE**
+```bash
+# Install dependencies
+bun install
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+# Start development server
+bun run dev
 ```
 
-**Edit a file directly in GitHub**
+The application will be available at `http://localhost:8080`
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+### Build for Production
 
-**Use GitHub Codespaces**
+```bash
+# Build the project
+bun run build
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+# Preview production build locally
+bun run preview
+```
 
-## What technologies are used for this project?
+### Development Commands
 
-This project is built with:
+```bash
+# Run development server with hot reload
+bun run dev
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+# Build for development environment
+bun run build:dev
 
-## How can I deploy this project?
+# Lint code
+bun run lint
+```
 
-Simply open [Lovable](https://lovable.dev/projects/9c9de9f0-4102-4ff5-bee9-d003edcaf5f6) and click on Share -> Publish.
+## 📁 Project Structure
 
-## Can I connect a custom domain to my Lovable project?
+```
+src/
+├── components/
+│   ├── portfolio/           # Portfolio-specific components
+│   │   ├── Header.tsx
+│   │   ├── Footer.tsx
+│   │   ├── SoftwareCard.tsx
+│   │   ├── SoftwareGrid.tsx
+│   │   └── SoftwarePage.tsx
+│   ├── ui/                 # Shadcn/UI components library
+│   └── Starfield.tsx       # Animated starfield background
+├── pages/
+│   ├── Index.tsx           # Home page
+│   └── NotFound.tsx        # 404 page
+├── hooks/                  # Custom React hooks
+├── lib/                    # Utility functions
+│   ├── parseMarkdown.ts
+│   └── utils.ts
+├── resources/
+│   └── projects/           # Project metadata (JSON files)
+├── styles/                 # Global styles
+└── App.tsx                # Main app component
+```
 
-Yes, you can!
+## 🛠️ Tech Stack
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+- **Framework**: React 18.3
+- **Language**: TypeScript 5.8
+- **Build Tool**: Vite 5.4
+- **Styling**: Tailwind CSS 3.4
+- **Components**: Shadcn/UI (Radix UI primitives)
+- **Forms**: React Hook Form with Zod validation
+- **Routing**: React Router v6
+- **State Management**: TanStack React Query
+- **Markdown**: React Markdown with GFM support
+- **Charts**: Recharts
+- **Icons**: Lucide React
+- **Animations**: Tailwind CSS Animate
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+## 📦 Available Projects
+
+The portfolio showcases 14+ projects including:
+
+- **8-bit Calculator (FPGA)** - Hardware project
+- **Ace Attorney Guide** - Interactive guide
+- **Air Traffic Simulation** - Simulation software
+- **Autonomous Racing Car** - AI & Robotics
+- **Autonomous Robot Competition** - Competition entry
+- **Cluedo Knight** - Game project
+- **EceCopter (Remote-Controlled Drone)** - Embedded systems
+- **Fintech App Development** - Financial technology
+- **Game Logo Generator** - Generative tool
+- **Le Saboteur (French Board Game)** - Game adaptation
+- **PersonaPlay (Netflix Clone)** - Fullstack application
+- **PoryPal** - Educational tool
+- **Power Consumption Measurement Board** - Hardware
+- **YouTube Video Tracker** - Web application
+
+## 🎨 Customization
+
+### Adding New Projects
+
+1. Create a new JSON file in `src/resources/projects/`
+2. Follow the project metadata structure:
+
+```json
+{
+  "title": "Project Name",
+  "date": "YYYY-MM-DD",
+  "titleColor": "#FFFFFF",
+  "description": "Project description",
+  "imageUrl": "/img/project-folder",
+  "logoUrl": "/img/project-folder/logo.png",
+  "themeColor": "#000000",
+  "logoBackgroundColor": "#FFFFFF",
+  "category": ["category1", "category2"],
+  "tags": ["Tech1", "Tech2"],
+  "githubUrl": "https://github.com/...",
+  "demoUrl": "https://demo.url"
+}
+```
+
+3. Add project images to `public/img/`
+
+### Theme Configuration
+
+Customize Tailwind CSS in `tailwind.config.ts` and use dark mode support via the theme provider.
+
+## 🔧 Configuration Files
+
+- `vite.config.ts` - Vite build configuration
+- `tailwind.config.ts` - Tailwind CSS customization
+- `tsconfig.json` - TypeScript configuration
+- `eslint.config.js` - Code linting rules
+- `postcss.config.js` - PostCSS configuration
+- `components.json` - Shadcn/UI configuration
+
+## 📝 Scripts
+
+Located in `src/scripts/`:
+- `genIndex.js` - Generate project index
+- `mdToOneLiner.py` - Convert markdown to single line format
+- `test.md` - Test markdown file
+
+## 🌐 Deployment
+
+This project is designed to be deployed as a GitHub Pages site (username/org page).
