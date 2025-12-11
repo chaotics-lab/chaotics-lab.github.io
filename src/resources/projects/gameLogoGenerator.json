@@ -1,0 +1,25 @@
+{
+  "title": "Retro Game Logo Generator",
+  "date": "2025-12-09",
+  "titleColor": "#FFFFFF",
+  "description": "A web application that allows users to create beautiful normalized icons for their retro games collection.",
+  "imageUrl": "/img/logo-maker",
+  "demoUrl": "https://iisu-icon-maker.vercel.app/",
+  "logoUrl": "/img/logo-maker/logo.png",
+  "themeColor": "#00FFFF",
+  "logoBackgroundColor": "#FF00FF",
+  "category": [
+    "web",
+    "gui"
+    ],
+  "githubUrl": "https://github.com/chaotics-lab/iiSU-icon-maker",
+  "tags": [
+    "Flutter",
+    "Vite",
+    "TypeScript",
+    "Node.js"
+  ],
+  "type": "Personal Project",
+  "id": "logo-maker",
+  "markdown": "## What\nA streamlined web application used to produce uniform, high quality game icons for my upcoming cross-platform retro emulation frontend Kioku (きおく), inspired by the iiSU project.\n\n## How\nThe tool takes a source image, applies a consistent border, color gradient, and system icon either from pre-existing templates or custom-made ones, previews the icon in context, and exports ready to use. It ensures each asset aligns within the layout.\n\n## Result\nA fast and reliable workflow for generating cohesive game visuals. Every title in Kioku uses this tool for a clean, unified presentation of the user’s game library that improves readability, navigation, and overall frontend polish."
+}
