@@ -3,6 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ArrowRight, Sparkles } from "lucide-react";
 import { memo, useMemo } from "react";
+import { AISticker } from "@/components/AISticker";
 
 export interface SoftwareCardProps {
   id: string;
@@ -18,6 +19,7 @@ export interface SoftwareCardProps {
   titleColor?: string;
   tags?: string[];
   category?: string[];
+  AIUsed?: string;
 }
 
 export const SoftwareCard = memo((props: Partial<SoftwareCardProps>) => {
@@ -30,6 +32,7 @@ export const SoftwareCard = memo((props: Partial<SoftwareCardProps>) => {
     imageUrl,
     themeColor = "#8888ff",
     titleColor,
+    AIUsed,
   } = props;
 
   const isUpcoming = type === "Upcoming";
@@ -60,7 +63,7 @@ export const SoftwareCard = memo((props: Partial<SoftwareCardProps>) => {
   const cardContent = (
     <Card
       className={`
-        group relative overflow-hidden
+        group relative overflow-visible
         backdrop-blur-md flex flex-col
         h-full md:min-h-[400px]
         transition-all duration-200 ease-out
@@ -97,6 +100,32 @@ export const SoftwareCard = memo((props: Partial<SoftwareCardProps>) => {
           willChange: "opacity",
         }}
       />
+
+      {/* AI Sticker - Overlapping Top Left Corner */}
+      {AIUsed && (
+        <>
+          {/* Desktop - positioned to overlap corner */}
+          <div 
+            className="hidden md:block absolute z-30 pointer-events-none"
+            style={{
+              top: '-20px',
+              left: '-20px',
+            }}
+          >
+            <AISticker value={parseInt(AIUsed, 10)} size={80} />
+          </div>
+          {/* Mobile - positioned to overlap corner */}
+          <div 
+            className="md:hidden absolute z-30 pointer-events-none"
+            style={{
+              top: '-15px',
+              left: '-15px',
+            }}
+          >
+            <AISticker value={parseInt(AIUsed, 10)} size={60} />
+          </div>
+        </>
+      )}
 
       {/* Liquid Glass Gradient Background with Full Color - Desktop Only */}
       {!isUpcoming && (

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, ArrowUp, ExternalLink, Github } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { AISticker } from "@/components/AISticker";
 
 const SoftwarePage = () => {
   const { projectId } = useParams<{ projectId: string }>();
@@ -342,8 +343,21 @@ const SoftwarePage = () => {
           <div className="grid grid-cols-2 gap-4 flex-1 min-h-0 overflow-hidden">
             {/* Markdown (scrollable) */}
             {project.markdown && (
-              <div className="relative rounded-2xl shadow-2xl border-2 overflow-hidden h-full backdrop-blur-xl"
+              <div className="relative rounded-2xl shadow-2xl border-2 overflow-visible h-full backdrop-blur-xl"
                 style={{ borderColor: `${themeColor}30` }}>
+                {/* AI Sticker - Top Right (Desktop only) */}
+                {project.AIUsed && (
+                  <div 
+                    className="absolute z-30 pointer-events-none"
+                    style={{
+                      top: '-20px',
+                      right: '-20px',
+                    }}
+                  >
+                    <AISticker value={parseInt(project.AIUsed, 10)} size={100} />
+                  </div>
+                )}
+
                 {/* Multi-layer colorful glow */}
                 <div
                   className="absolute inset-0 pointer-events-none z-0"
@@ -366,7 +380,7 @@ const SoftwarePage = () => {
                     willChange: "opacity",
                   }}
                 />
-                <div className="absolute inset-0 bg-white/5 pointer-events-none" />
+                <div className="absolute inset-0 bg-white/5 pointer-events-none rounded-2xl" />
                 
                 <div
                   className="markdown-scroll p-6 overflow-y-auto prose prose-invert prose-sm md:prose-base max-w-none h-full relative z-10"
