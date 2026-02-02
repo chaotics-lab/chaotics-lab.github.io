@@ -340,23 +340,11 @@ const SoftwarePage = () => {
         {/* --- BOTTOM SECTION --- */}
         {!isMobile ? (
           /* --- DESKTOP: 2-column grid --- */
-          <div className="grid grid-cols-2 gap-4 flex-1 min-h-0 overflow-hidden">
+          <div className="relative grid grid-cols-2 gap-4 flex-1 min-h-0 overflow-hidden">
             {/* Markdown (scrollable) */}
             {project.markdown && (
-              <div className="relative rounded-2xl shadow-2xl border-2 overflow-visible h-full backdrop-blur-xl"
+              <div className="relative rounded-2xl shadow-2xl border-2 overflow-hidden h-full backdrop-blur-xl"
                 style={{ borderColor: `${themeColor}30` }}>
-                {/* AI Sticker - Top Right (Desktop only) */}
-                {project.AIUsed && (
-                  <div 
-                    className="absolute z-30 pointer-events-none"
-                    style={{
-                      top: '-20px',
-                      right: '-20px',
-                    }}
-                  >
-                    <AISticker value={parseInt(project.AIUsed, 10)} size={100} />
-                  </div>
-                )}
 
                 {/* Multi-layer colorful glow */}
                 <div
