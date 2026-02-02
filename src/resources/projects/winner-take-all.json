@@ -2,7 +2,7 @@
   "title": "Neurmorphic Winner-Take-All Circuit",
   "date": "2025-12-24",
   "titleColor": "#FFFFFF",
-  "description": "A 4 neuron Head Direction Cell using a Winner-Take-All Neural Network using thyristor-based electronics spiking LIF.",
+  "description": "A 4 Neuron Head-Direction Cell using a Winner-Take-All Network using thyristor-based electronics spiking LIFs.",
   "imageUrl": "/img/WTA",
   "logoUrl": "/img/WTA/logo.png",
   "demoUrl": "https://sites.google.com/view/marcelo-j-rozenberg/research/spiking-neurons/memristive-silicon-spiking-neurons?authuser=0/",
