@@ -1,0 +1,24 @@
+{
+  "title": "Neurmorphic Winner-Take-All Circuit",
+  "date": "2025-12-24",
+  "titleColor": "#FFFFFF",
+  "description": "A 4 neuron Head Direction cell using a Winner-Take-All Neural Network using thyristor-based electronics spiking LIF.",
+  "imageUrl": "/img/WTA",
+  "logoUrl": "/img/WTA/logo.png",
+  "demoUrl": "https://sites.google.com/view/marcelo-j-rozenberg/research/spiking-neurons/memristive-silicon-spiking-neurons?authuser=0/",
+  "themeColor": "#f9d047",
+  "logoBackgroundColor": "#FFFFFF",
+  "category": [
+    "embedded-systems",
+    "sp"
+  ],
+  "tags": [
+    "KiCAD",
+    "Analog Electronics",
+    "Neuromorphic Hardware"
+  ],
+  "type": "Internship",
+  "id": "winner-take-all",
+  "AIUsed": "0",
+  "markdown": "## What\nA neuromorphic hardware implementation of a Head Direction (HD) cell using Winner-Take-All (WTA) neural networks with thyristor-based spiking neurons. Replicates the fruit fly's internal compass system—where only 8 neurons arranged in a ring maintain stable orientation tracking—using ultra-compact electronic circuits that consume power only during spike events.\n\n## How\nDesigned thyristor-based Leaky Integrate-and-Fire (LIF) neurons using just three components: resistor (leak), capacitor (integration), and Silicon Controlled Rectifier (threshold/reset). Built modular PCBs for neurons and synapses (exponential/alpha types, excitatory/inhibitory modes) enabling scalable network assembly. Modeled WTA architectures (2, 4, 6, 8 neurons) in LTSpice with custom abstracted components, implementing self-excitation for activity bump stability and global inhibition for winner selection. Control neurons (CW/CCW) shift the bump around the ring by exciting neighboring direction-tuned populations.\n\n## Result\nSuccessfully validated WTA dynamics through LTSpice simulations showing stable activity bumps and smooth propagation during rotational updates. Demonstrated proof-of-concept on breadboard with 2-neuron WTA and Central Pattern Generator circuits. Designed production-ready modular PCBs with visual LED indicators, achieving biologically realistic spiking behavior (spike-frequency adaptation, refractory periods) using orders of magnitude fewer components than traditional LIF implementations.\n\n### AI Usage\nNone. This was a 6-month fundamental research internship (July-December 2025) at Integrative Neuroscience & Cognition Center (INCC)/Centre National de Recherche Scientifique (CNRS) under CNRS Dr. Marcelo Rozenberg. Work involved deep literature review of neuroscience (EPG neurons, ring attractors, Drosophila central complex), analog electronics design, LTSpice circuit simulation, and hands-on hardware prototyping. All circuit designs, component abstractions, PCB schematics in KiCad, and experimental validation were manually developed through iterative research process combining computational neuroscience theory with practical electronics engineering."
+}
