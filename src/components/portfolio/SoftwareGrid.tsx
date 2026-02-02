@@ -196,7 +196,7 @@ export const SoftwareGrid: React.FC = () => {
                     <blockquote className="text-space-secondary text-xl italic border-l-4 border-gray-300 pl-4 flex-grow">
                       I track my AI usage to focus on learning new skills, not just coding/work efficiency.
                       Overreliance on AI can hinder metacognition and weaken learning compared to active problem solving. 
-                      Once I master a tool or concept, I use AI responsibly to speed up work without losing control of my critical mind <a href="https://www.media.mit.edu/projects/your-brain-on-chatgpt/overview/" className="underline inline-flex items-center gap-1">Your Brain on ChatGPT<ExternalLink className="w-4 h-4" /></a>
+                      Once I master a tool or concept, I use AI responsibly to speed up work without losing control of my critical mind. <a href="https://www.media.mit.edu/projects/your-brain-on-chatgpt/overview/" className="underline inline-flex items-center gap-1">Your Brain on ChatGPT<ExternalLink className="w-4 h-4" /></a>
                     </blockquote>
                     <ChevronDown 
                       className={`w-6 h-6 flex-shrink-0 absolute right-0 top-0 md:relative md:top-auto md:right-auto opacity-0 transition-opacity duration-300 group-hover:opacity-100 ${
