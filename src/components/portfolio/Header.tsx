@@ -178,22 +178,28 @@ export const Header = () => {
                     target={isExternal ? '_blank' : undefined}
                     rel={isExternal ? 'noopener noreferrer' : undefined}
                     onClick={handleLinkClick}
-                    className="group relative flex items-center gap-4 px-6 py-4 text-lg font-mono rounded-2xl transition-transform duration-300 hover:scale-105"
+                    className="group relative flex items-center gap-4 px-6 py-4 text-lg font-mono rounded-2xl transition-transform duration-300 hover:scale-105 transform-gpu"
                     style={{
                       opacity: menuOpen ? 1 : 0,
                       transform: menuOpen ? 'translateY(0) scale(1)' : 'translateY(30px) scale(0.95)',
                       transition: menuOpen 
                         ? `opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1) ${delay}ms, transform 0.6s cubic-bezier(0.16, 1, 0.3, 1) ${delay}ms`
                         : 'opacity 0.3s ease-in, transform 0.3s ease-in',
+                      willChange: 'opacity, transform',
+                      backfaceVisibility: 'hidden',
+                      WebkitBackfaceVisibility: 'hidden',
                     }}
                   >
                     {/* Glass morphism background */}
                     <div 
-                      className="absolute inset-0 backdrop-blur-md border rounded-2xl transition-all duration-500"
+                      className="absolute inset-0 backdrop-blur-md border rounded-2xl transition-all duration-500 transform-gpu"
                       style={{
                         backgroundColor: menuOpen ? 'rgba(255, 255, 255, 0.1)' : 'rgba(255, 255, 255, 0)',
                         borderColor: menuOpen ? 'rgba(255, 255, 255, 0.2)' : 'rgba(255, 255, 255, 0)',
                         transitionDelay: menuOpen ? `${delay}ms` : '0ms',
+                        transform: 'translateZ(0)',
+                        backfaceVisibility: 'hidden',
+                        WebkitBackfaceVisibility: 'hidden',
                       }}
                     />
                     
