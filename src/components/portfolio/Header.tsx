@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Starfield } from '@/components/Starfield';
 
 interface HeaderProps {
   title?: string;
@@ -18,8 +17,6 @@ export const Header = ({ title = "Chaotics Lab" }: HeaderProps) => {
 
   return (
     <header className="relative overflow-hidden select-none">
-      <Starfield />
-      
       <div className="relative container mx-auto px-6 py-20 text-center z-10 space-y-8 max-w-4xl">
         <Badge
           variant="outline"
@@ -52,6 +49,7 @@ export const Header = ({ title = "Chaotics Lab" }: HeaderProps) => {
           </div>
         </div>
       </div>
+
       <Separator className="bg-space-border/50 mt-12" />
     </header>
   );

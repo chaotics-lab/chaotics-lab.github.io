@@ -1,226 +1,234 @@
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 
 interface Star {
-  x: number;
-  y: number;
+  angle: number;
+  radius: number;
+  speed: number;
   size: number;
   opacity: number;
 }
 
 export const Starfield = () => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const starsRef = useRef<Star[]>([]);
-  const animationRef = useRef<number>();
   const containerRef = useRef<HTMLDivElement>(null);
+  const frameRef = useRef<number>();
+  const timeRef = useRef(0);
+  const [isMobile, setIsMobile] = useState(false);
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  
+  // Generate stars once
+  const starsRef = useRef<Star[]>(
+    Array.from({ length: 250 }, () => ({
+      angle: Math.random() * Math.PI * 2,
+      radius: 25 + Math.random() * 45,
+      speed: 0.15 + Math.random() * 0.35,
+      size: 1.5 + Math.random() * 2.5,
+      opacity: 0.5 + Math.random() * 0.5
+    }))
+  );
 
-  const createStars = (width: number, height: number) => {
-    const stars: Star[] = [];
-    
-    // Reduced star count for performance
-    for (let i = 0; i < 60; i++) {
-      stars.push({
-        x: Math.random() * width,
-        y: Math.random() * height,
-        size: 0.5 + Math.random() * 0.8,
-        opacity: 0.5 + Math.random() * 0.4,
-      });
-    }
-    
-    for (let i = 0; i < 20; i++) {
-      stars.push({
-        x: Math.random() * width,
-        y: Math.random() * height,
-        size: 1.2 + Math.random() * 1,
-        opacity: 0.7 + Math.random() * 0.3,
-      });
-    }
-    
-    for (let i = 0; i < 6; i++) {
-      stars.push({
-        x: Math.random() * width,
-        y: Math.random() * height,
-        size: 2.5 + Math.random() * 1.5,
-        opacity: 0.85 + Math.random() * 0.15,
-      });
-    }
-    
-    return stars;
-  };
-
-  const drawBlackHole = (ctx: CanvasRenderingContext2D, x: number, y: number, radius: number, time: number) => {
-    const pulse = 0.95 + Math.sin(time * 1.2) * 0.05;
-    const diskRotation = time * 0.8;
-    
-    // Outer corona - single layer
-    ctx.save();
-    ctx.filter = 'blur(40px)';
-    const corona = ctx.createRadialGradient(x, y, 0, x, y, radius * 2);
-    corona.addColorStop(0.3, `rgba(135, 206, 250, ${0.12 * pulse})`);
-    corona.addColorStop(1, 'rgba(0, 100, 200, 0)');
-    ctx.fillStyle = corona;
-    ctx.beginPath();
-    ctx.arc(x, y, radius * 2, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
-
-    // Simplified accretion disk - 2 rings instead of 4
-    for (let ring = 0; ring < 2; ring++) {
-      ctx.save();
-      ctx.translate(x, y);
-      ctx.rotate(diskRotation + ring * Math.PI / 2);
-      ctx.translate(-x, -y);
-      
-      const ringRadius = radius * (1.2 + ring * 0.25);
-      const ringGrad = ctx.createRadialGradient(x, y, ringRadius * 0.7, x, y, ringRadius);
-      const alpha = (0.35 - ring * 0.1) * pulse;
-      
-      ringGrad.addColorStop(0, 'rgba(255, 220, 180, 0)');
-      ringGrad.addColorStop(0.5, `rgba(255, 180, 120, ${alpha})`);
-      ringGrad.addColorStop(1, 'rgba(200, 100, 50, 0)');
-      
-      ctx.filter = 'blur(10px)';
-      ctx.fillStyle = ringGrad;
-      ctx.beginPath();
-      ctx.ellipse(x, y, ringRadius, ringRadius * 0.35, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.restore();
-    }
-
-    // Photon sphere
-    ctx.save();
-    ctx.filter = 'blur(6px)';
-    const photonRing = ctx.createRadialGradient(x, y, radius * 0.9, x, y, radius * 1);
-    photonRing.addColorStop(0, `rgba(255, 255, 255, ${0.6 * pulse})`);
-    photonRing.addColorStop(1, 'rgba(255, 200, 150, 0)');
-    ctx.strokeStyle = photonRing;
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.arc(x, y, radius * 0.95, 0, Math.PI * 2);
-    ctx.stroke();
-    ctx.restore();
-
-    // Hot inner disk - single layer
-    ctx.save();
-    ctx.filter = 'blur(20px)';
-    const hotDisk = ctx.createRadialGradient(x, y, radius * 0.2, x, y, radius * 0.75);
-    hotDisk.addColorStop(0, `rgba(255, 255, 255, ${pulse})`);
-    hotDisk.addColorStop(0.5, `rgba(255, 220, 180, ${0.8 * pulse})`);
-    hotDisk.addColorStop(1, `rgba(255, 150, 100, ${0.3 * pulse})`);
-    ctx.fillStyle = hotDisk;
-    ctx.beginPath();
-    ctx.arc(x, y, radius * 0.75, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
-
-    // Event horizon
-    ctx.save();
-    ctx.shadowColor = `rgba(255, 180, 120, ${0.7 * pulse})`;
-    ctx.shadowBlur = 25;
-    ctx.fillStyle = '#000000';
-    ctx.beginPath();
-    ctx.arc(x, y, radius * 0.42, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
-
-    // Horizon edge
-    ctx.strokeStyle = `rgba(255, 220, 180, ${0.3 * pulse})`;
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.arc(x, y, radius * 0.42, 0, Math.PI * 2);
-    ctx.stroke();
-  };
-
+  // Detect mobile
   useEffect(() => {
-    const canvas = canvasRef.current;
-    const container = containerRef.current;
-    if (!canvas || !container) return;
-    
-    const ctx = canvas.getContext('2d', { alpha: true });
-    if (!ctx) return;
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
-    let mounted = true;
-    let bhX = 0;
-    let bhY = 0;
-    let bhRadius = 150;
+  // Track mouse
+  useEffect(() => {
+    if (isMobile) return;
 
-    const resize = () => {
-      if (!mounted) return;
-      
-      const rect = container.getBoundingClientRect();
-      const dpr = Math.min(window.devicePixelRatio, 1.5); // Lower cap for performance
-      
-      canvas.width = rect.width * dpr;
-      canvas.height = rect.height * dpr;
-      canvas.style.width = `${rect.width}px`;
-      canvas.style.height = `${rect.height}px`;
-      
-      ctx.scale(dpr, dpr);
-      
-      bhRadius = Math.min(rect.width * 0.25, 250);
-      starsRef.current = createStars(rect.width, rect.height);
-      bhX = rect.width / 2;
-      bhY = rect.height;
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!containerRef.current) return;
+      const rect = containerRef.current.getBoundingClientRect();
+      setMousePos({
+        x: ((e.clientX - rect.left) / rect.width - 0.5) * 100,
+        y: ((e.clientY - rect.top) / rect.height - 0.5) * 100
+      });
     };
 
-    resize();
-    window.addEventListener('resize', resize);
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, [isMobile]);
 
-    let time = 0;
-    let frameCount = 0;
-
+  // Animation loop
+  useEffect(() => {
     const animate = () => {
-      if (!mounted || !ctx) return;
-
-      frameCount++;
-      // Skip frames on low-end devices
-      if (frameCount % 2 === 0) {
-        animationRef.current = requestAnimationFrame(animate);
-        return;
-      }
-
-      time += 0.032; // Doubled step since we skip frames
-      const rect = container.getBoundingClientRect();
-
-      ctx.clearRect(0, 0, rect.width, rect.height);
-
-      // Rotate everything around black hole
-      ctx.save();
-      ctx.translate(bhX, bhY);
-      ctx.rotate(time * 0.15);
-      ctx.translate(-bhX, -bhY);
-
-      // Draw stars
-      const stars = starsRef.current;
-      for (let i = 0; i < stars.length; i++) {
-        const star = stars[i];
-        ctx.fillStyle = `rgba(200, 220, 255, ${star.opacity})`;
-        ctx.beginPath();
-        ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
-        ctx.fill();
-      }
-
-      ctx.restore();
-
-      // Draw black hole
-      drawBlackHole(ctx, bhX, bhY, bhRadius, time);
-
-      animationRef.current = requestAnimationFrame(animate);
+      timeRef.current += 0.005;
+      frameRef.current = requestAnimationFrame(animate);
     };
-
-    animationRef.current = requestAnimationFrame(animate);
-
+    frameRef.current = requestAnimationFrame(animate);
     return () => {
-      mounted = false;
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
-      }
-      window.removeEventListener('resize', resize);
+      if (frameRef.current) cancelAnimationFrame(frameRef.current);
     };
   }, []);
 
+  // Force re-render every frame
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    const interval = setInterval(() => setTick(t => t + 1), 16);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
-    <div ref={containerRef} className="absolute inset-0 w-full h-full pointer-events-none">
-      <canvas ref={canvasRef} className="w-full h-full" />
+    <div 
+      ref={containerRef}
+      className="fixed inset-0 w-full h-full -z-10"
+      style={{
+        background: '#0a0a0a'
+      }}
+    >
+      {/* Background gradient - NO ANIMATION */}
+      <div 
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background: 'radial-gradient(circle at center, rgba(80, 120, 200, 0.2) 0%, rgba(40, 70, 120, 0.12) 40%, rgba(20, 30, 60, 0.06) 70%)'
+        }}
+      />
+
+      {/* Central black hole */}
+      <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
+        {/* Outer glow - NO ANIMATION, STAYS VISIBLE */}
+        <div
+          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full"
+          style={{
+            width: 'min(90vw, 90vh, 1200px)',
+            height: 'min(90vw, 90vh, 1200px)',
+            background: 'radial-gradient(circle, rgba(120, 170, 255, 0.25) 0%, rgba(100, 140, 220, 0.15) 35%, rgba(80, 120, 200, 0.08) 60%, transparent 80%)',
+            filter: 'blur(60px)'
+          }}
+        />
+        
+        {/* Middle glow layer - NO ANIMATION */}
+        <div
+          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full"
+          style={{
+            width: 'min(70vw, 70vh, 900px)',
+            height: 'min(70vw, 70vh, 900px)',
+            background: 'radial-gradient(circle, rgba(255, 200, 120, 0.35) 0%, rgba(255, 160, 100, 0.2) 40%, rgba(220, 120, 80, 0.1) 65%, transparent 85%)',
+            filter: 'blur(50px)'
+          }}
+        />
+        
+        {/* Accretion disk - NO ANIMATION */}
+        <div
+          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full"
+          style={{
+            width: 'min(50vw, 50vh, 650px)',
+            height: 'min(50vw, 50vh, 650px)',
+            background: 'radial-gradient(circle, rgba(255, 220, 150, 0.4) 0%, rgba(255, 180, 120, 0.25) 45%, rgba(255, 140, 80, 0.12) 70%, transparent 90%)',
+            filter: 'blur(40px)'
+          }}
+        />
+
+        {/* Inner bright core - THIS ONE PULSES */}
+        <div
+          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full"
+          style={{
+            width: 'min(30vw, 30vh, 400px)',
+            height: 'min(30vw, 30vh, 400px)',
+            background: 'radial-gradient(circle, rgba(255, 255, 255, 0.5) 0%, rgba(255, 240, 200, 0.3) 35%, rgba(255, 220, 180, 0.15) 60%, transparent 80%)',
+            filter: 'blur(30px)',
+            animation: 'corePulse 2.5s ease-in-out infinite'
+          }}
+        />
+
+        {/* Event horizon - SOLID, NO ANIMATION */}
+        <div
+          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-black"
+          style={{
+            width: 'min(18vw, 18vh, 250px)',
+            height: 'min(18vw, 18vh, 250px)',
+            boxShadow: '0 0 80px rgba(255, 200, 150, 0.7), 0 0 120px rgba(135, 206, 250, 0.4), inset 0 0 60px #000'
+          }}
+        />
+
+        {/* Photon ring - THIS PULSES */}
+        <div
+          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full"
+          style={{
+            width: 'min(19vw, 19vh, 265px)',
+            height: 'min(19vw, 19vh, 265px)',
+            border: '4px solid rgba(255, 230, 200, 0.95)',
+            animation: 'ringPulseOnly 3s ease-in-out infinite'
+          }}
+        />
+
+        {/* Secondary photon ring - THIS PULSES */}
+        <div
+          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full"
+          style={{
+            width: 'min(22vw, 22vh, 305px)',
+            height: 'min(22vw, 22vh, 305px)',
+            border: '2px solid rgba(255, 220, 180, 0.6)',
+            animation: 'ringPulseOnly2 3s ease-in-out infinite'
+          }}
+        />
+      </div>
+
+      {/* Stars */}
+      {starsRef.current.map((star, i) => {
+        const currentAngle = star.angle + timeRef.current * star.speed;
+        let x = Math.cos(currentAngle) * star.radius;
+        let y = Math.sin(currentAngle) * star.radius;
+
+        if (!isMobile) {
+          const dx = x - mousePos.x;
+          const dy = y - mousePos.y;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+          
+          if (distance < 25 && distance > 0) {
+            const force = (25 - distance) / distance * 3.5;
+            x += (dx / distance) * force;
+            y += (dy / distance) * force;
+          }
+        }
+
+        return (
+          <div
+            key={i}
+            className="absolute rounded-full bg-white pointer-events-none"
+            style={{
+              left: '50%',
+              top: '50%',
+              width: `${star.size}px`,
+              height: `${star.size}px`,
+              opacity: star.opacity,
+              transform: `translate(calc(-50% + ${x}vh), calc(-50% + ${y}vh))`,
+              boxShadow: star.size > 2.5 ? `0 0 ${star.size * 2}px rgba(200, 220, 255, 0.7)` : 'none'
+            }}
+          />
+        );
+      })}
+
+      <style>{`
+        @keyframes corePulse {
+          0%, 100% { 
+            opacity: 0.8;
+          }
+          50% { 
+            opacity: 1;
+          }
+        }
+        
+        @keyframes ringPulseOnly {
+          0%, 100% { 
+            box-shadow: 0 0 30px rgba(255, 230, 200, 0.8), 0 0 60px rgba(255, 200, 150, 0.6), inset 0 0 25px rgba(255, 230, 200, 0.4);
+          }
+          50% { 
+            box-shadow: 0 0 50px rgba(255, 255, 255, 1), 0 0 100px rgba(255, 230, 200, 1), inset 0 0 40px rgba(255, 255, 255, 0.8);
+          }
+        }
+        
+        @keyframes ringPulseOnly2 {
+          0%, 100% { 
+            box-shadow: 0 0 20px rgba(255, 220, 180, 0.6);
+          }
+          50% { 
+            box-shadow: 0 0 40px rgba(255, 230, 200, 0.9);
+          }
+        }
+      `}</style>
     </div>
   );
 };

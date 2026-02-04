@@ -147,13 +147,13 @@ const SoftwarePage = () => {
 
   return (
     <div className="relative w-full text-white flex flex-col overflow-hidden min-h-screen">
-      {/* Starfield */}
+          {/* Starfield
       <div
         className="fixed inset-0 -z-10 starfield"
         style={
           { "--deep-space-color": hexToRgba(themeColor) } as React.CSSProperties
         }
-      />
+      /> */}
 
       <style>{`
         @keyframes softPulse {
