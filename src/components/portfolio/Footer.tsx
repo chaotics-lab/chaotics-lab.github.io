@@ -28,30 +28,6 @@ export const Footer = ({
               Building tomorrow's software, today.
             </p>
 
-            {/* Social Links */}
-            <div className="flex justify-center items-center gap-4 pt-2">
-              <a
-                href={"https://github.com/Loxed"}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group relative p-2.5 rounded-full bg-space-surface/30 backdrop-blur-sm border border-space-border/50 hover:border-space-border transition-all duration-300 hover:scale-110"
-              >
-                <Github className="w-5 h-5 text-space-muted group-hover:text-white transition-colors" />
-                <div className="absolute inset-0 rounded-full bg-white/0 group-hover:bg-white/5 transition-colors" />
-              </a>
-
-              <div className="w-1 h-1 bg-space-border rounded-full" />
-
-              <a
-                href={"https://www.linkedin.com/in/leopold-rombaut/"}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group relative p-2.5 rounded-full bg-space-surface/30 backdrop-blur-sm border border-space-border/50 hover:border-[#0A66C2]/50 transition-all duration-300 hover:scale-110"
-              >
-                <Linkedin className="w-5 h-5 text-space-muted group-hover:text-[#0A66C2] transition-colors" />
-                <div className="absolute inset-0 rounded-full bg-[#0A66C2]/0 group-hover:bg-[#0A66C2]/10 transition-colors" />
-              </a>
-            </div>
           </div>
          
           <Separator className="bg-space-border" />

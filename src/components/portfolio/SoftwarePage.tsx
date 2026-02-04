@@ -146,14 +146,14 @@ const SoftwarePage = () => {
   const themeColor = project.themeColor || "#8888ff";
 
   return (
-    <div className="relative w-full text-white flex flex-col overflow-hidden min-h-screen">
-          {/* Starfield
+    <div className="relative w-full text-white flex flex-col overflow-hidden min-h-screen bg-starfield">
+          {/* Starfield */}
       <div
         className="fixed inset-0 -z-10 starfield"
         style={
           { "--deep-space-color": hexToRgba(themeColor) } as React.CSSProperties
         }
-      /> */}
+      />
 
       <style>{`
         @keyframes softPulse {

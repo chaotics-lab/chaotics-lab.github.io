@@ -2,7 +2,7 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { SoftwareCard } from './SoftwareCard';
 import { AISticker } from '@/components/AISticker';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { Sparkles, Code, Zap, Brain, Cpu, Rocket, ChevronDown, ExternalLink } from 'lucide-react';
+import { Sparkles, Code, Zap, Brain, Cpu, Rocket, ChevronDown, ExternalLink, Grid2X2, Bot, LucideIcon, Globe, Smartphone, FileChartColumn, AudioWaveform, Gamepad, AppWindow, CodeXml, DatabaseZap, Package } from 'lucide-react';
 
 export interface ProjectData {
   id: string;
@@ -22,19 +22,19 @@ export interface ProjectData {
   AIUsed?: string;
 }
 
-const CATEGORY_CONFIG: Record<string, { label: string; color: string; icon: string }> = {
-  'all': { label: 'All Projects', color: 'from-slate-500 to-gray-500', icon: '✨' },
-  'ai': { label: 'AI & ML', color: 'from-purple-500 to-pink-500', icon: '🧠' },
-  'web': { label: 'Web Dev', color: 'from-blue-500 to-cyan-500', icon: '🌐' },
-  'robotics': { label: 'Robotics', color: 'from-green-500 to-emerald-500', icon: '🤖' },
-  'embedded-systems': { label: 'Embedded', color: 'from-orange-500 to-red-500', icon: '⚡' },
-  'mobile': { label: 'Mobile', color: 'from-cyan-500 to-blue-500', icon: '📱' },
-  'data': { label: 'Data Science', color: 'from-yellow-500 to-orange-500', icon: '📊' },
-  'sp': { label: 'Signal Processing', color: 'from-pink-500 to-rose-500', icon: '〰️' },
-  'game': { label: 'Game Dev', color: 'from-red-500 to-purple-500', icon: '🎮' },
-  'gui': { label: 'GUI', color: 'from-teal-500 to-cyan-500', icon: '🖥️' },
-  'software': { label: 'Software', color: 'from-indigo-500 to-purple-500', icon: '💻' },
-  'backend': { label: 'Backend', color: 'from-gray-500 to-slate-500', icon: '⚙️' },
+const CATEGORY_CONFIG: Record<string, { label: string; color: string; icon: LucideIcon }> = {
+  'all': { label: 'All Projects', color: 'from-slate-500 to-gray-500', icon: Grid2X2 },
+  'ai': { label: 'AI & ML', color: 'from-purple-500 to-pink-500', icon: Brain },
+  'web': { label: 'Web Dev', color: 'from-blue-500 to-cyan-500', icon: Globe },
+  'robotics': { label: 'Robotics', color: 'from-green-500 to-emerald-500', icon: Bot },
+  'embedded-systems': { label: 'Embedded', color: 'from-orange-500 to-red-500', icon: Cpu },
+  'mobile': { label: 'Mobile', color: 'from-cyan-500 to-blue-500', icon: Smartphone },
+  'data': { label: 'Data Science', color: 'from-yellow-500 to-orange-500', icon: FileChartColumn },
+  'sp': { label: 'Signal Processing', color: 'from-pink-500 to-rose-500', icon: AudioWaveform },
+  'game': { label: 'Game Dev', color: 'from-red-500 to-purple-500', icon: Gamepad },
+  'gui': { label: 'GUI', color: 'from-teal-500 to-cyan-500', icon: AppWindow },
+  'software': { label: 'Software', color: 'from-indigo-500 to-purple-500', icon: CodeXml },
+  'backend': { label: 'Backend', color: 'from-gray-500 to-slate-500', icon: DatabaseZap },
 };
 
 const AI_USAGE_LEVELS = [
@@ -86,26 +86,8 @@ const AI_USAGE_LEVELS = [
 export const SoftwareGrid: React.FC = () => {
   const [projects, setProjects] = useState<ProjectData[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [aiShowcaseOpen, setAiShowcaseOpen] = useState<boolean | null>(null);
+  const [aiShowcaseOpen, setAiShowcaseOpen] = useState<boolean>(false);
   const isMobile = useIsMobile();
-
-  // Initialize AI Showcase state from localStorage and device type
-  useEffect(() => {
-    const cached = localStorage.getItem('aiShowcaseOpen');
-    if (cached !== null) {
-      setAiShowcaseOpen(JSON.parse(cached));
-    } else {
-      // Default: open on desktop, closed on mobile
-      setAiShowcaseOpen(!isMobile);
-    }
-  }, [isMobile]);
-
-  // Save state to localStorage when it changes
-  useEffect(() => {
-    if (aiShowcaseOpen !== null) {
-      localStorage.setItem('aiShowcaseOpen', JSON.stringify(aiShowcaseOpen));
-    }
-  }, [aiShowcaseOpen]);
 
   useEffect(() => {
     const modules = import.meta.glob<ProjectData>('../../resources/projects/*.json', { eager: true });
@@ -137,21 +119,40 @@ export const SoftwareGrid: React.FC = () => {
   return (
     <section className="py-20 relative">
       <div className="container mx-auto px-6 relative">
-        <div className="text-center space-y-6 mb-12">
-          <h2 className="text-3xl font-light text-space-primary">
-            Software <span className="font-semibold glow-text-medium">Portfolio</span>
-          </h2>
-          <p className="text-space-secondary max-w-2xl mx-auto">
-            A curated collection of software projects, libraries, and experiments.
+        {/* Chaotics Logo and Tagline */}
+        <div className="text-center space-y-6 mb-6 max-w-4xl mx-auto">
+          <div className="flex justify-center items-center h-32 mb-4">
+            <img
+              src="/img/logos/Chaotics White Transparent.png"
+              alt="Chaotics Logo"
+              className="w-full max-w-2xl object-contain drop-shadow-[0_0_30px_rgba(255,255,255,0.3)] transition-all duration-300 hover:drop-shadow-[0_0_50px_rgba(255,255,255,0.5)]"
+            />
+          </div>
+          <p className="text-xl text-space-secondary max-w-2xl mx-auto leading-relaxed opacity-90">
+            First came Chaos, vast and formless.
           </p>
+        </div>
+
+        <div className="text-center space-y-6 mb-12">
+          <h2 className="font-light text-space-primary" style={{ fontSize: '2.5rem', lineHeight: '1.1' }}>
+            <i>Hey, I'm Lox. Welcome to my project <span className="font-semibold glow-text-medium">portfolio</span> :)</i>
+          </h2>
         </div>
 
         {/* AI Usage Badge Showcase */}
         <div className="max-w-6xl mx-auto mb-16">
-          <div className="relative backdrop-blur-xl rounded-2xl shadow-2xl border-2 border-white/10 overflow-hidden bg-white/5 transition-all duration-300 group md:hover:shadow-2xl" style={{}} >
+          <div 
+            className={`
+              relative backdrop-blur-xl rounded-2xl shadow-2xl border-2 overflow-hidden transition-all duration-300 group
+              ${aiShowcaseOpen 
+                ? 'bg-white/5 border-white/10 md:hover:shadow-2xl' 
+                : 'bg-white/[0.02] border-white/5 scale-95 md:hover:scale-100 md:hover:bg-white/5 md:hover:border-white/10'
+              }
+            `}
+          >
             {/* Background glow */}
             <div
-              className="absolute inset-0 pointer-events-none"
+              className={`absolute inset-0 pointer-events-none transition-opacity duration-300 ${aiShowcaseOpen ? 'opacity-100' : 'opacity-30 group-hover:opacity-100'}`}
               style={{
             background: 'radial-gradient(circle at top right, rgba(138, 43, 226, 0.15) 0%, transparent 50%), radial-gradient(circle at bottom left, rgba(255, 0, 110, 0.15) 0%, transparent 50%)',
             filter: 'blur(60px)',
@@ -167,49 +168,64 @@ export const SoftwareGrid: React.FC = () => {
               }}
             />
             
-            {/* Bottom teaser glow when collapsed */}
-            <div
-              className={`absolute bottom-0 left-0 right-0 pointer-events-none transition-opacity duration-300 rounded-2xl ${
-                aiShowcaseOpen ? 'opacity-0' : 'opacity-100'
-              }`}
-              style={{
-                height: '80px',
-                background: 'radial-gradient(ellipse at center bottom, rgba(138, 43, 226, 0.2) 0%, transparent 70%)',
-                filter: 'blur(20px)',
-              }}
-            />
-            
             <div className="relative z-10">
               {/* Header and always-visible content */}
               <button
                 onClick={() => setAiShowcaseOpen(!aiShowcaseOpen)}
-                className="w-full text-left group px-8 pt-8 pb-4 transition-transform duration-300 md:hover:-translate-y-1"
+                className="w-full text-left group px-8 pt-8 pb-4 transition-transform duration-300 md:hover:-translate-y-2.5"
               >
-                <div className="flex flex-col md:flex-row items-center md:items-start gap-6 relative">
-                    <div className="flex items-center flex-shrink-0">
+                <div className="flex flex-col md:flex-row items-center md:items-center gap-6 relative pr-10">
+                    {/* Chevron in top right corner */}
+                    <ChevronDown 
+                      className={`w-6 h-6 flex-shrink-0 absolute right-0 top-0 transition-all duration-300 ${
+                        aiShowcaseOpen ? 'rotate-180 text-white' : 'rotate-0 text-gray-400 animate-bob group-hover:animate-bob-intense'
+                      }`}
+                    />
+                    
+                    <div className="hidden md:flex items-center justify-center flex-shrink-0">
                     <img 
                       src="/img/AI Seal of Quality.png" 
                       alt="AI Seal of Quality" 
-                      className="w-32 h-auto md:w-32 md:h-auto"
-                    />
-                    </div>
-                    <blockquote className="text-space-secondary text-xl italic border-l-4 border-gray-300 pl-4 flex-grow">
-                      I track my AI usage to focus on learning new skills, not just coding/work efficiency.
-                      Overreliance on AI can hinder metacognition and weaken learning compared to active problem solving. 
-                      Once I master a tool or concept, I use AI responsibly to speed up work without losing control of my critical mind. <a href="https://www.media.mit.edu/projects/your-brain-on-chatgpt/overview/" className="underline inline-flex items-center gap-1">Your Brain on ChatGPT<ExternalLink className="w-4 h-4" /></a>
-                    </blockquote>
-                    <ChevronDown 
-                      className={`w-6 h-6 flex-shrink-0 absolute right-0 top-0 md:relative md:top-auto md:right-auto opacity-0 transition-opacity duration-300 group-hover:opacity-100 ${
-                        aiShowcaseOpen ? 'rotate-180' : ''
+                      className={`transition-all duration-300 object-contain ${
+                        aiShowcaseOpen 
+                          ? 'h-24 md:h-32 w-auto' 
+                          : 'h-12 md:h-16 w-auto grayscale opacity-50 group-hover:grayscale-0 group-hover:opacity-100'
                       }`}
                     />
+                    </div>
+                    <div className="flex-grow relative">
+                      <blockquote 
+                        className={`text-base md:text-xl italic border-l-4 pl-4 transition-all duration-300 ${
+                          aiShowcaseOpen 
+                            ? 'text-space-secondary border-gray-300' 
+                            : 'text-gray-500 border-gray-600 md:text-lg group-hover:text-space-secondary group-hover:border-gray-300 line-clamp-6 md:line-clamp-none'
+                        }`}
+                        style={!aiShowcaseOpen ? {
+                          maskImage: 'linear-gradient(to bottom, black 50%, transparent 100%)',
+                          WebkitMaskImage: 'linear-gradient(to bottom, black 50%, transparent 100%)'
+                        } : undefined}
+                      >
+                        I track my AI usage to focus on learning new skills, not just coding/work efficiency.
+                        Overreliance on AI can hinder metacognition and weaken learning compared to active problem solving. 
+                        Once I master a tool or concept, I use AI responsibly to speed up work without losing control of my critical mind. <a 
+                          href="https://www.media.mit.edu/projects/your-brain-on-chatgpt/overview/" 
+                          className={`underline inline-flex items-center gap-1 transition-opacity duration-300 ${
+                            aiShowcaseOpen ? 'cursor-pointer' : 'pointer-events-none opacity-50'
+                          }`}
+                          onClick={(e) => !aiShowcaseOpen && e.preventDefault()}
+                          tabIndex={aiShowcaseOpen ? 0 : -1}
+                        >
+                          Your Brain on ChatGPT<ExternalLink className="w-4 h-4" />
+                        </a>
+                      </blockquote>
+                    </div>
                 </div>
               </button>
 
               {/* Collapsible badges section */}
               <div
                 className={`overflow-visible transition-all duration-300 ease-in-out ${
-                  aiShowcaseOpen ? 'max-h-[1000px] opacity-100' : 'max-h-32 opacity-60 md:max-h-4 md:opacity-100 group-hover:md:max-h-8'
+                  aiShowcaseOpen ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0'
                 }`}
                 style={{ overflow: aiShowcaseOpen ? 'visible' : 'hidden' }}
               >
@@ -226,7 +242,7 @@ export const SoftwareGrid: React.FC = () => {
                             {/* <Icon className="w-4 h-4 text-white/70" /> */}
                             <h4 className="text-sm font-bold text-white">{level.label}</h4>
                           </div>
-                          <p className={`text-xs text-space-secondary leading-relaxed ${aiShowcaseOpen ? 'block' : 'hidden md:block'}`}>
+                          <p className="text-xs text-space-secondary leading-relaxed">
                             {level.description}
                           </p>
                         </div>
@@ -246,7 +262,7 @@ export const SoftwareGrid: React.FC = () => {
               const config = CATEGORY_CONFIG[category] || { 
                 label: category.charAt(0).toUpperCase() + category.slice(1), 
                 color: 'from-gray-500 to-slate-500',
-                icon: '📦'
+                icon: Package
               };
               const isActive = selectedCategory === category;
               const count = category === 'all' 
@@ -258,33 +274,50 @@ export const SoftwareGrid: React.FC = () => {
                   key={category}
                   onClick={() => setSelectedCategory(category)}
                   className={`
-                    group relative px-4 py-2.5 rounded-lg overflow-hidden
-                    transition-all duration-200 flex items-center gap-2
+                    group relative px-4 py-2.5 rounded-xl overflow-visible
+                    transition-all duration-300 flex items-center gap-2
                     ${isActive 
-                      ? 'scale-105 shadow-lg' 
-                      : 'hover:scale-105 opacity-70 hover:opacity-100'
+                      ? 'scale-105 -translate-y-1' 
+                      : 'hover:scale-105 opacity-70 hover:opacity-100 hover:-translate-y-0.5'
                     }
                   `}
                 >
-                  {/* Gradient Background */}
+                  {/* Glass Background */}
                   <div className={`
-                    absolute inset-0 bg-gradient-to-r ${config.color}
-                    ${isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-80'}
-                    transition-opacity duration-200
+                    absolute inset-0 rounded-xl backdrop-blur-sm border transition-all duration-300
+                    ${isActive 
+                      ? 'bg-white/15 border-white/30' 
+                      : 'bg-white/5 border-white/10 group-hover:bg-white/10 group-hover:border-white/25'
+                    }
                   `} />
                   
-                  {/* Border */}
+                  {/* Gradient overlay */}
                   <div className={`
-                    absolute inset-0 border-2 rounded-lg
-                    ${isActive 
-                      ? 'border-white/50' 
-                      : 'border-white/10 group-hover:border-white/30'
-                    }
-                    transition-colors duration-200
+                    absolute inset-0 bg-gradient-to-r ${config.color} rounded-xl transition-opacity duration-300
+                    ${isActive ? 'opacity-20' : 'opacity-0 group-hover:opacity-10'}
                   `} />
+                  
+                  {/* Inner glow */}
+                  <div 
+                    className={`absolute inset-0 rounded-xl transition-opacity duration-300 ${isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
+                    style={{
+                      background: 'radial-gradient(circle at center, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.1) 50%, transparent 100%)',
+                    }}
+                  />
+                  
+                  {/* Outer glow */}
+                  <div 
+                    className={`absolute inset-0 rounded-xl -z-10 transition-opacity duration-300 ${isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
+                    style={{
+                      boxShadow: '0 0 20px rgba(255,255,255,0.3), 0 0 40px rgba(255,255,255,0.15)',
+                    }}
+                  />
                   
                   {/* Content */}
-                  <span className="relative text-xl">{config.icon}</span>
+                  {/* icon */}
+                  <span className="relative flex items-center">
+                    <config.icon className="w-4 h-4 text-space-muted group-hover:text-white transition-colors duration-300" />
+                  </span>
                   <span className="relative font-medium text-white">{config.label}</span>
                   <span className="relative text-xs text-white/70 font-mono">
                     {count}
@@ -369,12 +402,38 @@ export const SoftwareGrid: React.FC = () => {
           }
         }
         
+        @keyframes bob {
+          0%, 100% {
+            transform: translateY(0);
+          }
+          50% {
+            transform: translateY(3px);
+          }
+        }
+        
+        @keyframes bob-intense {
+          0%, 100% {
+            transform: translateY(0);
+          }
+          50% {
+            transform: translateY(6px);
+          }
+        }
+        
         .animate-fade-in {
           animation: fade-in 0.6s ease-out;
         }
         
         .animate-bounce-arrow {
           animation: bounce-arrow 0.6s ease-in-out infinite;
+        }
+        
+        .animate-bob {
+          animation: bob 1.5s ease-in-out infinite;
+        }
+        
+        .animate-bob-intense {
+          animation: bob-intense 0.8s ease-in-out infinite;
         }
       `}</style>
     </section>
