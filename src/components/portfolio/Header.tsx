@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Mail, Grid2X2, Github, Linkedin, Menu, X } from 'lucide-react';
+import { Mail, Grid2X2, Github, Linkedin, Menu, X, ScrollText } from 'lucide-react';
 
 export const Header = () => {
   const [isMobile, setIsMobile] = useState(false);
@@ -65,6 +65,8 @@ export const Header = () => {
     { name: 'GitHub', icon: Github, url: 'https://github.com/Loxed' },
     { name: 'LinkedIn', icon: Linkedin, url: 'https://linkedin.com/in/leopold-rombaut' },
     { name: 'Mail', icon: Mail, url: 'mailto:leopold@rombaut.org' },
+      { name: 'Resume', icon: ScrollText, url: '/files/Leopold_Rombaut_Resume.pdf' },
+
   ];
 
   const handleLinkClick = () => {
