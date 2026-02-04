@@ -109,15 +109,22 @@ export const Header = () => {
 
             <button
               onClick={() => setMenuOpen(!menuOpen)}
-              className="md:hidden relative z-50 p-2 rounded-xl"
+              className="md:hidden relative z-50 p-2 rounded-xl overflow-hidden"
               aria-label="Toggle menu"
             >
-              <div className="absolute inset-0 bg-white/5 border border-white/10 rounded-xl" />
-              {menuOpen ? (
-                <X className="relative w-6 h-6 text-white" />
-              ) : (
-                <Menu className="relative w-6 h-6 text-space-muted" />
-              )}
+              <div
+                className="absolute inset-0 bg-white/5 border border-white/10 rounded-xl"
+                style={{
+                  transition: 'background-color 0.3s ease, border-color 0.3s ease',
+                }}
+              />
+              <div className="relative">
+                {menuOpen ? (
+                  <X className="w-6 h-6 text-white" />
+                ) : (
+                  <Menu className="w-6 h-6 text-space-muted" />
+                )}
+              </div>
             </button>
           </div>
         </div>
