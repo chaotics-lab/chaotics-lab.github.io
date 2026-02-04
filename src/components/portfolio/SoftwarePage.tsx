@@ -1,8 +1,7 @@
 import { useParams, Link } from "react-router-dom";
 import { useEffect, useState, useRef, useMemo } from "react";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { ArrowLeft, ArrowUp, ExternalLink, Github } from "lucide-react";
+import { ArrowLeft, ArrowUp, ExternalLink, Github, X } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { AISticker } from "@/components/AISticker";
@@ -16,6 +15,8 @@ const SoftwarePage = () => {
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [isHovering, setIsHovering] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isFullscreenAnimating, setIsFullscreenAnimating] = useState(false);
   
   const touchStartX = useRef(0);
   const touchEndX = useRef(0);
@@ -71,12 +72,12 @@ const SoftwarePage = () => {
 
   // --- auto rotate carousel ---
   useEffect(() => {
-    if (frameCount <= 1 || isPaused || isHovering) return;
+    if (frameCount <= 1 || isPaused || isHovering || isFullscreen) return;
     const interval = setInterval(() => {
       setCurrentFrame((prev) => (prev >= frameCount - 1 ? 0 : prev + 1));
     }, 4000);
     return () => clearInterval(interval);
-  }, [frameCount, isPaused, isHovering]);
+  }, [frameCount, isPaused, isHovering, isFullscreen]);
 
   // --- mobile scroll to top button ---
   useEffect(() => {
@@ -85,6 +86,37 @@ const SoftwarePage = () => {
     window.addEventListener("scroll", onScroll);
     return () => window.removeEventListener("scroll", onScroll);
   }, [isMobile]);
+
+  // --- prevent body scroll when fullscreen ---
+  useEffect(() => {
+    if (isFullscreen || isFullscreenAnimating) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isFullscreen, isFullscreenAnimating]);
+
+  // --- keyboard navigation for fullscreen ---
+  useEffect(() => {
+    if (!isFullscreen && !isFullscreenAnimating) return;
+    
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        closeFullscreen();
+      } else if (isFullscreen && e.key === 'ArrowLeft' && currentFrame > 0) {
+        setCurrentFrame(prev => prev - 1);
+      } else if (isFullscreen && e.key === 'ArrowRight' && currentFrame < frameCount - 1) {
+        setCurrentFrame(prev => prev + 1);
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isFullscreen, isFullscreenAnimating, currentFrame, frameCount]);
 
   const handlePrevFrame = () => {
     if (currentFrame === 0) return;
@@ -135,6 +167,28 @@ const SoftwarePage = () => {
     return `rgba(${r},${g},${b},${alpha})`;
   };
 
+  const openFullscreen = () => {
+    if (!isMobile) {
+      setIsFullscreenAnimating(true);
+      setTimeout(() => {
+        setIsFullscreen(true);
+      }, 300); // Half of the fade duration
+    } else {
+      setIsFullscreen(true);
+    }
+  };
+
+  const closeFullscreen = () => {
+    if (!isMobile) {
+      setIsFullscreen(false);
+      setTimeout(() => {
+        setIsFullscreenAnimating(false);
+      }, 500); // Full fade duration
+    } else {
+      setIsFullscreen(false);
+    }
+  };
+
   if (!project)
     return (
       <div className="min-h-screen flex items-center justify-center text-white">
@@ -147,7 +201,7 @@ const SoftwarePage = () => {
 
   return (
     <div className="relative w-full text-white flex flex-col overflow-hidden min-h-screen bg-starfield">
-          {/* Starfield */}
+      {/* Starfield */}
       <div
         className="fixed inset-0 -z-10 starfield"
         style={
@@ -189,13 +243,117 @@ const SoftwarePage = () => {
         }
       `}</style>
 
+      {/* Fullscreen Image Viewer */}
+      {(isFullscreen || isFullscreenAnimating) && (
+        <div 
+          className={`fixed inset-0 z-[100] flex items-center justify-center transition-opacity duration-500 ${
+            isFullscreen ? 'opacity-100' : 'opacity-0'
+          }`}
+          onClick={closeFullscreen}
+          style={{
+            backgroundColor: 'black',
+          }}
+        >
+          {/* Close button */}
+          <button
+            onClick={closeFullscreen}
+            className="absolute top-4 right-4 z-[110] bg-white/10 hover:bg-white/20 text-white p-3 rounded-full transition-all backdrop-blur-sm border border-white/20"
+          >
+            <X size={24} />
+          </button>
+
+          {/* Image container */}
+          <div 
+            className="relative w-full h-full flex items-center justify-center p-4 md:p-8"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Image carousel */}
+            <div className="relative w-full h-full max-w-7xl max-h-full flex items-center justify-center">
+              <img
+                src={`${project.imageUrl}/${currentFrame + 1}.png`}
+                alt={`Frame ${currentFrame + 1}`}
+                className="max-w-full max-h-full object-contain"
+                onClick={(e) => e.stopPropagation()}
+              />
+
+              {/* Navigation arrows */}
+              {frameCount > 1 && (
+                <>
+                  {currentFrame > 0 && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handlePrevFrame();
+                      }}
+                      className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-3 md:p-4 rounded-full transition-all z-[105]"
+                    >
+                      <ArrowLeft size={24} />
+                    </button>
+                  )}
+                  {currentFrame < frameCount - 1 && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleNextFrame();
+                      }}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-3 md:p-4 rounded-full transition-all z-[105]"
+                    >
+                      <ArrowLeft size={24} className="rotate-180" />
+                    </button>
+                  )}
+                </>
+              )}
+            </div>
+
+            {/* Dots indicator */}
+            {frameCount > 1 && (
+              <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-2 z-[105]">
+                {Array.from({ length: frameCount }, (_, i) => (
+                  <button
+                    key={i}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setCurrentFrame(i);
+                      setIsPaused(true);
+                      setTimeout(() => setIsPaused(false), 5000);
+                    }}
+                    className="h-2 rounded-full transition-all"
+                    style={{
+                      width: i === currentFrame ? '32px' : '8px',
+                      backgroundColor: i === currentFrame 
+                        ? 'white'
+                        : 'rgba(255, 255, 255, 0.5)',
+                      boxShadow: i === currentFrame ? `0 0 12px rgba(255, 255, 255, 0.8)` : 'none',
+                    }}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* --- main content --- */}
       <div className={`relative z-10 container mx-auto py-4 md:py-8 px-4 flex flex-col gap-4 ${isMobile ? '' : 'h-screen overflow-hidden'}`}>
         {/* Back Button */}
         <Link to="/" className="shrink-0">
-          <Button className="flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white border-2 border-white/20 hover:border-white/40 backdrop-blur-sm transition-all">
-            <ArrowLeft size={16} /> Back
-          </Button>
+          <button className="group relative flex items-center gap-2 px-4 py-2 text-sm font-mono overflow-visible rounded-xl transition-all duration-300 hover:-translate-y-0.5">
+            <div className="absolute inset-0 bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl transition-all duration-300 group-hover:bg-white/10 group-hover:border-white/25" />
+            <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+              style={{
+                background: 'radial-gradient(circle at center, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.1) 50%, transparent 100%)',
+              }}
+            />
+            <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 -z-10"
+              style={{
+                boxShadow: '0 0 20px rgba(255,255,255,0.3), 0 0 40px rgba(255,255,255,0.15)',
+              }}
+            />
+            <ArrowLeft className="relative w-4 h-4 text-space-muted group-hover:text-white transition-colors duration-300" />
+            <span className="relative text-space-muted group-hover:text-white transition-colors duration-300">
+              Back
+            </span>
+          </button>
         </Link>
 
         {/* --- HERO --- */}
@@ -264,20 +422,54 @@ const SoftwarePage = () => {
               <div className="flex gap-3 flex-wrap mt-auto">
                 {project.githubUrl && (
                   <a href={project.githubUrl} target="_blank" rel="noopener noreferrer">
-                    <Button
-                      className="flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white border-2 border-white/20 hover:border-white/40 backdrop-blur-sm transition-all"
-                    >
-                      <Github size={16} /> GitHub
-                    </Button>
+                    <button className="group relative flex items-center gap-2 px-4 py-2 text-sm font-mono overflow-visible rounded-xl transition-all duration-300 hover:-translate-y-0.5">
+                      <div className="absolute inset-0 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl transition-all duration-300 group-hover:bg-white/5 group-hover:border-white/10" />
+                      <div className="absolute inset-0 rounded-xl opacity-100 group-hover:opacity-0 transition-opacity duration-300"
+                        style={{
+                          background: 'radial-gradient(circle at center, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.2) 50%, transparent 100%)',
+                        }}
+                      />
+                      <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                        style={{
+                          background: 'radial-gradient(circle at center, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.1) 50%, transparent 100%)',
+                        }}
+                      />
+                      <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 -z-10"
+                        style={{
+                          boxShadow: '0 0 20px rgba(255,255,255,0.3), 0 0 40px rgba(255,255,255,0.15)',
+                        }}
+                      />
+                      <Github className="relative w-4 h-4 text-gray-300 group-hover:text-white transition-colors duration-300" />
+                      <span className="relative text-gray-300 group-hover:text-white transition-colors duration-300">
+                        GitHub
+                      </span>
+                    </button>
                   </a>
                 )}
                 {project.demoUrl && (
                   <a href={project.demoUrl} target="_blank" rel="noopener noreferrer">
-                    <Button
-                      className="flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white border-2 border-white/20 hover:border-white/40 backdrop-blur-sm transition-all"
-                    >
-                      <ExternalLink size={16} /> Link
-                    </Button>
+                    <button className="group relative flex items-center gap-2 px-4 py-2 text-sm font-mono overflow-visible rounded-xl transition-all duration-300 hover:-translate-y-0.5">
+                      <div className="absolute inset-0 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl transition-all duration-300 group-hover:bg-white/5 group-hover:border-white/10" />
+                      <div className="absolute inset-0 rounded-xl opacity-100 group-hover:opacity-0 transition-opacity duration-300"
+                        style={{
+                          background: 'radial-gradient(circle at center, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.2) 50%, transparent 100%)',
+                        }}
+                      />
+                      <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                        style={{
+                          background: 'radial-gradient(circle at center, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.1) 50%, transparent 100%)',
+                        }}
+                      />
+                      <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 -z-10"
+                        style={{
+                          boxShadow: '0 0 20px rgba(255,255,255,0.3), 0 0 40px rgba(255,255,255,0.15)',
+                        }}
+                      />
+                      <ExternalLink className="relative w-4 h-4 text-gray-300 group-hover:text-white transition-colors duration-300" />
+                      <span className="relative text-gray-300 group-hover:text-white transition-colors duration-300">
+                        Link
+                      </span>
+                    </button>
                   </a>
                 )}
               </div>
@@ -384,10 +576,11 @@ const SoftwarePage = () => {
             <div className="flex flex-col gap-3 min-h-0">
               {/* Carousel - 16:9 aspect ratio */}
               <div
-                className="relative w-full flex-shrink-0"
+                className="relative w-full flex-shrink-0 cursor-pointer"
                 style={{ paddingTop: "56.25%" }}
                 onMouseEnter={() => setIsHovering(true)}
                 onMouseLeave={() => setIsHovering(false)}
+                onClick={openFullscreen}
               >
                 <div className="absolute inset-0 overflow-hidden rounded-2xl border-2"
                   style={{ 
@@ -429,7 +622,10 @@ const SoftwarePage = () => {
                     <>
                       {currentFrame > 0 && (
                         <button
-                          onClick={handlePrevFrame}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handlePrevFrame();
+                          }}
                           className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition-all z-20"
                         >
                           <ArrowLeft size={20} />
@@ -437,7 +633,10 @@ const SoftwarePage = () => {
                       )}
                       {currentFrame < frameCount - 1 && (
                         <button
-                          onClick={handleNextFrame}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleNextFrame();
+                          }}
                           className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition-all z-20"
                         >
                           <ArrowLeft size={20} className="rotate-180" />
@@ -493,11 +692,12 @@ const SoftwarePage = () => {
           <div className="flex flex-col gap-6 pb-8">
             {/* Carousel */}
             <div 
-              className="relative w-full" 
+              className="relative w-full cursor-pointer" 
               style={{ paddingTop: "56.25%" }}
               onTouchStart={handleTouchStart}
               onTouchMove={handleTouchMove}
               onTouchEnd={handleTouchEnd}
+              onClick={openFullscreen}
             >
               <div className="absolute inset-0 overflow-hidden rounded-2xl border-2"
                 style={{ 

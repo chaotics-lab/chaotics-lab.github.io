@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Mail, Grid2X2, Github, Linkedin, Menu, X, ScrollText } from 'lucide-react';
+import { Mail, Grid2X2, Github, Linkedin, Menu, ScrollText } from 'lucide-react';
 
 export const Header = () => {
   const [isMobile, setIsMobile] = useState(false);
