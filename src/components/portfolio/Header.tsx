@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Mail, Grid2X2, Github, Linkedin, Menu, X, ScrollText } from 'lucide-react';
+import { Mail, Grid2X2, Github, Linkedin, Menu, X } from 'lucide-react';
 
 export const Header = () => {
   const [isMobile, setIsMobile] = useState(false);
@@ -12,7 +12,6 @@ export const Header = () => {
 
     checkMobile();
     window.addEventListener('resize', checkMobile);
-
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
@@ -22,70 +21,28 @@ export const Header = () => {
     }
   }, [isMobile]);
 
-  useEffect(() => {
-    const mainContent =
-      document.querySelector('main') ||
-      document.querySelector('#root > *:not(header)');
-
-    if (mainContent) {
-      mainContent.style.transition = 'filter 0.4s ease';
-    }
-
-    if (menuOpen) {
-      document.body.style.overflow = 'hidden';
-      document.documentElement.style.overflowX = 'hidden';
-
-      if (mainContent) {
-        requestAnimationFrame(() => {
-          mainContent.style.filter = 'blur(8px)';
-        });
-      }
-    } else {
-      document.body.style.overflow = '';
-      document.documentElement.style.overflowX = '';
-
-      if (mainContent) {
-        mainContent.style.filter = 'blur(0px)';
-      }
-    }
-
-    return () => {
-      document.body.style.overflow = '';
-      document.documentElement.style.overflowX = '';
-
-      if (mainContent) {
-        mainContent.style.filter = '';
-        mainContent.style.transition = '';
-      }
-    };
-  }, [menuOpen]);
-
   const links = [
     { name: 'Portfolio', icon: Grid2X2, url: '#' },
     { name: 'GitHub', icon: Github, url: 'https://github.com/Loxed' },
     { name: 'LinkedIn', icon: Linkedin, url: 'https://linkedin.com/in/leopold-rombaut' },
     { name: 'Mail', icon: Mail, url: 'mailto:leopold@rombaut.org' },
-      { name: 'Resume', icon: ScrollText, url: '/files/Leopold_Rombaut_Resume.pdf' },
-
   ];
-
-  const handleLinkClick = () => {
-    setMenuOpen(false);
-  };
 
   return (
     <>
       <header className="fixed top-0 left-0 right-0 z-50 bg-starfield/95 backdrop-blur-md border-b border-white/10">
-        <div className="container mx-auto px-6">
+        {/* IMPORTANT: no container + mx-auto combo */}
+        <div className="w-full max-w-7xl mx-auto px-6">
           <div className="flex items-center justify-between h-16">
-            <a href="#" className="flex items-center relative z-50">
+            <a href="#" className="flex items-center">
               <img
                 src="/img/logos/Chaotics White Transparent.png"
                 alt="Chaotics"
-                className="h-8 w-auto transition-all duration-300"
+                className="h-8 w-auto"
               />
             </a>
 
+            {/* Desktop nav */}
             <nav className="hidden md:flex items-center gap-2">
               {links.map((link) => {
                 const Icon = link.icon;
@@ -97,9 +54,29 @@ export const Header = () => {
                     href={link.url}
                     target={isExternal ? '_blank' : undefined}
                     rel={isExternal ? 'noopener noreferrer' : undefined}
-                    className="group relative flex items-center gap-2 px-4 py-2 text-sm font-mono rounded-xl transition-transform duration-300 hover:-translate-y-0.5"
+                    className="group relative flex items-center gap-2 px-4 py-2 text-sm font-mono overflow-visible rounded-xl transition-transform duration-300 hover:-translate-y-0.5"
                   >
-                    <div className="absolute inset-0 bg-white/5 border border-white/10 rounded-xl group-hover:bg-white/10 group-hover:border-white/25 transition-colors duration-300" />
+                    {/* Base glass */}
+                    <div className="absolute inset-0 bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl transition-colors duration-300 group-hover:bg-white/10 group-hover:border-white/25" />
+
+                    {/* Radial glow */}
+                    <div
+                      className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                      style={{
+                        background:
+                          'radial-gradient(circle at center, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.1) 50%, transparent 100%)',
+                      }}
+                    />
+
+                    {/* Outer glow */}
+                    <div
+                      className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 -z-10"
+                      style={{
+                        boxShadow:
+                          '0 0 20px rgba(255,255,255,0.3), 0 0 40px rgba(255,255,255,0.15)',
+                      }}
+                    />
+
                     <Icon className="relative w-4 h-4 text-space-muted group-hover:text-white transition-colors duration-300" />
                     <span className="relative text-space-muted group-hover:text-white transition-colors duration-300">
                       {link.name}
@@ -109,38 +86,30 @@ export const Header = () => {
               })}
             </nav>
 
+            {/* Mobile button */}
             <button
-              onClick={() => setMenuOpen(!menuOpen)}
-              className="md:hidden relative z-50 p-2 rounded-xl overflow-hidden"
+              onClick={() => setMenuOpen((v) => !v)}
+              className="md:hidden relative p-2 rounded-xl overflow-hidden"
               aria-label="Toggle menu"
             >
-              <div
-                className="absolute inset-0 bg-white/5 border border-white/10 rounded-xl"
-                style={{
-                  transition: 'background-color 0.3s ease, border-color 0.3s ease',
-                }}
-              />
-              <div className="relative">
-                {menuOpen ? (
-                  <X className="w-6 h-6 text-white" />
-                ) : (
-                  <Menu className="w-6 h-6 text-space-muted" />
-                )}
-              </div>
+              <div className="absolute inset-0 bg-white/5 border border-white/10 rounded-xl" />
+              {menuOpen ? (
+                <X className="relative w-6 h-6 text-white" />
+              ) : (
+                <Menu className="relative w-6 h-6 text-space-muted" />
+              )}
             </button>
           </div>
         </div>
       </header>
 
+      {/* Mobile overlay */}
       {isMobile && (
         <div
           className={`fixed inset-0 z-40 backdrop-blur-md ${
             menuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
           }`}
-          style={{
-            transition: 'opacity 0.35s ease',
-            contain: 'layout paint',
-          }}
+          style={{ transition: 'opacity 0.3s ease' }}
         >
           <div
             className="absolute inset-0 flex items-center justify-center"
@@ -152,35 +121,23 @@ export const Header = () => {
             >
               {links.map((link, index) => {
                 const Icon = link.icon;
-                const isExternal = link.url.startsWith('http');
-                const delay = index * 70 + 120;
+                const delay = index * 80;
 
                 return (
                   <a
                     key={link.name}
                     href={link.url}
-                    target={isExternal ? '_blank' : undefined}
-                    rel={isExternal ? 'noopener noreferrer' : undefined}
-                    onClick={handleLinkClick}
-                    className="group relative flex items-center gap-4 px-6 py-4 text-lg font-mono rounded-2xl"
+                    onClick={() => setMenuOpen(false)}
+                    className="relative flex items-center gap-4 px-6 py-4 text-lg font-mono rounded-2xl"
                     style={{
                       opacity: menuOpen ? 1 : 0,
                       transform: menuOpen ? 'translateY(0)' : 'translateY(24px)',
-                      transition: menuOpen
-                        ? `opacity 0.45s cubic-bezier(0.16,1,0.3,1) ${delay}ms, transform 0.55s cubic-bezier(0.16,1,0.3,1) ${delay}ms`
-                        : 'opacity 0.25s ease, transform 0.25s ease',
-                      willChange: 'opacity, transform',
+                      transition: `opacity 0.4s ease ${delay}ms, transform 0.4s ease ${delay}ms`,
                     }}
                   >
-                    <div
-                      className="absolute inset-0 rounded-2xl border"
-                      style={{
-                        backgroundColor: 'rgba(255,255,255,0.1)',
-                        borderColor: 'rgba(255,255,255,0.2)',
-                      }}
-                    />
+                    <div className="absolute inset-0 bg-white/10 border border-white/20 rounded-2xl" />
                     <Icon className="relative w-6 h-6 text-white" />
-                    <span className="relative text-white font-medium">
+                    <span className="relative text-white">
                       {link.name}
                     </span>
                   </a>
