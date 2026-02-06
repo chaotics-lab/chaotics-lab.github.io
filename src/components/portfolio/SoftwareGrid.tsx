@@ -9,7 +9,7 @@ export interface ProjectData {
   title: string;
   description: string;
   technologies: string[];
-  liveUrl?: string;
+  demoUrl?: string;
   githubUrl?: string;
   type: 'Personal Project' | 'Academic Project' | 'Internship';
   imageUrl?: string;
@@ -123,7 +123,7 @@ export const SoftwareGrid: React.FC = () => {
         <div className="text-center space-y-6 mb-6 max-w-4xl mx-auto">
           <div className="flex justify-center items-center h-32 mb-4">
             <img
-              src="/img/logos/Chaotics White Transparent.png"
+              src="/img/logos/Chaotics Logo White.svg"
               alt="Chaotics Logo"
               className="w-full max-w-2xl object-contain drop-shadow-[0_0_30px_rgba(255,255,255,0.3)] transition-all duration-300 hover:drop-shadow-[0_0_50px_rgba(255,255,255,0.5)]"
             />
@@ -338,7 +338,7 @@ export const SoftwareGrid: React.FC = () => {
               description={project.description}
               technologies={project.technologies || project.tags || []}
               type={project.type}
-              liveUrl={project.liveUrl}
+              demoUrl={project.demoUrl}
               githubUrl={project.githubUrl}
               imageUrl={project.imageUrl}
               logoUrl={project.logoUrl}
