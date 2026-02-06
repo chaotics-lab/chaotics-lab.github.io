@@ -142,14 +142,6 @@ export const Header = () => {
           className="fixed inset-0 z-40 backdrop-blur-md transition-all duration-500 ease-out"
           style={{ transitionProperty: 'opacity, backdrop-filter' }}
         >
-          {/* Starfield Background */}
-          {isMobile && (
-            <div className="absolute inset-0 overflow-hidden">
-              <div className="stars-small" />
-              <div className="stars-medium" />
-              <div className="stars-large" />
-            </div>
-          )}
 
           {/* Menu Items Container */}
           <div className="absolute inset-0 flex items-center justify-center" onClick={handleLinkClick}>
@@ -196,52 +188,6 @@ export const Header = () => {
           </div>
         </div>
       )}
-
-      {/* Starfield Animation Styles */}
-      <style jsx>{`
-        @keyframes animateStars { from { transform: translateY(0px); } to { transform: translateY(-2000px); } }
-
-        .stars-small, .stars-medium, .stars-large {
-          position: absolute;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 200%;
-          background-repeat: repeat;
-        }
-
-        .stars-small {
-          background-image: 
-            radial-gradient(2px 2px at 20px 30px, rgba(255, 255, 255, 0.8), rgba(0, 0, 0, 0)),
-            radial-gradient(2px 2px at 60px 70px, rgba(255, 255, 255, 0.6), rgba(0, 0, 0, 0)),
-            radial-gradient(1px 1px at 50px 50px, rgba(255, 255, 255, 0.9), rgba(0, 0, 0, 0)),
-            radial-gradient(1px 1px at 130px 80px, rgba(255, 255, 255, 0.7), rgba(0, 0, 0, 0)),
-            radial-gradient(2px 2px at 90px 10px, rgba(255, 255, 255, 0.8), rgba(0, 0, 0, 0)),
-            radial-gradient(1px 1px at 150px 120px, rgba(255, 255, 255, 0.6), rgba(0, 0, 0, 0)),
-            radial-gradient(2px 2px at 180px 40px, rgba(255, 255, 255, 0.7), rgba(0, 0, 0, 0));
-          background-size: 200px 200px;
-          animation: animateStars 50s linear infinite;
-        }
-
-        .stars-medium {
-          background-image:
-            radial-gradient(3px 3px at 100px 50px, rgba(255, 255, 255, 0.9), rgba(0, 0, 0, 0)),
-            radial-gradient(2px 2px at 150px 150px, rgba(255, 255, 255, 0.7), rgba(0, 0, 0, 0)),
-            radial-gradient(3px 3px at 50px 100px, rgba(255, 255, 255, 0.6), rgba(0, 0, 0, 0)),
-            radial-gradient(2px 2px at 200px 80px, rgba(255, 255, 255, 0.8), rgba(0, 0, 0, 0));
-          background-size: 250px 250px;
-          animation: animateStars 80s linear infinite;
-        }
-
-        .stars-large {
-          background-image:
-            radial-gradient(4px 4px at 75px 125px, rgba(255, 255, 255, 1), rgba(0, 0, 0, 0)),
-            radial-gradient(3px 3px at 175px 75px, rgba(255, 255, 255, 0.8), rgba(0, 0, 0, 0)),
-            radial-gradient(4px 4px at 120px 180px, rgba(255, 255, 255, 0.9), rgba(0, 0, 0, 0));
-          background-size: 300px 300px;
-          animation: animateStars 120s linear infinite;
-        }
-      `}</style>
     </>
   );
 };
