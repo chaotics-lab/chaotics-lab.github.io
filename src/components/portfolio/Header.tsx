@@ -5,9 +5,11 @@ export const Header = () => {
   const [isMobile, setIsMobile] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
+  // Detect real mobile devices (touch + coarse pointer)
   useEffect(() => {
     const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
+      const isTouchDevice = window.matchMedia('(hover: none) and (pointer: coarse)').matches;
+      setIsMobile(isTouchDevice);
     };
     
     checkMobile();
@@ -62,9 +64,7 @@ export const Header = () => {
     { name: 'Resume', icon: ScrollText, url: '/files/Leopold_Rombaut_Resume.pdf' },
   ];
 
-  const handleLinkClick = () => {
-    setMenuOpen(false);
-  };
+  const handleLinkClick = () => setMenuOpen(false);
 
   return (
     <>
@@ -136,41 +136,29 @@ export const Header = () => {
         </div>
       </header>
 
-      {/* Mobile Menu Overlay - Full screen with stars and blur */}
-      {isMobile && (
-        <div 
-          className={`fixed inset-0 z-40 backdrop-blur-md transition-all duration-500 ease-out ${
-            menuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
-          }`}
-          style={{
-            transitionProperty: 'opacity, backdrop-filter',
-          }}
+      {/* Mobile Menu Overlay - show always when menuOpen */}
+      {menuOpen && (
+        <div
+          className="fixed inset-0 z-40 backdrop-blur-md transition-all duration-500 ease-out"
+          style={{ transitionProperty: 'opacity, backdrop-filter' }}
         >
           {/* Starfield Background */}
-          <div className={`absolute inset-0 transition-opacity duration-500 ${
-            menuOpen ? 'opacity-100' : 'opacity-0'
-          }`}>
+          {isMobile && (
             <div className="absolute inset-0 overflow-hidden">
-              <div className="stars-small"></div>
-              <div className="stars-medium"></div>
-              <div className="stars-large"></div>
+              <div className="stars-small" />
+              <div className="stars-medium" />
+              <div className="stars-large" />
             </div>
-          </div>
+          )}
 
           {/* Menu Items Container */}
-          <div 
-            className="absolute inset-0 flex items-center justify-center"
-            onClick={() => setMenuOpen(false)}
-          >
-            <nav 
-              className="flex flex-col gap-4 px-6 w-full max-w-sm"
-              onClick={(e) => e.stopPropagation()}
-            >
+          <div className="absolute inset-0 flex items-center justify-center" onClick={handleLinkClick}>
+            <nav className="flex flex-col gap-4 px-6 w-full max-w-sm" onClick={(e) => e.stopPropagation()}>
               {links.map((link, index) => {
                 const IconComponent = link.icon;
                 const isExternal = link.url.startsWith('http');
                 const delay = index * 80 + 150;
-                
+
                 return (
                   <a
                     key={link.name}
@@ -180,35 +168,27 @@ export const Header = () => {
                     onClick={handleLinkClick}
                     className="group relative flex items-center gap-4 px-6 py-4 text-lg font-mono rounded-2xl transition-transform duration-300 hover:scale-105"
                     style={{
-                      opacity: menuOpen ? 1 : 0,
-                      transform: menuOpen ? 'translateY(0) scale(1)' : 'translateY(30px) scale(0.95)',
-                      transition: menuOpen 
-                        ? `opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1) ${delay}ms, transform 0.6s cubic-bezier(0.16, 1, 0.3, 1) ${delay}ms`
-                        : 'opacity 0.3s ease-in, transform 0.3s ease-in',
+                      opacity: 1,
+                      transform: 'translateY(0) scale(1)',
+                      transition: `opacity 0.5s cubic-bezier(0.16,1,0.3,1) ${delay}ms, transform 0.6s cubic-bezier(0.16,1,0.3,1) ${delay}ms`,
                     }}
                   >
-                    {/* Glass morphism background */}
-                    <div 
+                    <div
                       className="absolute inset-0 backdrop-blur-md border rounded-2xl transition-all duration-500"
                       style={{
-                        backgroundColor: menuOpen ? 'rgba(255, 255, 255, 0.1)' : 'rgba(255, 255, 255, 0)',
-                        borderColor: menuOpen ? 'rgba(255, 255, 255, 0.2)' : 'rgba(255, 255, 255, 0)',
-                        transitionDelay: menuOpen ? `${delay}ms` : '0ms',
+                        backgroundColor: 'rgba(255,255,255,0.1)',
+                        borderColor: 'rgba(255,255,255,0.2)',
+                        transitionDelay: `${delay}ms`,
                       }}
                     />
-                    
-                    {/* Hover glow effect */}
-                    <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                    <div
+                      className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                       style={{
                         background: 'radial-gradient(circle at center, rgba(255,255,255,0.15) 0%, transparent 70%)',
                       }}
                     />
-                    
-                    {/* Content */}
                     <IconComponent className="relative w-6 h-6 text-white transition-transform duration-300 group-hover:scale-110" />
-                    <span className="relative text-white font-medium">
-                      {link.name}
-                    </span>
+                    <span className="relative text-white font-medium">{link.name}</span>
                   </a>
                 );
               })}
@@ -219,18 +199,9 @@ export const Header = () => {
 
       {/* Starfield Animation Styles */}
       <style jsx>{`
-        @keyframes animateStars {
-          from {
-            transform: translateY(0px);
-          }
-          to {
-            transform: translateY(-2000px);
-          }
-        }
+        @keyframes animateStars { from { transform: translateY(0px); } to { transform: translateY(-2000px); } }
 
-        .stars-small,
-        .stars-medium,
-        .stars-large {
+        .stars-small, .stars-medium, .stars-large {
           position: absolute;
           top: 0;
           left: 0;
