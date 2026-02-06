@@ -117,7 +117,7 @@ export const SoftwareGrid: React.FC = () => {
   }, [projects, selectedCategory]);
 
   return (
-    <section className="py-20 relative">
+    <section className="py-20 relative overflow-x-hidden">
       <div className="container mx-auto px-6 relative">
         {/* Chaotics Logo and Tagline */}
         <div className="text-center space-y-6 mb-6 max-w-4xl mx-auto">
@@ -141,119 +141,119 @@ export const SoftwareGrid: React.FC = () => {
 
         {/* AI Usage Badge Showcase */}
         <div className="max-w-6xl mx-auto mb-16">
-          <div 
-            className={`
-              relative backdrop-blur-xl rounded-2xl shadow-2xl border-2 overflow-hidden transition-all duration-300 group
-              ${aiShowcaseOpen 
-                ? 'bg-white/5 border-white/10 md:hover:shadow-2xl' 
-                : 'bg-white/[0.02] border-white/5 scale-95 md:hover:scale-100 md:hover:bg-white/5 md:hover:border-white/10'
-              }
-            `}
-          >
-            {/* Background glow */}
-            <div
-              className={`absolute inset-0 pointer-events-none transition-opacity duration-300 ${aiShowcaseOpen ? 'opacity-100' : 'opacity-30 group-hover:opacity-100'}`}
-              style={{
-            background: 'radial-gradient(circle at top right, rgba(138, 43, 226, 0.15) 0%, transparent 50%), radial-gradient(circle at bottom left, rgba(255, 0, 110, 0.15) 0%, transparent 50%)',
-            filter: 'blur(60px)',
-              }}
+  <div 
+    className={`
+      relative backdrop-blur-xl rounded-2xl shadow-2xl border-2 transition-all duration-300 group
+      ${aiShowcaseOpen 
+        ? 'bg-white/5 border-white/10 md:hover:shadow-2xl' 
+        : 'bg-white/[0.02] border-white/5 md:scale-95 md:hover:scale-100 md:hover:bg-white/5 md:hover:border-white/10'
+      }
+    `}
+  >
+    {/* Background glow - same */}
+    <div
+      className={`absolute inset-0 pointer-events-none transition-opacity duration-300 ${aiShowcaseOpen ? 'opacity-100' : 'opacity-30 group-hover:opacity-100'}`}
+      style={{
+        background: 'radial-gradient(circle at top right, rgba(138, 43, 226, 0.15) 0%, transparent 50%), radial-gradient(circle at bottom left, rgba(255, 0, 110, 0.15) 0%, transparent 50%)',
+        filter: 'blur(60px)',
+      }}
+    />
+    
+    {/* Enhanced glow on hover - same */}
+    <div
+      className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl"
+      style={{
+        background: 'radial-gradient(circle at top right, rgba(138, 43, 226, 0.25) 0%, transparent 50%), radial-gradient(circle at bottom left, rgba(255, 0, 110, 0.25) 0%, transparent 50%)',
+        filter: 'blur(60px)',
+      }}
+    />
+    
+    <div className="relative z-10">
+      {/* Header and always-visible content */}
+      <button
+        onClick={() => setAiShowcaseOpen(!aiShowcaseOpen)}
+        className="w-full text-left px-8 pt-8 pb-4 transition-transform duration-300 md:hover:-translate-y-2.5"
+        // Removed 'group' class from button since parent already has it
+      >
+        <div className="flex flex-col md:flex-row items-center md:items-center gap-6 relative pr-10">
+          {/* Chevron in top right corner */}
+          <ChevronDown 
+            className={`w-6 h-6 flex-shrink-0 absolute right-0 top-0 transition-all duration-300 ${
+              aiShowcaseOpen ? 'rotate-180 text-white' : 'rotate-0 text-gray-400 md:animate-bob md:group-hover:animate-bob-intense'
+            }`}
+          />
+          
+          <div className="hidden md:flex items-center justify-center flex-shrink-0">
+            <img 
+              src="/img/AI Seal of Quality.png" 
+              alt="AI Seal of Quality" 
+              className={`transition-all duration-300 object-contain ${
+                aiShowcaseOpen 
+                  ? 'h-24 md:h-32 w-auto' 
+                  : 'h-12 md:h-16 w-auto grayscale opacity-50 group-hover:grayscale-0 group-hover:opacity-100'
+              }`}
             />
-            
-            {/* Enhanced glow on hover */}
-            <div
-              className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl"
-              style={{
-                background: 'radial-gradient(circle at top right, rgba(138, 43, 226, 0.25) 0%, transparent 50%), radial-gradient(circle at bottom left, rgba(255, 0, 110, 0.25) 0%, transparent 50%)',
-                filter: 'blur(60px)',
-              }}
-            />
-            
-            <div className="relative z-10">
-              {/* Header and always-visible content */}
-              <button
-                onClick={() => setAiShowcaseOpen(!aiShowcaseOpen)}
-                className="w-full text-left group px-8 pt-8 pb-4 transition-transform duration-300 md:hover:-translate-y-2.5"
-              >
-                <div className="flex flex-col md:flex-row items-center md:items-center gap-6 relative pr-10">
-                    {/* Chevron in top right corner */}
-                    <ChevronDown 
-                      className={`w-6 h-6 flex-shrink-0 absolute right-0 top-0 transition-all duration-300 ${
-                        aiShowcaseOpen ? 'rotate-180 text-white' : 'rotate-0 text-gray-400 animate-bob group-hover:animate-bob-intense'
-                      }`}
-                    />
-                    
-                    <div className="hidden md:flex items-center justify-center flex-shrink-0">
-                    <img 
-                      src="/img/AI Seal of Quality.png" 
-                      alt="AI Seal of Quality" 
-                      className={`transition-all duration-300 object-contain ${
-                        aiShowcaseOpen 
-                          ? 'h-24 md:h-32 w-auto' 
-                          : 'h-12 md:h-16 w-auto grayscale opacity-50 group-hover:grayscale-0 group-hover:opacity-100'
-                      }`}
-                    />
-                    </div>
-                    <div className="flex-grow relative">
-                      <blockquote 
-                        className={`text-base md:text-xl italic border-l-4 pl-4 transition-all duration-300 ${
-                          aiShowcaseOpen 
-                            ? 'text-space-secondary border-gray-300' 
-                            : 'text-gray-500 border-gray-600 md:text-lg group-hover:text-space-secondary group-hover:border-gray-300 line-clamp-6 md:line-clamp-none'
-                        }`}
-                        style={!aiShowcaseOpen ? {
-                          maskImage: 'linear-gradient(to bottom, black 50%, transparent 100%)',
-                          WebkitMaskImage: 'linear-gradient(to bottom, black 50%, transparent 100%)'
-                        } : undefined}
-                      >
-                        I track my AI usage to focus on learning new skills, not just coding/work efficiency.
-                        Overreliance on AI can hinder metacognition and weaken learning compared to active problem solving. 
-                        Once I master a tool or concept, I use AI responsibly to speed up work without losing control of my critical mind. <a 
-                          href="https://www.media.mit.edu/projects/your-brain-on-chatgpt/overview/" 
-                          className={`underline inline-flex items-center gap-1 transition-opacity duration-300 ${
-                            aiShowcaseOpen ? 'cursor-pointer' : 'pointer-events-none opacity-50'
-                          }`}
-                          onClick={(e) => !aiShowcaseOpen && e.preventDefault()}
-                          tabIndex={aiShowcaseOpen ? 0 : -1}
-                        >
-                          Your Brain on ChatGPT<ExternalLink className="w-4 h-4" />
-                        </a>
-                      </blockquote>
-                    </div>
-                </div>
-              </button>
-
-              {/* Collapsible badges section */}
-              <div
-                className={`overflow-visible transition-all duration-300 ease-in-out ${
-                  aiShowcaseOpen ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0'
+          </div>
+          <div className="flex-grow relative min-w-0">
+            <blockquote 
+              className={`text-base md:text-xl italic border-l-4 pl-4 transition-all duration-300 ${
+                aiShowcaseOpen 
+                  ? 'text-space-secondary border-gray-300' 
+                  : 'text-gray-500 border-gray-600 md:text-lg group-hover:text-space-secondary group-hover:border-gray-300 line-clamp-6 md:line-clamp-none'
+              }`}
+              style={!aiShowcaseOpen ? {
+                maskImage: 'linear-gradient(to bottom, black 50%, transparent 100%)',
+                WebkitMaskImage: 'linear-gradient(to bottom, black 50%, transparent 100%)'
+              } : undefined}
+            >
+              I track my AI usage to focus on learning new skills, not just coding/work efficiency.
+              Overreliance on AI can hinder metacognition and weaken learning compared to active problem solving. 
+              Once I master a tool or concept, I use AI responsibly to speed up work without losing control of my critical mind. <a 
+                href="https://www.media.mit.edu/projects/your-brain-on-chatgpt/overview/" 
+                className={`underline inline-flex items-center gap-1 transition-opacity duration-300 ${
+                  aiShowcaseOpen ? 'cursor-pointer' : 'pointer-events-none opacity-50'
                 }`}
-                style={{ overflow: aiShowcaseOpen ? 'visible' : 'hidden' }}
+                onClick={(e) => !aiShowcaseOpen && e.preventDefault()}
+                tabIndex={aiShowcaseOpen ? 0 : -1}
               >
-                <div className="px-8 pb-8 pt-2">
-                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
-                    {AI_USAGE_LEVELS.map((level) => {
-                      const Icon = level.icon;
-                      return (
-                        <div key={level.value} className="flex flex-col items-center text-center group">
-                          <div className="relative mb-3">
-                            <AISticker value={level.value} size={80} />
-                          </div>
-                          <div className="flex items-center gap-1 mb-2">
-                            {/* <Icon className="w-4 h-4 text-white/70" /> */}
-                            <h4 className="text-sm font-bold text-white">{level.label}</h4>
-                          </div>
-                          <p className="text-xs text-space-secondary leading-relaxed">
-                            {level.description}
-                          </p>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
-            </div>
+                Your Brain on ChatGPT<ExternalLink className="w-4 h-4" />
+              </a>
+            </blockquote>
           </div>
         </div>
+      </button>
+
+      {/* Collapsible badges section */}
+      <div
+        className={`transition-all duration-300 ease-in-out ${
+          aiShowcaseOpen ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0'
+        }`}
+        style={{ overflow: aiShowcaseOpen ? 'visible' : 'hidden' }}
+      >
+        <div className="px-8 pb-8 pt-2">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
+            {AI_USAGE_LEVELS.map((level) => {
+              const Icon = level.icon;
+              return (
+                <div key={level.value} className="flex flex-col items-center text-center">
+                  <div className="relative mb-3">
+                    <AISticker value={level.value} size={80} />
+                  </div>
+                  <div className="flex items-center gap-1 mb-2">
+                    <h4 className="text-sm font-bold text-white">{level.label}</h4>
+                  </div>
+                  <p className="text-xs text-space-secondary leading-relaxed">
+                    {level.description}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
         {/* Category Pills */}
         <div className="max-w-5xl mx-auto mb-10">
@@ -274,7 +274,7 @@ export const SoftwareGrid: React.FC = () => {
                   key={category}
                   onClick={() => setSelectedCategory(category)}
                   className={`
-                    group relative px-4 py-2.5 rounded-xl overflow-visible
+                    group relative px-4 py-2.5 rounded-xl
                     transition-all duration-300 flex items-center gap-2
                     ${isActive 
                       ? 'scale-105 -translate-y-1' 
@@ -438,4 +438,4 @@ export const SoftwareGrid: React.FC = () => {
       `}</style>
     </section>
   );
-}
+};
