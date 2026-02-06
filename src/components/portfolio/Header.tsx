@@ -61,7 +61,7 @@ export const Header = () => {
     { name: 'GitHub', icon: Github, url: 'https://github.com/Loxed' },
     { name: 'LinkedIn', icon: Linkedin, url: 'https://linkedin.com/in/leopold-rombaut' },
     { name: 'Mail', icon: Mail, url: 'mailto:leopold@rombaut.org' },
-    { name: 'Resume', icon: ScrollText, url: '/files/Leopold_Rombaut_Resume.pdf' },
+    // { name: 'Resume', icon: ScrollText, url: '/files/Leopold_Rombaut_Resume.pdf' },
   ];
 
   const handleLinkClick = () => setMenuOpen(false);
