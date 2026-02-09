@@ -34,32 +34,37 @@ jobs:
       - name: Build
         run: npm run build
       
-      - name: Prerender with Puppeteer
+      - name: Capture dynamic content with Puppeteer
         run: |
           npm install puppeteer
           node << 'EOF'
           const puppeteer = require('puppeteer');
           const fs = require('fs');
           const path = require('path');
-          
+
           (async () => {
             const browser = await puppeteer.launch({ 
               headless: 'new',
               args: ['--no-sandbox', '--disable-setuid-sandbox']
             });
             const page = await browser.newPage();
-            
-            const distPath = path.join(process.cwd(), 'dist');
-            const indexPath = path.join(distPath, 'index.html');
-            
+
+            // Charge ton site depuis le dist local
+            const indexPath = path.join(process.cwd(), 'dist', 'index.html');
             await page.goto('file://' + indexPath, { waitUntil: 'networkidle0' });
+
+            // Petite pause pour s'assurer que React Query / animations / fetch sont terminés
             await new Promise(resolve => setTimeout(resolve, 3000));
-            
-            const html = await page.content();
-            fs.writeFileSync(indexPath, html);
-            
+
+            // Récupère le HTML rendu côté client
+            const renderedHTML = await page.content();
+
+            // Sauvegarde dans un fichier pour LLM ou inspection
+            const outputPath = path.join(process.cwd(), 'dist', 'rendered.html');
+            fs.writeFileSync(outputPath, renderedHTML);
+
+            console.log(`✅ Dynamic content captured at ${outputPath}`);
             await browser.close();
-            console.log('✅ Prerendering complete');
           })();
           EOF
       
