@@ -34,40 +34,6 @@ jobs:
       - name: Build
         run: npm run build
       
-      - name: Capture dynamic content for LLM
-        run: |
-          npm install puppeteer
-          node << 'EOF'
-          const puppeteer = require('puppeteer');
-          const fs = require('fs');
-          const path = require('path');
-
-          (async () => {
-            const browser = await puppeteer.launch({
-              headless: 'new',
-              args: ['--no-sandbox', '--disable-setuid-sandbox']
-            });
-            const page = await browser.newPage();
-
-            // Charge l'index.html local (Vite build)
-            const indexPath = path.join(process.cwd(), 'dist', 'index.html');
-            await page.goto('file://' + indexPath, { waitUntil: 'networkidle0' });
-
-            // Attend que React Query et le JS finissent de charger
-            await new Promise(resolve => setTimeout(resolve, 3000));
-
-            // Récupère le HTML complet généré côté client
-            const html = await page.content();
-
-            // Sauvegarde dans un fichier pour inspection ou LLM
-            const outputPath = path.join(process.cwd(), 'dist', 'rendered_for_llm.html');
-            fs.writeFileSync(outputPath, html);
-
-            console.log(`✅ Dynamic content saved at ${outputPath}`);
-            await browser.close();
-          })();
-          EOF
-      
       - name: Setup Pages
         uses: actions/configure-pages@v5
       
