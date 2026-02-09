@@ -53,7 +53,7 @@ jobs:
             const indexPath = path.join(distPath, 'index.html');
             
             await page.goto('file://' + indexPath, { waitUntil: 'networkidle0' });
-            await page.waitForTimeout(3000);
+            await new Promise(resolve => setTimeout(resolve, 3000));
             
             const html = await page.content();
             fs.writeFileSync(indexPath, html);
