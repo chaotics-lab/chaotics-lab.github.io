@@ -3,23 +3,12 @@ name: Deploy static content to Pages
 on:
   push:
     branches: ['main']
-<<<<<<< HEAD
   workflow_dispatch:
 
-=======
-  # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
-# Sets the GITHUB_TOKEN permissions to allow deployment to GitHub Pages
->>>>>>> 95f4958df8560a760744aee7e734bb09e47f939b
 permissions:
   contents: read
   pages: write
   id-token: write
-<<<<<<< HEAD
-
-=======
-# Allow one concurrent deployment
->>>>>>> 95f4958df8560a760744aee7e734bb09e47f939b
 concurrency:
   group: 'pages'
   cancel-in-progress: true
