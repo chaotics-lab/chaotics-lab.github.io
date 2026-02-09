@@ -54,7 +54,7 @@ jobs:
             await page.goto('file://' + indexPath, { waitUntil: 'networkidle0' });
 
             // Attend que React Query et le JS finissent de charger
-            await page.waitForTimeout(3000);
+            await new Promise(resolve => setTimeout(resolve, 3000));
 
             // Récupère le HTML complet généré côté client
             const html = await page.content();
