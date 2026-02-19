@@ -25,9 +25,17 @@ export const Footer = ({
             </Badge>
            
             <p className="text-space-muted font-mono text-sm">
-              Building tomorrow's software, today.
+              Exploring new ideas and building cool things.
             </p>
 
+            <div className="flex justify-center gap-6">
+              <a href={githubUrl} target="_blank" rel="noopener noreferrer" className="text-space-muted hover:text-white transition-colors">
+                <Github className="w-6 h-6" />
+              </a>
+              <a href={linkedinUrl} target="_blank" rel="noopener noreferrer" className="text-space-muted hover:text-white transition-colors">
+                <Linkedin className="w-6 h-6" />
+              </a>
+            </div>
           </div>
          
           <Separator className="bg-space-border" />
@@ -36,19 +44,13 @@ export const Footer = ({
           <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-space-muted">
             <div className="font-mono flex items-center gap-2">
               <Sparkles className="w-3.5 h-3.5 text-space-border" />
-              © 2025 Software Portfolio. All systems operational.
+              © {new Date().getFullYear()} Chaotics. All rights reserved.
             </div>
            
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-                <span className="font-mono text-xs">Status: Active</span>
-              </div>
-             
-              <div className="text-space-border">•</div>
-             
-              <div className="font-mono text-xs">
-                Last updated: {new Date().toLocaleDateString()}
+                <span className="font-mono text-xs">All systems operational</span>
               </div>
             </div>
           </div>

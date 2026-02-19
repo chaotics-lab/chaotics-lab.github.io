@@ -1,0 +1,25 @@
+{
+  "title": "AI-Powered Video Editor",
+  "date": "2026-02-18",
+  "titleColor": "#FFFFFF",
+  "description": "An AI-powered video editing tool that automatically identifies and removes silent segments from videos, streamlining the editing process for content creators.",
+  "imageUrl": "/img/chaotics-slice",
+  "logoUrl": "/img/chaotics-slice/logo.png",
+  "themeColor": "#191919",
+  "logoBackgroundColor": "transparent",
+  "githubUrl": "https://github.com/chaotics-labs/Slice",
+  "category": [
+    "gui",
+    "web",
+    "ai"
+  ],
+  "tags": [
+    "Python",
+    "Flask",
+    "Video Editing"
+  ],
+  "type": "Personal Project",
+  "AIUsed": "60",
+  "id": "chaotics-slice",
+"markdown": "## What\nChaotics Slice is a self-hosted, AI-powered tool that removes silences from videos. Users upload a video, select an aggression level (Chill → Savage), and the app detects speech while removing all non-speech segments. Timeline previews and exports to fully sliced videos or cut lists (EDL / FCPXML / Premiere XML) enable seamless integration into professional NLEs, offering more precise silence removal than standard volume-threshold trimming.\n\n## How\nBuilt in Python with Flask for frontend and backend. Audio is processed using Silero VAD for frame-accurate speech detection, with cuts applied via FFmpeg through CLI orchestration. Supports macOS, Windows, and Linux with optional GPU acceleration (CUDA / MPS) or CPU fallback. Model weights are cached locally for offline operation after first use. The system automates workflow while retaining precise control over edits.\n\n## Result\nA fully functional prototype that accelerates and improves video editing by accurately removing silences, previewing cuts, and exporting directly to NLEs. Self-hosted and free, it allows editors to automate repetitive tasks while maintaining precision and workflow integration.\n\n### AI Usage (80%)\nI used AI to develop most of the frontend logic. The command-line MVP using Silero and applying to videos was engineered and prototyped by myself, with gen AI used for code completion."
+}
