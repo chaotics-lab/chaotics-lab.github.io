@@ -5,7 +5,7 @@
   "description": "An AI-powered silence remover that uses Silero VAD to detect speech and automatically cut non-speech segments.",
   "imageUrl": "/img/chaotics-slice",
   "logoUrl": "/img/chaotics-slice/logo.png",
-  "themeColors": ["#505050","#8F0000"],
+  "themeColors": ["#505050", "#8F0000"],
   "logoBackgroundColor": "transparent",
   "githubUrl": "https://github.com/chaotics-labs/Slice",
   "category": [

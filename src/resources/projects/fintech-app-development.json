@@ -6,10 +6,9 @@
   "imageUrl": "/img/payby",
   "logoUrl": "/img/payby/logo.png",
   "demoUrl": "https://www.botim.money/point-of-sale",
-  "themeColors": ["#4ade4a", "#00ffFF"],
+  "themeColors": ["#4ADE4A", "#00FFFF"],
   "logoBackgroundColor": "#FFFFFF",
   "category": [
-    
     "backend"
   ],
   "tags": [
