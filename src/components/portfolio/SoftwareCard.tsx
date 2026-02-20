@@ -119,27 +119,76 @@ export const SoftwareCard = memo((props: Partial<SoftwareCardProps>) => {
           ...(secondaryColor ? { margin: '2px', borderRadius: 'calc(0.75rem - 2px)' } : {}),
         }}
       >
-        {/* Liquid glass highlight */}
-        <div className="absolute inset-0 pointer-events-none z-0" style={{
-          background: 'linear-gradient(165deg, rgba(255,255,255,0.07) 0%, transparent 35%, transparent 75%, rgba(255,255,255,0.03) 100%)',
-          borderRadius: 'inherit',
-        }} />
+        {/* Liquid glass overlay - layered gradients, no blur for performance */}
+        <div
+          className="absolute inset-0 pointer-events-none z-0 hidden md:block"
+          style={{
+            background: [
+              `linear-gradient(165deg, ${hexToRGBA(primaryColor, 0.20)} 0%, rgba(255,255,255,0.05) 24%, transparent 44%)`,
+              secondaryColor
+                ? `linear-gradient(345deg, transparent 55%, ${hexToRGBA(secondaryColor, 0.12)} 78%, rgba(255,255,255,0.03) 100%)`
+                : 'linear-gradient(345deg, transparent 55%, rgba(255,255,255,0.10) 78%, rgba(255,255,255,0.03) 100%)',
+              `radial-gradient(120% 90% at 12% 10%, ${hexToRGBA(primaryColor, 0.16)} 0%, transparent 58%)`,
+              secondaryColor
+                ? `radial-gradient(120% 90% at 88% 85%, ${hexToRGBA(secondaryColor, 0.12)} 0%, transparent 62%)`
+                : `radial-gradient(120% 90% at 88% 85%, ${hexToRGBA(primaryColor, 0.10)} 0%, transparent 62%)`,
+            ].join(', '),
+            borderRadius: 'inherit',
+          }}
+        />
+        <div
+          className="absolute inset-0 pointer-events-none z-0 hidden md:block"
+          style={{
+            background: `linear-gradient(90deg, ${hexToRGBA(primaryColor, 0.12)} 0%, transparent 35%, transparent 65%, rgba(255,255,255,0.07) 100%)`,
+            borderRadius: 'inherit',
+            opacity: 0.95,
+          }}
+        />
+        <div
+          className="absolute inset-0 pointer-events-none z-0 md:hidden"
+          style={{
+            background: `linear-gradient(160deg, ${hexToRGBA(primaryColor, 0.18)} 0%, rgba(255,255,255,0.04) 30%, transparent 55%)`,
+            borderRadius: 'inherit',
+            opacity: 0.9,
+          }}
+        />
+        {/* Subtle color edge sheen + fine noise texture */}
+        <div
+          className="absolute inset-0 pointer-events-none z-0"
+          style={{
+            background: [
+              `linear-gradient(180deg, ${hexToRGBA(primaryColor, 0.10)} 0%, transparent 18%, transparent 82%, ${hexToRGBA(primaryColor, 0.08)} 100%)`,
+              "url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAE0lEQVQImWP8z/D/PwMDAwMjAAMpAQ8oJr2RAAAAAElFTkSuQmCC')",
+            ].join(', '),
+            backgroundRepeat: 'no-repeat, repeat',
+            backgroundSize: '100% 100%, 8px 8px',
+            borderRadius: 'inherit',
+            opacity: 0.22,
+          }}
+        />
 
         {/* Inner glows - static gradients, no blur for low-end performance */}
         {secondaryColor ? (
           <>
-            {/* Primary glow - middle right */}
-            <div className="absolute pointer-events-none z-0" style={{
+            {/* Primary glow - middle right (desktop only) */}
+            <div className="absolute pointer-events-none z-0 hidden md:block" style={{
               top: '60%', right: '0%',
               transform: 'translateY(-50%)',
               width: '60%', height: '50%',
               background: `radial-gradient(ellipse 80% 60% at 50% 50%, ${hexToRGBA(primaryColor, 0.10)} 0%, ${hexToRGBA(primaryColor, 0.04)} 40%, transparent 70%)`,
             }} />
-            {/* Secondary glow - bottom left */}
-            <div className="absolute pointer-events-none z-0" style={{
+            {/* Secondary glow - bottom left (desktop only) */}
+            <div className="absolute pointer-events-none z-0 hidden md:block" style={{
               bottom: '0%', left: '0%',
               width: '60%', height: '50%',
               background: `radial-gradient(ellipse 80% 60% at 50% 50%, ${hexToRGBA(secondaryColor, 0.08)} 0%, ${hexToRGBA(secondaryColor, 0.03)} 35%, transparent 65%)`,
+            }} />
+            {/* Single compact glow for mobile */}
+            <div className="absolute pointer-events-none z-0 md:hidden" style={{
+              top: '50%', left: '50%',
+              transform: 'translate(-50%, -50%)',
+              width: '55%', height: '45%',
+              background: `radial-gradient(ellipse 80% 60% at 50% 50%, ${hexToRGBA(primaryColor, 0.08)} 0%, transparent 65%)`,
             }} />
           </>
         ) : (
