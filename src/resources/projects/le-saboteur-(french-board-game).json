@@ -5,7 +5,7 @@
   "description": "A video game adaptation of 'Le Saboteur', a French board game, with a wild-west pixel art theme.",
   "imageUrl": "/img/saboteur",
   "logoUrl": "/img/saboteur/logo.png",
-  "themeColor": "#ffe7a5",
+  "themeColors": ["#ffe7a5", "#8b4513"],
   "logoBackgroundColor": "transparent",
   "githubUrl": "https://github.com/Loxed/le-saboteur",
   "category": [

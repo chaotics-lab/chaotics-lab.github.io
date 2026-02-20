@@ -5,7 +5,7 @@
   "description": "A Firefox extension that automatically provides real-time progress tracking for educational content and courses.",
   "imageUrl": "/img/youtube-tracker",
   "logoUrl": "/img/youtube-tracker/logo.png",
-  "themeColor": "#A50000",
+  "themeColors": ["#A50000", "#FF5733"],
   "logoBackgroundColor": "transparent",
   "category": [
     "web",

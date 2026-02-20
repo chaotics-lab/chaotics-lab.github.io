@@ -6,7 +6,7 @@
   "imageUrl": "/img/WTA",
   "logoUrl": "/img/WTA/logo.png",
   "demoUrl": "https://sites.google.com/view/marcelo-j-rozenberg/research/spiking-neurons/memristive-silicon-spiking-neurons?authuser=0/",
-  "themeColor": "#f9d047",
+  "themeColors": ["#f9d047", "#a047f9"],
   "logoBackgroundColor": "#FFFFFF",
   "category": [
     "ai",

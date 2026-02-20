@@ -5,7 +5,7 @@
   "description": "A digital adaptation of the classic Cluedo board game, featuring a hollow knight theme and interactive gameplay.",
   "imageUrl": "/img/cluedo",
   "logoUrl": "/img/cluedo/logo.png",
-  "themeColor": "#42009c",
+  "themeColors": ["#42009c","#9c0042"],
   "logoBackgroundColor": "transparent",
   "githubUrl": "https://github.com/Loxed/cluedo-knight",
   "category": [

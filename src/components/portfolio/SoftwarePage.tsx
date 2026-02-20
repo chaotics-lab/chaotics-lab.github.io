@@ -197,17 +197,18 @@ const SoftwarePage = () => {
     );
 
   const date = project.date ? new Date(project.date) : null;
-  const themeColor = project.themeColor || "#8888ff";
+  const themeColor = project.themeColor || project.themeColors?.[0] || "#8888ff";
+  const secondaryColor = project.themeColors?.[1] || null;
 
   return (
     <div className="relative w-full text-white flex flex-col overflow-hidden min-h-screen bg-starfield">
       {/* Starfield */}
-      <div
-        className="fixed inset-0 -z-10 starfield"
-        style={
-          { "--deep-space-color": hexToRgba(themeColor) } as React.CSSProperties
-        }
-      />
+        <div
+          className="fixed inset-0 -z-10 starfield"
+          style={
+            { "--deep-space-color": hexToRgba(secondaryColor || themeColor) } as React.CSSProperties
+          }
+        />
 
       <style>{`
         @keyframes softPulse {
@@ -360,32 +361,26 @@ const SoftwarePage = () => {
         <div className={`flex flex-col md:flex-row gap-4 ${isMobile ? '' : 'md:h-[25%] md:min-h-[180px] md:max-h-[200px] shrink-0'}`}>
           {/* Hero Content - flex: 2 */}
           <div 
-            className="relative p-6 backdrop-blur-xl rounded-2xl shadow-2xl border-2 overflow-hidden flex flex-col flex-1 md:flex-[2]"
-            style={{ borderColor: `${themeColor}30` }}
+            className="relative p-6 rounded-2xl shadow-2xl border-2 overflow-hidden flex flex-col flex-1 md:flex-[2]"
+            style={{ 
+              borderColor: secondaryColor ? `${themeColor}50` : `${themeColor}30`,
+              backgroundColor: `${themeColor}10`,
+              boxShadow: `inset 0 1px 0 rgba(255,255,255,0.08), inset 0 -1px 0 rgba(255,255,255,0.03), 0 0 20px ${themeColor}20`,
+            }}
           >
-            {/* Multi-layer colorful glow */}
+            {/* Liquid glass highlight */}
+            <div className="absolute inset-0 pointer-events-none z-0" style={{
+              background: 'linear-gradient(165deg, rgba(255,255,255,0.07) 0%, transparent 35%, transparent 75%, rgba(255,255,255,0.03) 100%)',
+            }} />
+            {/* Static glow - no blur for performance */}
             <div
               className="absolute inset-0 pointer-events-none z-0"
               style={{
-                background: `
-                  radial-gradient(circle at ${glowPositions.hero}, ${themeColor}70 0%, ${themeColor}40 30%, transparent 70%),
-                  radial-gradient(circle at center, ${themeColor}20 0%, transparent 100%)
-                `,
-                filter: "blur(60px)",
-                animation: "softPulse 3s ease-in-out infinite",
-                willChange: "opacity, transform",
+                background: secondaryColor
+                  ? `radial-gradient(ellipse 100% 80% at ${glowPositions.hero}, ${hexToRgba(themeColor, 0.10)} 0%, ${hexToRgba(themeColor, 0.02)} 40%, transparent 70%), radial-gradient(ellipse 90% 70% at ${glowPositions.hero === 'top left' ? 'bottom right' : glowPositions.hero === 'top right' ? 'bottom left' : 'top left'}, ${hexToRgba(secondaryColor, 0.08)} 0%, transparent 50%)`
+                  : `radial-gradient(ellipse 100% 80% at ${glowPositions.hero}, ${hexToRgba(themeColor, 0.10)} 0%, ${hexToRgba(themeColor, 0.02)} 40%, transparent 70%)`,
               }}
             />
-            <div
-              className="absolute inset-0 pointer-events-none z-0 opacity-60"
-              style={{
-                background: `radial-gradient(ellipse at ${glowPositions.hero}, ${themeColor}90 0%, transparent 60%)`,
-                filter: "blur(40px)",
-                animation: "rotatePulse 6s ease-in-out infinite",
-                willChange: "opacity",
-              }}
-            />
-            <div className="absolute inset-0 bg-white/5 pointer-events-none z-0" />
             
             <div className="relative z-10 flex flex-col h-full">
               {/* Title Row */}
@@ -480,42 +475,26 @@ const SoftwarePage = () => {
           {project.logoUrl && (
             <div className="hidden md:block shrink-0 max-w-[200px]">
               <div
-                className="relative backdrop-blur-xl rounded-2xl shadow-2xl border-2 overflow-hidden h-full aspect-square"
-                style={{ borderColor: `${themeColor}30` }}
+                className="relative rounded-2xl shadow-2xl border-2 overflow-hidden h-full aspect-square"
+                style={{ 
+                  borderColor: secondaryColor ? `${themeColor}50` : `${themeColor}30`,  
+                  backgroundColor: `${themeColor}10`, 
+                  boxShadow: `inset 0 1px 0 rgba(255,255,255,0.08), inset 0 -1px 0 rgba(255,255,255,0.03), 0 0 20px ${themeColor}20`,
+                }}
               >
-                {/* Multi-layer colorful glow */}
+                {/* Liquid glass highlight */}
+                <div className="absolute inset-0 pointer-events-none z-0" style={{
+                  background: 'linear-gradient(165deg, rgba(255,255,255,0.07) 0%, transparent 35%, transparent 75%, rgba(255,255,255,0.03) 100%)',
+                }} />
+                {/* Static glow - no blur for performance */}
                 <div
                   className="absolute inset-0 pointer-events-none z-0"
                   style={{
-                    background: `
-                      radial-gradient(circle at ${glowPositions.logo}, ${themeColor}70 0%, ${themeColor}40 30%, transparent 70%),
-                      radial-gradient(circle at center, ${themeColor}20 0%, transparent 100%)
-                    `,
-                    filter: "blur(60px)",
-                    animation: "softPulse 3s ease-in-out infinite",
-                    willChange: "opacity, transform",
+                    background: secondaryColor
+                      ? `radial-gradient(ellipse 100% 80% at ${glowPositions.logo}, ${hexToRgba(themeColor, 0.10)} 0%, ${hexToRgba(themeColor, 0.02)} 40%, transparent 70%), radial-gradient(ellipse 90% 70% at ${glowPositions.logo === 'top left' ? 'bottom right' : glowPositions.logo === 'top right' ? 'bottom left' : 'top left'}, ${hexToRgba(secondaryColor, 0.08)} 0%, transparent 50%)`
+                      : `radial-gradient(ellipse 100% 80% at ${glowPositions.logo}, ${hexToRgba(themeColor, 0.10)} 0%, ${hexToRgba(themeColor, 0.02)} 40%, transparent 70%)`,
                   }}
                 />
-                <div
-                  className="absolute inset-0 pointer-events-none z-0 opacity-60"
-                  style={{
-                    background: `radial-gradient(ellipse at ${glowPositions.logo}, ${themeColor}90 0%, transparent 60%)`,
-                    filter: "blur(40px)",
-                    animation: "rotatePulse 6s ease-in-out infinite",
-                    willChange: "opacity",
-                  }}
-                />
-                
-                {/* Contrasting glow for logo visibility */}
-                <div
-                  className="absolute inset-0 pointer-events-none z-0"
-                  style={{
-                    background: 'radial-gradient(circle at center, rgba(255, 255, 255, 0.9) 0%, transparent 70%)',
-                    filter: "blur(50px)",
-                  }}
-                />
-                
-                <div className="absolute inset-0 bg-white/5" />
                 
                 <div className="relative flex items-center justify-center h-full w-full p-8 z-10">
                   <img
@@ -535,32 +514,27 @@ const SoftwarePage = () => {
           <div className="relative grid grid-cols-2 gap-4 flex-1 min-h-0 overflow-hidden">
             {/* Markdown (scrollable) */}
             {project.markdown && (
-              <div className="relative rounded-2xl shadow-2xl border-2 overflow-hidden h-full backdrop-blur-xl"
-                style={{ borderColor: `${themeColor}30` }}>
+              <div className="relative rounded-2xl shadow-2xl border-2 overflow-hidden h-full"
+                style={{ 
+                  borderColor: secondaryColor ? `${themeColor}50` : `${themeColor}30`,
+                  backgroundColor: `${themeColor}10`,
+                  boxShadow: `inset 0 1px 0 rgba(255,255,255,0.08), inset 0 -1px 0 rgba(255,255,255,0.03), 0 0 20px ${themeColor}20`,
+                }}>
 
-                {/* Multi-layer colorful glow */}
+                {/* Liquid glass highlight */}
+                <div className="absolute inset-0 pointer-events-none z-0 rounded-2xl" style={{
+                  background: 'linear-gradient(165deg, rgba(255,255,255,0.07) 0%, transparent 35%, transparent 75%, rgba(255,255,255,0.03) 100%)',
+                }} />
+                
+                {/* Static glow - no blur for performance */}
                 <div
                   className="absolute inset-0 pointer-events-none z-0"
                   style={{
-                    background: `
-                      radial-gradient(circle at ${glowPositions.markdown}, ${themeColor}70 0%, ${themeColor}40 30%, transparent 70%),
-                      radial-gradient(circle at center, ${themeColor}20 0%, transparent 100%)
-                    `,
-                    filter: "blur(60px)",
-                    animation: "softPulse 3s ease-in-out infinite",
-                    willChange: "opacity, transform",
+                    background: secondaryColor
+                      ? `radial-gradient(ellipse 100% 80% at ${glowPositions.markdown}, ${hexToRgba(themeColor, 0.10)} 0%, ${hexToRgba(themeColor, 0.02)} 40%, transparent 70%), radial-gradient(ellipse 90% 70% at ${glowPositions.markdown === 'top left' ? 'bottom right' : glowPositions.markdown === 'top right' ? 'bottom left' : 'top left'}, ${hexToRgba(secondaryColor, 0.08)} 0%, transparent 50%)`
+                      : `radial-gradient(ellipse 100% 80% at ${glowPositions.markdown}, ${hexToRgba(themeColor, 0.10)} 0%, ${hexToRgba(themeColor, 0.02)} 40%, transparent 70%)`,
                   }}
                 />
-                <div
-                  className="absolute inset-0 pointer-events-none z-0 opacity-60"
-                  style={{
-                    background: `radial-gradient(ellipse at ${glowPositions.markdown}, ${themeColor}90 0%, transparent 60%)`,
-                    filter: "blur(40px)",
-                    animation: "rotatePulse 6s ease-in-out infinite",
-                    willChange: "opacity",
-                  }}
-                />
-                <div className="absolute inset-0 bg-white/5 pointer-events-none rounded-2xl" />
                 
                 <div
                   className="markdown-scroll p-6 overflow-y-auto prose prose-invert prose-sm md:prose-base max-w-none h-full relative z-10"
@@ -584,18 +558,21 @@ const SoftwarePage = () => {
               >
                 <div className="absolute inset-0 overflow-hidden rounded-2xl border-2"
                   style={{ 
-                    borderColor: `${themeColor}30`,
-                    backgroundColor: `${themeColor}20`,
-                    boxShadow: `inset 0 0 40px ${themeColor}30`,
+                    borderColor: secondaryColor ? `${themeColor}50` : `${themeColor}30`,
+                    backgroundColor: `${themeColor}10`,
+                    boxShadow: `inset 0 1px 0 rgba(255,255,255,0.08), inset 0 -1px 0 rgba(255,255,255,0.03), 0 0 20px ${themeColor}20`,
                   }}>
-                  {/* Carousel glow background */}
+                  {/* Liquid glass highlight */}
+                  <div className="absolute inset-0 pointer-events-none z-0" style={{
+                    background: 'linear-gradient(165deg, rgba(255,255,255,0.07) 0%, transparent 35%, transparent 75%, rgba(255,255,255,0.03) 100%)',
+                  }} />
+                  {/* Static glow - no blur for performance */}
                   <div
                     className="absolute inset-0 pointer-events-none z-0"
                     style={{
-                      background: `radial-gradient(circle at ${glowPositions.carousel}, ${themeColor}70 0%, ${themeColor}40 30%, transparent 70%)`,
-                      filter: "blur(60px)",
-                      animation: "softPulse 3s ease-in-out infinite",
-                      willChange: "opacity, transform",
+                      background: secondaryColor
+                        ? `radial-gradient(ellipse 100% 80% at ${glowPositions.carousel}, ${hexToRgba(themeColor, 0.10)} 0%, ${hexToRgba(themeColor, 0.02)} 40%, transparent 70%), radial-gradient(ellipse 90% 70% at ${glowPositions.carousel === 'top left' ? 'bottom right' : glowPositions.carousel === 'top right' ? 'bottom left' : 'top left'}, ${hexToRgba(secondaryColor, 0.08)} 0%, transparent 50%)`
+                        : `radial-gradient(ellipse 100% 80% at ${glowPositions.carousel}, ${hexToRgba(themeColor, 0.10)} 0%, ${hexToRgba(themeColor, 0.02)} 40%, transparent 70%)`,
                     }}
                   />
                   
@@ -701,17 +678,21 @@ const SoftwarePage = () => {
             >
               <div className="absolute inset-0 overflow-hidden rounded-2xl border-2"
                 style={{ 
-                  borderColor: `${themeColor}30`,
-                  backgroundColor: `${themeColor}20`,
-                  boxShadow: `inset 0 0 40px ${themeColor}30`,
+                  borderColor: secondaryColor ? `${themeColor}50` : `${themeColor}30`,
+                  backgroundColor: `${themeColor}10`,
+                  boxShadow: `inset 0 1px 0 rgba(255,255,255,0.08), inset 0 -1px 0 rgba(255,255,255,0.03), 0 0 20px ${themeColor}20`,
                 }}>
+                {/* Liquid glass highlight */}
+                <div className="absolute inset-0 pointer-events-none z-0" style={{
+                  background: 'linear-gradient(165deg, rgba(255,255,255,0.07) 0%, transparent 35%, transparent 75%, rgba(255,255,255,0.03) 100%)',
+                }} />
+                {/* Static glow - no blur for performance */}
                 <div
                   className="absolute inset-0 pointer-events-none z-0"
                   style={{
-                    background: `radial-gradient(circle at center, ${themeColor}70 0%, ${themeColor}40 30%, transparent 70%)`,
-                    filter: "blur(60px)",
-                    animation: "softPulse 3s ease-in-out infinite",
-                    willChange: "opacity, transform",
+                    background: secondaryColor
+                      ? `radial-gradient(ellipse 100% 80% at center, ${hexToRgba(secondaryColor, 0.10)} 0%, ${hexToRgba(secondaryColor, 0.03)} 35%, transparent 65%), radial-gradient(ellipse 90% 70% at bottom right, ${hexToRgba(themeColor, 0.08)} 0%, transparent 50%)`
+                      : `radial-gradient(ellipse 100% 80% at center, ${hexToRgba(themeColor, 0.10)} 0%, ${hexToRgba(themeColor, 0.02)} 40%, transparent 70%)`,
                   }}
                 />
                 
@@ -776,32 +757,27 @@ const SoftwarePage = () => {
 
             {/* Markdown */}
             {project.markdown && (
-              <div className="relative rounded-2xl shadow-2xl border-2 overflow-hidden backdrop-blur-xl"
-                style={{ borderColor: `${themeColor}30` }}>
+              <div className="relative rounded-2xl shadow-2xl border-2 overflow-hidden"
+                style={{
+                  borderColor: secondaryColor ? `${themeColor}50` : `${themeColor}30`,
+                  backgroundColor: `${themeColor}10`,
+                  boxShadow: `inset 0 1px 0 rgba(255,255,255,0.08), inset 0 -1px 0 rgba(255,255,255,0.03), 0 0 20px ${themeColor}20`,
+                }}>
+                {/* Liquid glass highlight */}
+                <div className="absolute inset-0 pointer-events-none z-0 rounded-2xl" style={{
+                  background: 'linear-gradient(165deg, rgba(255,255,255,0.07) 0%, transparent 35%, transparent 75%, rgba(255,255,255,0.03) 100%)',
+                }} />
+                {/* Static glow - no blur for performance */}
                 <div
                   className="absolute inset-0 pointer-events-none z-0"
                   style={{
-                    background: `
-                      radial-gradient(circle at center, ${themeColor}70 0%, ${themeColor}40 30%, transparent 70%),
-                      radial-gradient(circle at center, ${themeColor}20 0%, transparent 100%)
-                    `,
-                    filter: "blur(60px)",
-                    animation: "softPulse 3s ease-in-out infinite",
-                    willChange: "opacity, transform",
+                    background: secondaryColor
+                      ? `radial-gradient(ellipse 100% 80% at center, ${hexToRgba(themeColor, 0.10)} 0%, ${hexToRgba(themeColor, 0.02)} 40%, transparent 70%), radial-gradient(ellipse 90% 70% at bottom right, ${hexToRgba(secondaryColor, 0.08)} 0%, transparent 50%)`
+                      : `radial-gradient(ellipse 100% 80% at center, ${hexToRgba(themeColor, 0.10)} 0%, ${hexToRgba(themeColor, 0.02)} 40%, transparent 70%)`,
                   }}
                 />
-                <div
-                  className="absolute inset-0 pointer-events-none z-0 opacity-60"
-                  style={{
-                    background: `radial-gradient(ellipse at center, ${themeColor}90 0%, transparent 60%)`,
-                    filter: "blur(40px)",
-                    animation: "rotatePulse 6s ease-in-out infinite",
-                    willChange: "opacity",
-                  }}
-                />
-                <div className="absolute inset-0 bg-white/5 pointer-events-none" />
                 
-                <div className="p-6 prose prose-invert prose-sm md:prose-base max-w-none relative z-10">
+                <div className="p-6 prose prose-invert prose-sm md:prose-base max-w-none h-full overflow-y-auto relative z-10">
                   <ReactMarkdown remarkPlugins={[remarkGfm]}>
                     {project.markdown}
                   </ReactMarkdown>
@@ -821,7 +797,7 @@ const SoftwarePage = () => {
           }`}
           style={{
             backgroundColor: `${themeColor}80`,
-            boxShadow: `0 0 20px ${themeColor}60`,
+            boxShadow: `0 0 20px ${themeColor}60${secondaryColor ? `, 0 0 30px ${secondaryColor}30` : ''}`,
           }}
         >
           <ArrowUp size={20} color="white" />

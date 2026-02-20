@@ -6,7 +6,7 @@
   "imageUrl": "/img/FPGA",
   "logoUrl": "/img/FPGA/logo.png",
   "githubUrl": "https://github.com/Loxed/vhdl-calc",
-  "themeColor": "#18395A",
+  "themeColors": ["#3680AA", "#00AA80"],
   "logoBackgroundColor": "#FFFFFF",
   "category": [
     "embedded-systems",

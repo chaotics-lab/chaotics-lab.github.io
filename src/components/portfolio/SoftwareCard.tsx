@@ -42,6 +42,7 @@ export interface SoftwareCardProps {
   type: "Personal Project" | "Academic Project" | "Internship" | "Upcoming";
   imageUrl?: string;
   themeColor?: string;
+  themeColors?: string[]; // Array of colors for gradient
   titleColor?: string;
   AIUsed?: string;
 }
@@ -49,8 +50,18 @@ export interface SoftwareCardProps {
 export const SoftwareCard = memo((props: Partial<SoftwareCardProps>) => {
   const {
     id, title, description, technologies = [],
-    type, imageUrl, themeColor = "#8888ff", titleColor, AIUsed
+    type, imageUrl, themeColor = "#8888ff", themeColors, titleColor, AIUsed
   } = props;
+
+  // Use themeColors array if provided, otherwise fall back to themeColor
+  const colors = themeColors && themeColors.length > 0 ? themeColors : [themeColor];
+  const primaryColor = colors[0];
+  const secondaryColor = colors.length > 1 ? colors[1] : null;
+
+  const borderColor = hexToRGBA(adjustHexBrightness(primaryColor,0.5), 0.3);
+  
+  // For simple element borders (badges, etc), use primary color only
+  const simpleBorderColor = borderColor;
 
   const isUpcoming = type === "Upcoming";
 
@@ -59,20 +70,24 @@ export const SoftwareCard = memo((props: Partial<SoftwareCardProps>) => {
     mobile: technologies.slice(0,2),
   }), [technologies]);
 
-  // Stable inner glow position and shape
-  const glowProps = useMemo(() => {
-    const seed = (id || title || "").split("").reduce((a,c)=>a+c.charCodeAt(0),0);
-    const offsetX = 40 + (seed % 21 - 10); // ±10%
-    const offsetY = 40 + ((seed>>3) % 21 -10);
-    const scaleX = 1 + ((seed>>5)%20-10)/100;
-    const scaleY = 1 + ((seed>>7)%20-10)/100;
-    return { offsetX, offsetY, scaleX, scaleY };
-  }, [id,title]);
-
-  const borderColor = hexToRGBA(adjustHexBrightness(themeColor,0.5), 0.3);
-
   const cardContent = (
-    <div className="relative w-full">
+    <div className={`relative w-full flex flex-col ${!isUpcoming ? "group transition-all duration-300 md:hover:-translate-y-2" : ""}`}>
+      {/* Gradient border ring for two-color cards (absolutely positioned, masked to show only the 2px ring) */}
+      {secondaryColor && (
+        <div
+          className="absolute inset-0 z-0 pointer-events-none"
+          style={{
+            background: `linear-gradient(135deg, ${hexToRGBA(adjustHexBrightness(primaryColor,0.5), 0.7)}, ${hexToRGBA(adjustHexBrightness(secondaryColor,0.4), 0.5)})`,
+            padding: '2px',
+            borderRadius: '0.75rem',
+            WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
+            WebkitMaskComposite: 'xor',
+            mask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
+            maskComposite: 'exclude',
+          }}
+        />
+      )}
+
       {/* AI Sticker - overlapping card */}
       {AIUsed && (
         <>
@@ -90,29 +105,57 @@ export const SoftwareCard = memo((props: Partial<SoftwareCardProps>) => {
 
       {/* Card */}
       <Card
-        className={`group relative overflow-hidden flex flex-col h-full md:min-h-[400px]
-          transition-all duration-300 ${isUpcoming ? "cursor-default border-dashed border-2" : "cursor-pointer border-2 md:hover:-translate-y-2 md:hover:shadow-2xl"}`}
+        className={`relative overflow-hidden flex flex-col h-full md:min-h-[400px] z-10
+          transition-all duration-300 ${isUpcoming 
+            ? "cursor-default border-dashed border-2" 
+            : secondaryColor 
+              ? "cursor-pointer border-0" 
+              : "cursor-pointer border-2"
+          }`}
         style={{
-          borderColor,
-          boxShadow: `0 0 20px ${themeColor}20`,
-          backgroundColor: "rgba(255,255,255,0.03)",
-          backdropFilter: "blur(6px)",
+          borderColor: secondaryColor ? undefined : borderColor,
+          backgroundColor: "rgba(255,255,255,0.05)",
+          boxShadow: `0 0 20px ${primaryColor}20, inset 0 1px 0 rgba(255,255,255,0.08), inset 0 -1px 0 rgba(255,255,255,0.03)`,
+          ...(secondaryColor ? { margin: '2px', borderRadius: 'calc(0.75rem - 2px)' } : {}),
         }}
       >
-        {/* Inner circular glow */}
-        <div
-          className="absolute inset-0 pointer-events-none -z-10"
-          style={{
-            background: `radial-gradient(ellipse ${glowProps.scaleX*100}% ${glowProps.scaleY*100}% at ${glowProps.offsetX}% ${glowProps.offsetY}%, ${themeColor}80 0%, transparent 70%)`,
-            filter: "blur(60px)",
-            opacity: 0.8,
-          }}
-        />
+        {/* Liquid glass highlight */}
+        <div className="absolute inset-0 pointer-events-none z-0" style={{
+          background: 'linear-gradient(165deg, rgba(255,255,255,0.07) 0%, transparent 35%, transparent 75%, rgba(255,255,255,0.03) 100%)',
+          borderRadius: 'inherit',
+        }} />
+
+        {/* Inner glows - static gradients, no blur for low-end performance */}
+        {secondaryColor ? (
+          <>
+            {/* Primary glow - middle right */}
+            <div className="absolute pointer-events-none z-0" style={{
+              top: '60%', right: '0%',
+              transform: 'translateY(-50%)',
+              width: '60%', height: '50%',
+              background: `radial-gradient(ellipse 80% 60% at 50% 50%, ${hexToRGBA(primaryColor, 0.10)} 0%, ${hexToRGBA(primaryColor, 0.04)} 40%, transparent 70%)`,
+            }} />
+            {/* Secondary glow - bottom left */}
+            <div className="absolute pointer-events-none z-0" style={{
+              bottom: '0%', left: '0%',
+              width: '60%', height: '50%',
+              background: `radial-gradient(ellipse 80% 60% at 50% 50%, ${hexToRGBA(secondaryColor, 0.08)} 0%, ${hexToRGBA(secondaryColor, 0.03)} 35%, transparent 65%)`,
+            }} />
+          </>
+        ) : (
+          /* Single color glow - center */
+          <div className="absolute pointer-events-none z-0" style={{
+            top: '50%', left: '50%',
+            transform: 'translate(-50%, -50%)',
+            width: '60%', height: '50%',
+            background: `radial-gradient(ellipse 80% 60% at 50% 50%, ${hexToRGBA(primaryColor, 0.10)} 0%, ${hexToRGBA(primaryColor, 0.04)} 40%, transparent 70%)`,
+          }} />
+        )}
 
         {/* Desktop Layout */}
         <div className={`hidden md:flex relative z-10 flex-col pointer-events-none ${isUpcoming ? "opacity-30" : ""}`}>
           {imageUrl && (
-            <div className="relative w-full h-52 overflow-hidden rounded-t-md" style={{backgroundColor: `${themeColor}20`}}>
+            <div className="relative w-full h-52 overflow-hidden rounded-t-md" style={{backgroundColor: `${primaryColor}20`}}>
               <img src={`${imageUrl}/1.png`} alt={title||"Project"} className="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-110"/>
             </div>
           )}
@@ -120,8 +163,8 @@ export const SoftwareCard = memo((props: Partial<SoftwareCardProps>) => {
             <h3 className="text-xl font-semibold line-clamp-2 mb-2" style={{color: titleColor||"inherit"}}>{title}</h3>
             <p className="text-space-secondary leading-relaxed line-clamp-3 mb-4">{description}</p>
             <div className="flex flex-wrap gap-2 items-center">
-              {techBadges.desktop.map(t => <Badge key={t} variant="secondary" className="bg-white/5 text-space-muted border text-xs" style={{borderColor}}>{t}</Badge>)}
-              {technologies.length>3 && <Badge variant="secondary" className="bg-white/5 text-space-muted border text-xs" style={{borderColor}}>+{technologies.length-3}</Badge>}
+              {techBadges.desktop.map(t => <Badge key={t} variant="secondary" className="bg-white/5 text-space-muted border text-xs" style={{borderColor: simpleBorderColor}}>{t}</Badge>)}
+              {technologies.length>3 && <Badge variant="secondary" className="bg-white/5 text-space-muted border text-xs" style={{borderColor: simpleBorderColor}}>+{technologies.length-3}</Badge>}
             </div>
           </div>
         </div>
@@ -129,15 +172,15 @@ export const SoftwareCard = memo((props: Partial<SoftwareCardProps>) => {
         {/* Mobile Layout - no hover effects */}
         <div className={`md:hidden relative z-10 flex flex-row pointer-events-none h-32 ${isUpcoming ? "opacity-30" : ""}`}>
           {imageUrl && (
-            <div className="w-32 h-32 flex-shrink-0 relative overflow-hidden rounded-l-md" style={{backgroundColor: `${themeColor}20`}}>
+            <div className="w-32 h-32 flex-shrink-0 relative overflow-hidden rounded-l-md" style={{backgroundColor: `${primaryColor}20`}}>
               <img src={`${imageUrl}/1.png`} alt={title||"Project"} className="absolute inset-0 w-full h-full object-cover object-center"/>
             </div>
           )}
           <div className="relative p-4 flex flex-col flex-grow">
             <h3 className="text-base font-semibold line-clamp-2 mb-2" style={{color: titleColor||"inherit"}}>{title}</h3>
             <div className="flex flex-wrap gap-1.5 items-start max-h-[48px] overflow-hidden">
-              {techBadges.mobile.map(t => <Badge key={t} variant="secondary" className="bg-white/5 text-space-muted border text-xs" style={{borderColor}}>{t}</Badge>)}
-              {technologies.length>2 && <Badge variant="secondary" className="bg-white/5 text-space-muted border text-xs" style={{borderColor}}>+{technologies.length-2}</Badge>}
+              {techBadges.mobile.map(t => <Badge key={t} variant="secondary" className="bg-white/5 text-space-muted border text-xs" style={{borderColor: simpleBorderColor}}>{t}</Badge>)}
+              {technologies.length>2 && <Badge variant="secondary" className="bg-white/5 text-space-muted border text-xs" style={{borderColor: simpleBorderColor}}>+{technologies.length-2}</Badge>}
             </div>
           </div>
         </div>
@@ -145,7 +188,7 @@ export const SoftwareCard = memo((props: Partial<SoftwareCardProps>) => {
         {/* Arrow hover only on desktop */}
         {!isUpcoming && (
           <div className="hidden md:block absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transition-all duration-300">
-            <ArrowRight className="w-6 h-6 text-white" style={{filter:`drop-shadow(0 0 8px ${themeColor})`}}/>
+            <ArrowRight className="w-6 h-6 text-white" style={{filter:`drop-shadow(0 0 8px ${primaryColor})`}}/>
           </div>
         )}
       </Card>

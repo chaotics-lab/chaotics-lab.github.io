@@ -5,7 +5,7 @@
   "description": "Designed and built a fully functional drone and remote system, including PCBs, sensors, and communication protocols.",
   "imageUrl": "/img/ececopter",
   "logoUrl": "/img/ececopter/logo.png",
-  "themeColor": "#00848c",
+  "themeColors": ["#A0A0A0", "#00848c"],
   "logoBackgroundColor": "#FFFFFF",
   "category": [
     "embedded-systems",

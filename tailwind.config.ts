@@ -14,6 +14,7 @@ export default {
     },
     extend: {
       fontFamily: {
+        'sans': ['-apple-system', 'BlinkMacSystemFont', '"SF Pro Display"', '"Segoe UI"', '"Helvetica Neue"', 'sans-serif'],
         'inter': ['Inter', 'system-ui', 'sans-serif'],
         'mono': ['JetBrains Mono', 'Fira Code', 'Consolas', 'monospace'],
       },

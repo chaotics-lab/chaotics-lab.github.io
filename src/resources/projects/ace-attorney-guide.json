@@ -5,7 +5,7 @@
   "description": "Guide website made to easily access 'Phoenix Wright: Ace Attorney' Series guides from StrategyWiki.",
   "imageUrl": "/img/aag",
   "logoUrl": "/img/aag/logo.png",
-  "themeColor": "#f7bd39",
+  "themeColors": ["#006cb7", "#fff100"],
   "logoBackgroundColor": "transparent",
   "githubUrl": "https://github.com/Loxed/AceAttorneyGuide",
   "demoUrl": "https://aceattorneyguide.github.io/",

@@ -6,7 +6,7 @@
   "imageUrl": "/img/personaplay",
   "logoUrl": "/img/personaplay/logo.png",
   "githubUrl": "https://github.com/Loxed/PersonaPlayApplication",
-  "themeColor": "#393939",
+  "themeColors": ["#393939", "#808080"],
   "logoBackgroundColor": "transparent",
   "category": [
     

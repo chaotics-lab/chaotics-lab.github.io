@@ -6,8 +6,7 @@
   "imageUrl": "/img/logo-maker",
   "demoUrl": "https://iisu-icon-maker.vercel.app/",
   "logoUrl": "/img/logo-maker/logo.png",
-  "themeColor": "#00FFFF",
-  "logoBackgroundColor": "#FF00FF",
+  "themeColors": ["#00FFFF", "#FF00FF"],
   "category": [
     "web",
     "gui"

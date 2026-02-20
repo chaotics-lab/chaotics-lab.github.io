@@ -5,7 +5,7 @@
   "description": "Image processing, tileset editor and palette injector for automatic custom graphics in Gen 3 ROM hacks.",
   "imageUrl": "/img/porypal",
   "logoUrl": "/img/porypal/logo.png",
-  "themeColor": "#2139ef",
+  "themeColors": ["#FFB6C1", "#2139ef"],
   "logoBackgroundColor": "transparent",
   "category": [
     "gui",

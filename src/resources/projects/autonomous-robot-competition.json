@@ -5,7 +5,7 @@
   "description": "Built a fully autonomous robot from scratch with computer vision, state machine and graph-based pathfinding.",
   "imageUrl": "/img/ececup",
   "logoUrl": "/img/ececup/logo.png",
-  "themeColor": "#de2900",
+  "themeColors": ["#00ffff", "#de2900"],
   "logoBackgroundColor": "#FFFFFF",
   "demoUrl": "https://www.instagram.com/sylv_1_le_robot/",
   "category": [

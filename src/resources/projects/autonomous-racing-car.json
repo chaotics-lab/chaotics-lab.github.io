@@ -5,7 +5,7 @@
   "description": "Led a team of 30 students in developing a fully autonomous vehicle and implemented Edge AI for race trajectory.",
   "imageUrl": "/img/arece",
   "logoUrl": "/img/arece/logo.png",
-  "themeColor": "#21188c",
+  "themeColors": ["#ff121a", "#000FFF"],
   "logoBackgroundColor": "#FFFFFF",
   "category": [
     "ai",
