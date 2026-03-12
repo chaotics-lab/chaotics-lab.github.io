@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ArrowRight } from "lucide-react";
-import { memo, useMemo } from "react";
+import { memo, useRef, useState, useReducer, useLayoutEffect, useEffect } from "react";
 import { AISticker } from "@/components/AISticker";
 
 // Adjust brightness for border
@@ -33,6 +33,63 @@ function hexToRGBA(hex: string, alpha = 1) {
   const b = parseInt(hex.slice(4,6),16);
   return `rgba(${r},${g},${b},${alpha})`;
 }
+
+/** Renders as many tech badges as fit on a single line, collapsing the rest into "+X". */
+const FittingBadges = ({ technologies, borderColor, maxInitial, className }: {
+  technologies: string[];
+  borderColor: string;
+  maxInitial: number;
+  className?: string;
+}) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [visibleCount, setVisibleCount] = useState(() => Math.min(maxInitial, technologies.length));
+  const [, forceRender] = useReducer((x: number) => x + 1, 0);
+
+  // Reset when technologies change
+  useEffect(() => {
+    setVisibleCount(Math.min(maxInitial, technologies.length));
+  }, [technologies, maxInitial]);
+
+  // Measure after render: if any badge overflows the container, reduce visible count
+  useLayoutEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const children = Array.from(el.children) as HTMLElement[];
+    if (children.length <= 1) return;
+    const containerRight = el.getBoundingClientRect().right;
+    for (let i = 0; i < children.length; i++) {
+      if (children[i].getBoundingClientRect().right > containerRight + 1) {
+        setVisibleCount(v => Math.min(v, Math.max(0, i - 1)));
+        return;
+      }
+    }
+  });
+
+  // Re-measure when the container width changes (e.g. window resize)
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => {
+      setVisibleCount(Math.min(maxInitial, technologies.length));
+      forceRender(); // guarantee re-render even when visibleCount is already maxInitial
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [technologies, maxInitial]);
+
+  const remaining = technologies.length - visibleCount;
+
+  return (
+    <div ref={containerRef} className={className} style={{ flexWrap: 'nowrap', overflow: 'hidden' }}>
+      {technologies.slice(0, visibleCount).map(t => (
+        <Badge key={t} variant="secondary" className="bg-white/5 text-space-muted border text-xs whitespace-nowrap flex-shrink-0" style={{ borderColor }}>{t}</Badge>
+      ))}
+      {remaining > 0 && (
+        <Badge variant="secondary" className="bg-white/5 text-space-muted border text-xs whitespace-nowrap flex-shrink-0" style={{ borderColor }}>+{remaining}</Badge>
+      )}
+    </div>
+  );
+};
 
 export interface SoftwareCardProps {
   id: string;
@@ -65,10 +122,7 @@ export const SoftwareCard = memo((props: Partial<SoftwareCardProps>) => {
 
   const isUpcoming = type === "Upcoming";
 
-  const techBadges = useMemo(() => ({
-    desktop: technologies.slice(0,3),
-    mobile: technologies.slice(0,2),
-  }), [technologies]);
+
 
   const cardContent = (
     <div className={`relative w-full flex flex-col ${!isUpcoming ? "group transition-all duration-300 md:hover:-translate-y-2" : ""}`}>
@@ -211,10 +265,7 @@ export const SoftwareCard = memo((props: Partial<SoftwareCardProps>) => {
           <div className="p-6 flex flex-col flex-grow">
             <h3 className="text-xl font-semibold line-clamp-2 mb-2" style={{color: titleColor||"inherit"}}>{title}</h3>
             <p className="text-space-secondary leading-relaxed line-clamp-3 mb-4">{description}</p>
-            <div className="flex flex-wrap gap-2 items-center">
-              {techBadges.desktop.map(t => <Badge key={t} variant="secondary" className="bg-white/5 text-space-muted border text-xs" style={{borderColor: simpleBorderColor}}>{t}</Badge>)}
-              {technologies.length>3 && <Badge variant="secondary" className="bg-white/5 text-space-muted border text-xs" style={{borderColor: simpleBorderColor}}>+{technologies.length-3}</Badge>}
-            </div>
+            <FittingBadges technologies={technologies} borderColor={simpleBorderColor} maxInitial={3} className="flex flex-wrap gap-2 items-center" />
           </div>
         </div>
 
@@ -227,10 +278,7 @@ export const SoftwareCard = memo((props: Partial<SoftwareCardProps>) => {
           )}
           <div className="relative p-4 flex flex-col flex-grow">
             <h3 className="text-base font-semibold line-clamp-2 mb-2" style={{color: titleColor||"inherit"}}>{title}</h3>
-            <div className="flex flex-wrap gap-1.5 items-start max-h-[48px] overflow-hidden">
-              {techBadges.mobile.map(t => <Badge key={t} variant="secondary" className="bg-white/5 text-space-muted border text-xs" style={{borderColor: simpleBorderColor}}>{t}</Badge>)}
-              {technologies.length>2 && <Badge variant="secondary" className="bg-white/5 text-space-muted border text-xs" style={{borderColor: simpleBorderColor}}>+{technologies.length-2}</Badge>}
-            </div>
+            <FittingBadges technologies={technologies} borderColor={simpleBorderColor} maxInitial={2} className="flex flex-wrap gap-1.5 items-center" />
           </div>
         </div>
 

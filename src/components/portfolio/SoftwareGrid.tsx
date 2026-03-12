@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { SoftwareCard } from './SoftwareCard';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { ProjectData } from './types';
@@ -9,7 +9,13 @@ import { projectOrder } from '@/config/projectOrder';
 export const SoftwareGrid: React.FC = () => {
   const [projects, setProjects] = useState<ProjectData[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [filterVersion, setFilterVersion] = useState(0);
   const isMobile = useIsMobile();
+
+  const handleCategoryChange = useCallback((cat: string) => {
+    setSelectedCategory(cat);
+    setFilterVersion(v => v + 1);
+  }, []);
 
   useEffect(() => {
     const modules = import.meta.glob<ProjectData>('../../resources/projects/*.json', { eager: true });
@@ -86,22 +92,28 @@ export const SoftwareGrid: React.FC = () => {
         <AIUsedShowcase />
 
         {/* Category Pills */}
-        <CategoryPills projects={projects} selectedCategory={selectedCategory} setSelectedCategory={setSelectedCategory} />
+        <CategoryPills projects={projects} selectedCategory={selectedCategory} setSelectedCategory={handleCategoryChange} />
 
         {/* Projects Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
-          {filteredProjects.map(project => (
-            <SoftwareCard
-              key={project.id}
-              {...project}
-              technologies={project.technologies || project.tags || []}
-            />
+          {filteredProjects.map((project, i) => (
+            <div
+              key={`${project.id}-${filterVersion}`}
+              className="animate-grid-item-in"
+              style={{ animationDelay: `${i * 40}ms` }}
+            >
+              <SoftwareCard
+                {...project}
+                technologies={project.technologies || project.tags || []}
+              />
+            </div>
           ))}
           {/* 2-col placeholders: visible at sm, hidden at lg */}
           {Array.from({ length: placeholders.sm }).map((_, i) => (
             <div
-              key={`ph-sm-${i}`}
-              className="hidden sm:flex lg:hidden relative w-full flex-col items-center justify-center rounded-xl border-2 border-dashed border-white/10 bg-white/[0.02] min-h-[130px]"
+              key={`ph-sm-${i}-${filterVersion}`}
+              className="hidden sm:flex lg:hidden relative w-full flex-col items-center justify-center rounded-xl border-2 border-dashed border-white/10 bg-white/[0.02] min-h-[130px] animate-grid-item-in"
+              style={{ animationDelay: `${(filteredProjects.length + i) * 40}ms` }}
             >
               <span className="text-white/20 text-sm font-medium tracking-wide">Coming Soon</span>
             </div>
@@ -109,8 +121,9 @@ export const SoftwareGrid: React.FC = () => {
           {/* 3-col placeholders: visible at lg only */}
           {Array.from({ length: placeholders.lg }).map((_, i) => (
             <div
-              key={`ph-lg-${i}`}
-              className="hidden lg:flex relative w-full flex-col items-center justify-center rounded-xl border-2 border-dashed border-white/10 bg-white/[0.02] md:min-h-[400px]"
+              key={`ph-lg-${i}-${filterVersion}`}
+              className="hidden lg:flex relative w-full flex-col items-center justify-center rounded-xl border-2 border-dashed border-white/10 bg-white/[0.02] md:min-h-[400px] animate-grid-item-in"
+              style={{ animationDelay: `${(filteredProjects.length + i) * 40}ms` }}
             >
               <span className="text-white/20 text-sm font-medium tracking-wide">Coming Soon</span>
             </div>
