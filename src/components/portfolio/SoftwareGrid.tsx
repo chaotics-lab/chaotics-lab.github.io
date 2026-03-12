@@ -76,13 +76,13 @@ export const SoftwareGrid: React.FC = () => {
       className="w-full object-contain drop-shadow-[0_0_30px_rgba(255,255,255,0.3)] transition-all duration-300 hover:drop-shadow-[0_0_50px_rgba(255,255,255,0.5)] select-none"
     />
   </div>
-  <p className="text-xl text-space-secondary max-w-2xl text-center leading-snug -mt-6 opacity-90">
+  <p className="text-xl font-display text-space-secondary max-w-2xl text-center leading-snug -mt-6 opacity-90">
     First came Chaos, vast and formless.
   </p>
 </div>
 
         {/* Header */}
-        <h2 className="text-center font-light text-space-primary mb-16" style={{ fontSize: '2.5rem', lineHeight: '1.1' }}>
+        <h2 className="text-center font-display font-light text-space-primary mb-16 tracking-tight" style={{ fontSize: '2.5rem', lineHeight: '1.1', wordSpacing: '0.05em' }}>
           <i>
             Hey, I'm Lox. Welcome to my project <span className="font-semibold glow-text-medium">portfolio</span> :)
           </i>
@@ -115,7 +115,7 @@ export const SoftwareGrid: React.FC = () => {
               className="hidden sm:flex lg:hidden relative w-full flex-col items-center justify-center rounded-xl border-2 border-dashed border-white/10 bg-white/[0.02] min-h-[130px] animate-grid-item-in"
               style={{ animationDelay: `${(filteredProjects.length + i) * 40}ms` }}
             >
-              <span className="text-white/20 text-sm font-medium tracking-wide">Coming Soon</span>
+              <span className="text-white/20 text-sm font-ui font-medium tracking-wide">Coming Soon</span>
             </div>
           ))}
           {/* 3-col placeholders: visible at lg only */}
@@ -125,7 +125,7 @@ export const SoftwareGrid: React.FC = () => {
               className="hidden lg:flex relative w-full flex-col items-center justify-center rounded-xl border-2 border-dashed border-white/10 bg-white/[0.02] md:min-h-[400px] animate-grid-item-in"
               style={{ animationDelay: `${(filteredProjects.length + i) * 40}ms` }}
             >
-              <span className="text-white/20 text-sm font-medium tracking-wide">Coming Soon</span>
+              <span className="text-white/20 text-sm font-ui font-medium tracking-wide">Coming Soon</span>
             </div>
           ))}
         </div>
@@ -134,7 +134,7 @@ export const SoftwareGrid: React.FC = () => {
         {filteredProjects.length === 0 && projects.length > 0 && (
           <div className="text-center py-20">
             <div className="text-6xl mb-4">🔍</div>
-            <h3 className="text-xl font-semibold text-space-primary mb-2">No projects found</h3>
+            <h3 className="text-xl font-display font-semibold text-space-primary mb-2">No projects found</h3>
             <p className="text-space-secondary mb-6">Try adjusting your filters or search query</p>
             <button
               onClick={() => setSelectedCategory('all')}

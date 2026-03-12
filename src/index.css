@@ -1,13 +1,8 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap');
+/* Google Fonts import is now in index.html <head> via fonts.ts */
 
 @tailwind base;
 
-/* Apply San Francisco font globally */
-@layer base {
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', 'Helvetica Neue', sans-serif;
-  }
-}
+/* Base body font is set by Tailwind's font-sans (configured via src/config/fonts.ts) */
 @tailwind components;
 @tailwind utilities;
 
@@ -138,7 +133,7 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    /* body font-family is driven by Tailwind font-sans — see src/config/fonts.ts */
   }
 
 /* Smart Dynamic Starfield Background - Fixed */
@@ -476,9 +471,7 @@ All colors MUST be HSL.
   }
 
   /* Typography */
-  .font-mono {
-    font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
-  }
+  /* .font-mono font-family is driven by Tailwind font-mono — see src/config/fonts.ts */
 
   /* Custom scrollbar */
   ::-webkit-scrollbar {
@@ -517,14 +510,15 @@ All colors MUST be HSL.
 
 
 .markdown-section {
-  @apply prose prose-invert max-w-none;
+  @apply prose prose-invert prose-sm md:prose-base max-w-none font-prose;
 
-  h1 { @apply text-4xl font-semibold mt-8 mb-4; }
-  h2 { @apply text-3xl font-semibold mt-6 mb-3; }
-  h3 { @apply text-2xl font-semibold mt-4 mb-2; }
-  h4 { @apply text-xl font-semibold mt-3 mb-1; }
+  h1 { @apply text-4xl font-display font-bold mt-8 mb-4; }
+  h1:first-child, h2:first-child { @apply mt-0; }
+  h2 { @apply text-3xl font-display font-semibold mt-6 mb-3; }
+  h3 { @apply text-2xl font-ui font-semibold mt-4 mb-2; }
+  h4 { @apply text-xl font-ui font-semibold mt-3 mb-1; }
 
-  p { @apply text-lg mb-4; }
+  p { @apply text-lg font-prose mb-4; }
 
   ul { @apply list-disc list-inside mb-4; }
   ol { @apply list-decimal list-inside mb-4; }

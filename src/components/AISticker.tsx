@@ -1,3 +1,5 @@
+import { fonts, toCssFontFamily } from '../config/fonts';
+
 interface AIStickerProps {
   value: number; // 0-100
   size?: number; // diameter in pixels
@@ -87,7 +89,6 @@ export function AISticker({ value, size = 80 }: AIStickerProps) {
   return (
     <>
       <style>{`
-        @import url("https://fonts.googleapis.com/css2?family=Archivo+Black&display=swap");
         
         @keyframes rotateGlow {
           0% {
@@ -178,7 +179,7 @@ export function AISticker({ value, size = 80 }: AIStickerProps) {
         }
         
         .ai-sticker__text {
-          font-family: 'Archivo Black', sans-serif;
+          font-family: ${toCssFontFamily(fonts.sticker)};
           font-weight: 900;
           text-align: center;
           color: #000;

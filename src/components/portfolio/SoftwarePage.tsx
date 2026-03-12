@@ -338,7 +338,7 @@ const SoftwarePage = () => {
       <div className={`relative z-10 container mx-auto py-4 md:py-8 px-4 flex flex-col gap-4 ${isMobile ? '' : 'h-screen overflow-hidden'}`}>
         {/* Back Button */}
         <Link to="/" className="shrink-0">
-          <button className="group relative flex items-center gap-2 px-4 py-2 text-sm font-mono overflow-visible rounded-xl transition-all duration-300 hover:-translate-y-0.5">
+          <button className="group relative flex items-center gap-2 px-4 py-2 text-sm font-ui overflow-visible rounded-xl transition-all duration-300 hover:-translate-y-0.5">
             <div className="absolute inset-0 bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl transition-all duration-300 group-hover:bg-white/10 group-hover:border-white/25" />
             <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
               style={{
@@ -386,20 +386,20 @@ const SoftwarePage = () => {
               {/* Title Row */}
               <div className="flex items-center gap-4 mb-3 flex-wrap">
                 <h1
-                  className="text-3xl md:text-4xl font-bold flex-1 min-w-0"
+                  className="text-3xl md:text-4xl font-display font-bold flex-1 min-w-0"
                   style={{ color: project.titleColor }}
                 >
                   {project.title}
                 </h1>
                 {date && (
-                  <div className="text-sm text-white/70 font-medium tracking-wide shrink-0">
+                  <div className="text-sm text-white/70 font-ui font-medium tracking-wide shrink-0">
                     {date.toLocaleString("default", { month: "long" })} {date.getFullYear()}
                   </div>
                 )}
                 {project.type && (
                   <Badge
                     variant="outline"
-                    className="font-mono text-xs md:text-sm bg-white/10 border-white/20 shrink-0"
+                    className="font-ui text-xs md:text-sm bg-white/10 border-white/20 shrink-0"
                   >
                     {project.type}
                   </Badge>
@@ -417,7 +417,7 @@ const SoftwarePage = () => {
               <div className="flex gap-3 flex-wrap mt-auto">
                 {project.githubUrl && (
                   <a href={project.githubUrl} target="_blank" rel="noopener noreferrer">
-                    <button className="group relative flex items-center gap-2 px-4 py-2 text-sm font-mono overflow-visible rounded-xl transition-all duration-300 hover:-translate-y-0.5">
+                    <button className="group relative flex items-center gap-2 px-4 py-2 text-sm font-ui overflow-visible rounded-xl transition-all duration-300 hover:-translate-y-0.5">
                       <div className="absolute inset-0 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl transition-all duration-300 group-hover:bg-white/5 group-hover:border-white/10" />
                       <div className="absolute inset-0 rounded-xl opacity-100 group-hover:opacity-0 transition-opacity duration-300"
                         style={{
@@ -443,7 +443,7 @@ const SoftwarePage = () => {
                 )}
                 {project.demoUrl && (
                   <a href={project.demoUrl} target="_blank" rel="noopener noreferrer">
-                    <button className="group relative flex items-center gap-2 px-4 py-2 text-sm font-mono overflow-visible rounded-xl transition-all duration-300 hover:-translate-y-0.5">
+                    <button className="group relative flex items-center gap-2 px-4 py-2 text-sm font-ui overflow-visible rounded-xl transition-all duration-300 hover:-translate-y-0.5">
                       <div className="absolute inset-0 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl transition-all duration-300 group-hover:bg-white/5 group-hover:border-white/10" />
                       <div className="absolute inset-0 rounded-xl opacity-100 group-hover:opacity-0 transition-opacity duration-300"
                         style={{
@@ -537,7 +537,7 @@ const SoftwarePage = () => {
                 />
                 
                 <div
-                  className="markdown-scroll p-6 overflow-y-auto prose prose-invert prose-sm md:prose-base max-w-none h-full relative z-10"
+                  className="markdown-section markdown-scroll p-6 overflow-y-auto h-full relative z-10"
                 >
                   <ReactMarkdown remarkPlugins={[remarkGfm]}>
                     {project.markdown}
@@ -655,7 +655,7 @@ const SoftwarePage = () => {
                     <Badge
                       key={tag}
                       variant="secondary"
-                      className="bg-white/5 text-space-muted border border-white/10 font-mono text-sm px-3 py-1.5"
+                      className="bg-white/5 text-space-muted border border-white/10 font-ui text-sm px-3 py-1.5"
                     >
                       {tag}
                     </Badge>
@@ -747,7 +747,7 @@ const SoftwarePage = () => {
                   <Badge
                     key={tag}
                     variant="secondary"
-                    className="bg-white/5 text-white border border-white/20 font-mono text-sm px-2 py-1"
+                    className="bg-white/5 text-white border border-white/20 font-ui text-sm px-2 py-1"
                   >
                     {tag}
                   </Badge>
@@ -777,7 +777,7 @@ const SoftwarePage = () => {
                   }}
                 />
                 
-                <div className="p-6 prose prose-invert prose-sm md:prose-base max-w-none h-full overflow-y-auto relative z-10">
+                <div className="markdown-section p-6 h-full overflow-y-auto relative z-10">
                   <ReactMarkdown remarkPlugins={[remarkGfm]}>
                     {project.markdown}
                   </ReactMarkdown>

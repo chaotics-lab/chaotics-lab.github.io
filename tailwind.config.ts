@@ -1,4 +1,5 @@
 import type { Config } from "tailwindcss";
+import { fonts } from "./src/config/fonts";
 
 export default {
   darkMode: ["class"],
@@ -14,9 +15,13 @@ export default {
     },
     extend: {
       fontFamily: {
-        'sans': ['-apple-system', 'BlinkMacSystemFont', '"SF Pro Display"', '"Segoe UI"', '"Helvetica Neue"', 'sans-serif'],
-        'inter': ['Inter', 'system-ui', 'sans-serif'],
-        'mono': ['JetBrains Mono', 'Fira Code', 'Consolas', 'monospace'],
+        'display': [...fonts.display],
+        'serif': [...fonts.serif],
+        'sans': [...fonts.sans],
+        'ui': [...fonts.ui],
+        'mono': [...fonts.mono],
+        'prose': [...fonts.prose],
+        'sticker': [...fonts.sticker],
       },
       colors: {
         border: "hsl(var(--border))",

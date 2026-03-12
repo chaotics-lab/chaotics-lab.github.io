@@ -19,12 +19,12 @@ export const Footer = ({
           <div className="text-center space-y-6">
             <Badge
               variant="outline"
-              className="border-space-border text-space-muted font-mono text-xs bg-space-surface/30"
+              className="border-space-border text-space-muted font-ui text-xs bg-space-surface/30"
             >
               END OF TRANSMISSION
             </Badge>
            
-            <p className="text-space-muted font-mono text-sm">
+            <p className="text-space-muted font-ui text-sm">
               Exploring new ideas and building cool things.
             </p>
 
@@ -42,15 +42,14 @@ export const Footer = ({
          
           {/* Bottom Info */}
           <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-space-muted">
-            <div className="font-mono flex items-center gap-2">
-              <Sparkles className="w-3.5 h-3.5 text-space-border" />
-              © {new Date().getFullYear()} Chaotics. All rights reserved.
+            <div className="font-ui flex items-center gap-2">
+              © {new Date().getFullYear()} Chaotics Lab. All rights reserved.
             </div>
            
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-                <span className="font-mono text-xs">All systems operational</span>
+                <span className="font-ui text-xs">All systems operational</span>
               </div>
             </div>
           </div>

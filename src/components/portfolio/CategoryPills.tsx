@@ -47,7 +47,7 @@ export const CategoryPills: React.FC<CategoryPillsProps> = ({ projects, selected
             <button
               key={category}
               onClick={() => setSelectedCategory(category)}
-              className={`relative flex items-center gap-2 px-5 py-2 rounded-2xl font-mono transition-transform duration-300
+              className={`relative flex items-center gap-2 px-5 py-2 rounded-2xl font-ui transition-transform duration-300
                 ${isActive ? 'scale-105 -translate-y-1' : 'hover:scale-105 hover:-translate-y-0.5'}`}
             >
               {/* Glass background */}
@@ -64,7 +64,7 @@ export const CategoryPills: React.FC<CategoryPillsProps> = ({ projects, selected
               {/* Label */}
               <span className="relative text-white font-medium">{config.label}</span>
               {/* Count */}
-              <span className="relative text-xs text-white/70 font-mono">{count}</span>
+              <span className="relative text-xs text-white/70 font-ui">{count}</span>
             </button>
           );
         })}

@@ -263,7 +263,7 @@ export const SoftwareCard = memo((props: Partial<SoftwareCardProps>) => {
             </div>
           )}
           <div className="p-6 flex flex-col flex-grow">
-            <h3 className="text-xl font-semibold line-clamp-2 mb-2" style={{color: titleColor||"inherit"}}>{title}</h3>
+            <h3 className="text-xl font-display font-semibold line-clamp-2 mb-2" style={{color: titleColor||"inherit"}}>{title}</h3>
             <p className="text-space-secondary leading-relaxed line-clamp-3 mb-4">{description}</p>
             <FittingBadges technologies={technologies} borderColor={simpleBorderColor} maxInitial={3} className="flex flex-wrap gap-2 items-center" />
           </div>
@@ -277,7 +277,7 @@ export const SoftwareCard = memo((props: Partial<SoftwareCardProps>) => {
             </div>
           )}
           <div className="relative p-4 flex flex-col flex-grow">
-            <h3 className="text-base font-semibold line-clamp-2 mb-2" style={{color: titleColor||"inherit"}}>{title}</h3>
+            <h3 className="text-base font-display font-semibold line-clamp-2 mb-2" style={{color: titleColor||"inherit"}}>{title}</h3>
             <FittingBadges technologies={technologies} borderColor={simpleBorderColor} maxInitial={2} className="flex flex-wrap gap-1.5 items-center" />
           </div>
         </div>

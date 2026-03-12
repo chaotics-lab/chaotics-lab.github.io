@@ -104,8 +104,8 @@ export const AIUsedShowcase: React.FC = () => {
               {AI_USAGE_LEVELS.map((level) => (
                 <div key={level.value} className="flex flex-col items-center text-center">
                   <AISticker value={level.value} size={80} />
-                  <h4 className="text-sm font-bold text-white mt-2">{level.label}</h4>
-                  <p className="text-xs text-space-secondary leading-relaxed">{level.description}</p>
+                  <h4 className="text-sm font-ui font-bold text-white mt-2">{level.label}</h4>
+                  <p className="text-xs md:text-sm text-space-secondary leading-relaxed">{level.description}</p>
                 </div>
               ))}
             </div>

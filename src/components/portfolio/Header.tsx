@@ -94,7 +94,7 @@ export const Header = () => {
                     href={link.url}
                     target={isExternal ? '_blank' : undefined}
                     rel={isExternal ? 'noopener noreferrer' : undefined}
-                    className="group relative flex items-center gap-2 px-4 py-2 text-sm font-mono overflow-visible rounded-xl transition-all duration-300 hover:-translate-y-0.5"
+                    className="group relative flex items-center gap-2 px-4 py-2 text-sm font-ui overflow-visible rounded-xl transition-all duration-300 hover:-translate-y-0.5"
                     title={link.name}
                   >
                     <div className="absolute inset-0 bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl transition-all duration-300 group-hover:bg-white/10 group-hover:border-white/25" />
@@ -158,7 +158,7 @@ export const Header = () => {
                     target={isExternal ? '_blank' : undefined}
                     rel={isExternal ? 'noopener noreferrer' : undefined}
                     onClick={handleLinkClick}
-                    className="group relative flex items-center gap-4 px-6 py-4 text-lg font-mono rounded-2xl transition-transform duration-300 hover:scale-105"
+                    className="group relative flex items-center gap-4 px-6 py-4 text-lg font-ui rounded-2xl transition-transform duration-300 hover:scale-105"
                     style={{
                       opacity: 1,
                       transform: 'translateY(0) scale(1)',
