@@ -1,8 +1,8 @@
 {
-  "title": "Power Consumption Measurement",
+  "title": "Embedded Power Profiler @Withings",
   "date": "2024-08-21",
   "titleColor": "#FFFFFF",
-  "description": "Developed a measurement board to evaluate product battery life and optimize real-time signal processing to handle billions of data points.",
+  "description": "Real-time power consumption analysis toolchain for IoT healthcare devices (smart watches, smart scales), in production at Withings.",  
   "imageUrl": "/img/withings",
   "logoUrl": "/img/withings/logo.png",
   "themeColors": ["#00FF00", "#FFFFFF"],
@@ -13,9 +13,9 @@
     "gui"
   ],
   "tags": [
-    "C",
     "C++",
     "Python",
+    "Wireshark",
     "Kinetis K60",
     "Qt",
     "Ethernet"

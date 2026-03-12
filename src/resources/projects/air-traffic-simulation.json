@@ -1,5 +1,5 @@
 {
-  "title": "Air Traffic Simulation",
+  "title": "Air Traffic Simulator",
   "date": "2022-04-03",
   "titleColor": "#FFFFFF",
   "description": "An air traffic simulation using graph-theory enabling automatic planes, airport management, weather event rerouting.",

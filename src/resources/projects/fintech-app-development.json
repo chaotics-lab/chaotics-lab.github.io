@@ -1,5 +1,5 @@
 {
-  "title": "Fintech App Development",
+  "title": "Fintech App Development @PayBy",
   "date": "2023-01-12",
   "titleColor": "#FFFFFF",
   "description": "Implemented microservices (fund transfers, transaction history, image compression) into 300M+ users Fintech super app.",
@@ -12,11 +12,11 @@
     "backend"
   ],
   "tags": [
-    "Rust",
-    "Backend",
-    "Kanban",
     "Microservices",
-    "Domain-Driven Design"
+    "Rust",
+    "Domain-Driven Design",
+    "Backend",
+    "Kanban"
   ],
   "type": "Internship",
   "AIUsed": "0",

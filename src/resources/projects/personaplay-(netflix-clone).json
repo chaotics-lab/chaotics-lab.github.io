@@ -10,7 +10,8 @@
   "logoBackgroundColor": "transparent",
   "category": [
     "gui",
-    "backend"
+    "backend",
+    "fullstack"
   ],
   "tags": [
     "JavaFX",

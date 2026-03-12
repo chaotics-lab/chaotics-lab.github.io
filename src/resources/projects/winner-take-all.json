@@ -10,12 +10,13 @@
   "logoBackgroundColor": "#FFFFFF",
   "category": [
     "ai",
+    "embedded-systems",
     "sp"
   ],
   "tags": [
-    "KiCAD",
+    "Neuromorphic Hardware",
     "Analog Electronics",
-    "Neuromorphic Hardware"
+    "LTSpice"
   ],
   "type": "Internship",
   "id": "winner-take-all",

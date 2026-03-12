@@ -4,6 +4,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { ProjectData } from './types';
 import { CategoryPills } from './CategoryPills';
 import { AIUsedShowcase } from './AIUsedShowcase';
+import { projectOrder } from '@/config/projectOrder';
 
 export const SoftwareGrid: React.FC = () => {
   const [projects, setProjects] = useState<ProjectData[]>([]);
@@ -14,10 +15,26 @@ export const SoftwareGrid: React.FC = () => {
     const modules = import.meta.glob<ProjectData>('../../resources/projects/*.json', { eager: true });
     const loaded: ProjectData[] = Object.values(modules).map((m: any) => m.default || m);
 
-    loaded.sort((a, b) => {
+    const byDate = (a: ProjectData, b: ProjectData) => {
       if (a.date && b.date) return new Date(b.date).getTime() - new Date(a.date).getTime();
       return a.title.localeCompare(b.title);
-    });
+    };
+
+    if (projectOrder.enabled) {
+      loaded.sort((a, b) => {
+        const ai = projectOrder.order.indexOf(a.id);
+        const bi = projectOrder.order.indexOf(b.id);
+        // Both pinned → use config order
+        if (ai !== -1 && bi !== -1) return ai - bi;
+        // Pinned items come first
+        if (ai !== -1) return -1;
+        if (bi !== -1) return 1;
+        // Neither pinned → fall back to date
+        return byDate(a, b);
+      });
+    } else {
+      loaded.sort(byDate);
+    }
 
     setProjects(loaded);
   }, []);
@@ -26,6 +43,18 @@ export const SoftwareGrid: React.FC = () => {
     if (selectedCategory === 'all') return projects;
     return projects.filter(project => project.category?.includes(selectedCategory));
   }, [projects, selectedCategory]);
+
+  // Placeholder counts per breakpoint to fill incomplete rows.
+  // 2-col (sm): add 1 if odd, 0 if even.
+  // 3-col (lg): add (3 - count%3) % 3.
+  const placeholders = useMemo(() => {
+    const count = filteredProjects.length;
+    if (count === 0) return { sm: 0, lg: 0 };
+    return {
+      sm: count % 2,
+      lg: (3 - (count % 3)) % 3,
+    };
+  }, [filteredProjects.length]);
 
   return (
     <section className="py-20 relative overflow-x-hidden">
@@ -67,6 +96,24 @@ export const SoftwareGrid: React.FC = () => {
               {...project}
               technologies={project.technologies || project.tags || []}
             />
+          ))}
+          {/* 2-col placeholders: visible at sm, hidden at lg */}
+          {Array.from({ length: placeholders.sm }).map((_, i) => (
+            <div
+              key={`ph-sm-${i}`}
+              className="hidden sm:flex lg:hidden relative w-full flex-col items-center justify-center rounded-xl border-2 border-dashed border-white/10 bg-white/[0.02] min-h-[130px]"
+            >
+              <span className="text-white/20 text-sm font-medium tracking-wide">Coming Soon</span>
+            </div>
+          ))}
+          {/* 3-col placeholders: visible at lg only */}
+          {Array.from({ length: placeholders.lg }).map((_, i) => (
+            <div
+              key={`ph-lg-${i}`}
+              className="hidden lg:flex relative w-full flex-col items-center justify-center rounded-xl border-2 border-dashed border-white/10 bg-white/[0.02] md:min-h-[400px]"
+            >
+              <span className="text-white/20 text-sm font-medium tracking-wide">Coming Soon</span>
+            </div>
           ))}
         </div>
 

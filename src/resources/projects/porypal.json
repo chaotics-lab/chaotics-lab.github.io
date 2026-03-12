@@ -1,8 +1,8 @@
 {
-  "title": "Porypal",
+  "title": "Porypal (GBA Graphics Toolchain)",
   "date": "2025-03-28",
   "titleColor": "#FFFFFF",
-  "description": "Image processing, tileset editor and palette injector for automatic custom graphics in Gen 3 ROM hacks.",
+  "description": "Image processing toolchain for converting modern graphics into GBA-compatible sprites and tilesets for Pokémon ROM hacks.",
   "imageUrl": "/img/porypal",
   "logoUrl": "/img/porypal/logo.png",
   "themeColors": ["#FFB6C1", "#2139ef"],
@@ -14,7 +14,12 @@
   "githubUrl": "https://github.com/Loxed/porypal",
   "tags": [
     "Python",
-    "Qt"
+    "Qt",
+    "Image Processing",
+    "CIEDE2000",
+    "LZ77",
+    "JASC-PAL",
+    "GBA"
   ],
   "type": "Personal Project",
   "id": "porypal",
