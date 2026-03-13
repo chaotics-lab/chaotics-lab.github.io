@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Mail, Grid2X2, Github, Linkedin, Menu, X, ScrollText } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Mail, Grid2X2, Github, Linkedin, Menu, X, ScrollText, BookOpenText } from 'lucide-react';
 
 export const Header = () => {
   const [isMobile, setIsMobile] = useState(false);
@@ -57,7 +58,8 @@ export const Header = () => {
   }, [menuOpen]);
 
   const links = [
-    { name: 'Portfolio', icon: Grid2X2, url: '#' },
+    { name: 'Portfolio', icon: Grid2X2, url: '/', internal: true },
+    { name: 'Blog', icon: BookOpenText, url: '/blog', internal: true },
     { name: 'GitHub', icon: Github, url: 'https://github.com/Loxed' },
     { name: 'LinkedIn', icon: Linkedin, url: 'https://linkedin.com/in/leopold-rombaut' },
     { name: 'Mail', icon: Mail, url: 'mailto:leopold@rombaut.org' },
@@ -74,7 +76,7 @@ export const Header = () => {
           <div className="flex items-center justify-between h-16">
             
             {/* Logo */}
-            <a href="#" className="flex items-center relative z-50">
+            <a href="/" className="flex items-center relative z-50">
               <img
                 src="/img/logos/Chaotics White Transparent.png"
                 alt="Chaotics"
@@ -87,16 +89,9 @@ export const Header = () => {
               {links.map((link) => {
                 const IconComponent = link.icon;
                 const isExternal = link.url.startsWith('http');
-                
-                return (
-                  <a
-                    key={link.name}
-                    href={link.url}
-                    target={isExternal ? '_blank' : undefined}
-                    rel={isExternal ? 'noopener noreferrer' : undefined}
-                    className="group relative flex items-center gap-2 px-4 py-2 text-sm font-ui overflow-visible rounded-xl transition-all duration-300 hover:-translate-y-0.5"
-                    title={link.name}
-                  >
+                const sharedClass = "group relative flex items-center gap-2 px-4 py-2 text-sm font-ui overflow-visible rounded-xl transition-all duration-300 hover:-translate-y-0.5";
+                const inner = (
+                  <>
                     <div className="absolute inset-0 bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl transition-all duration-300 group-hover:bg-white/10 group-hover:border-white/25" />
                     <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                       style={{
@@ -112,6 +107,23 @@ export const Header = () => {
                     <span className="relative text-space-muted group-hover:text-white transition-colors duration-300">
                       {link.name}
                     </span>
+                  </>
+                );
+
+                return link.internal ? (
+                  <Link key={link.name} to={link.url} className={sharedClass} title={link.name}>
+                    {inner}
+                  </Link>
+                ) : (
+                  <a
+                    key={link.name}
+                    href={link.url}
+                    target={isExternal ? '_blank' : undefined}
+                    rel={isExternal ? 'noopener noreferrer' : undefined}
+                    className={sharedClass}
+                    title={link.name}
+                  >
+                    {inner}
                   </a>
                 );
               })}
@@ -150,21 +162,9 @@ export const Header = () => {
                 const IconComponent = link.icon;
                 const isExternal = link.url.startsWith('http');
                 const delay = index * 80 + 150;
-
-                return (
-                  <a
-                    key={link.name}
-                    href={link.url}
-                    target={isExternal ? '_blank' : undefined}
-                    rel={isExternal ? 'noopener noreferrer' : undefined}
-                    onClick={handleLinkClick}
-                    className="group relative flex items-center gap-4 px-6 py-4 text-lg font-ui rounded-2xl transition-transform duration-300 hover:scale-105"
-                    style={{
-                      opacity: 1,
-                      transform: 'translateY(0) scale(1)',
-                      transition: `opacity 0.5s cubic-bezier(0.16,1,0.3,1) ${delay}ms, transform 0.6s cubic-bezier(0.16,1,0.3,1) ${delay}ms`,
-                    }}
-                  >
+                const sharedClass = "group relative flex items-center gap-4 px-6 py-4 text-lg font-ui rounded-2xl transition-transform duration-300 hover:scale-105";
+                const inner = (
+                  <>
                     <div
                       className="absolute inset-0 backdrop-blur-md border rounded-2xl transition-all duration-500"
                       style={{
@@ -181,6 +181,38 @@ export const Header = () => {
                     />
                     <IconComponent className="relative w-6 h-6 text-white transition-transform duration-300 group-hover:scale-110" />
                     <span className="relative text-white font-medium">{link.name}</span>
+                  </>
+                );
+
+                return link.internal ? (
+                  <Link
+                    key={link.name}
+                    to={link.url}
+                    onClick={handleLinkClick}
+                    className={sharedClass}
+                    style={{
+                      opacity: 1,
+                      transform: 'translateY(0) scale(1)',
+                      transition: `opacity 0.5s cubic-bezier(0.16,1,0.3,1) ${delay}ms, transform 0.6s cubic-bezier(0.16,1,0.3,1) ${delay}ms`,
+                    }}
+                  >
+                    {inner}
+                  </Link>
+                ) : (
+                  <a
+                    key={link.name}
+                    href={link.url}
+                    target={isExternal ? '_blank' : undefined}
+                    rel={isExternal ? 'noopener noreferrer' : undefined}
+                    onClick={handleLinkClick}
+                    className={sharedClass}
+                    style={{
+                      opacity: 1,
+                      transform: 'translateY(0) scale(1)',
+                      transition: `opacity 0.5s cubic-bezier(0.16,1,0.3,1) ${delay}ms, transform 0.6s cubic-bezier(0.16,1,0.3,1) ${delay}ms`,
+                    }}
+                  >
+                    {inner}
                   </a>
                 );
               })}

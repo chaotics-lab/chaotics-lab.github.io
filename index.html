@@ -67,6 +67,16 @@
       ]
     }
     </script>
+
+    <!-- GitHub Pages SPA redirect handler — paste this before </head> in index.html -->
+    <script>
+      (function () {
+        const r = new URLSearchParams(window.location.search).get("r");
+        if (r) {
+          window.history.replaceState(null, "", decodeURIComponent(r));
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>
