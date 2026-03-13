@@ -206,20 +206,6 @@ export const SoftwareCard = memo((props: Partial<SoftwareCardProps>) => {
             opacity: 0.9,
           }}
         />
-        {/* Subtle color edge sheen + fine noise texture */}
-        <div
-          className="absolute inset-0 pointer-events-none z-0"
-          style={{
-            background: [
-              `linear-gradient(180deg, ${hexToRGBA(primaryColor, 0.10)} 0%, transparent 18%, transparent 82%, ${hexToRGBA(primaryColor, 0.08)} 100%)`,
-              "url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAE0lEQVQImWP8z/D/PwMDAwMjAAMpAQ8oJr2RAAAAAElFTkSuQmCC')",
-            ].join(', '),
-            backgroundRepeat: 'no-repeat, repeat',
-            backgroundSize: '100% 100%, 8px 8px',
-            borderRadius: 'inherit',
-            opacity: 0.22,
-          }}
-        />
 
         {/* Inner glows - static gradients, no blur for low-end performance */}
         {secondaryColor ? (
