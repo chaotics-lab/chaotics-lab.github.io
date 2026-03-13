@@ -31,6 +31,7 @@ function CodeBlock({ language, codeString }: { language: string; codeString: str
         customStyle={{ borderRadius: 0, border: "none", fontSize: "0.875rem", margin: 0, background: "transparent", padding: "1rem" }}
         codeTagProps={{ style: { fontFamily: "'Fira Code', 'JetBrains Mono', monospace", padding: 0, background: "none" } }}
       >{codeString}</SyntaxHighlighter>
+      
     </div>
   );
 }
