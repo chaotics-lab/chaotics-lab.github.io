@@ -3,6 +3,7 @@ title: "Building an Autonomous Racing Car from Scratch"
 date: "2026-02-20"
 description: "How we designed, built, and raced a 1:10 scale autonomous car — the full story from sensor selection to PID tuning."
 tags: ["embedded", "robotics", "FPGA", "autonomous"]
+pinned: true
 coverImage: ""
 ---
 

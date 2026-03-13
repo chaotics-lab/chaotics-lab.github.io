@@ -1,8 +1,8 @@
 ---
 title: "Allegro 4 — A Practical Guide"
 description: "Notes from building games in C with Allegro 4. Covers setup, input, graphics, audio, and a few useful tricks I figured out the hard way."
-coverImage: "blog/world.jpg"
-
+coverImage: "/img/saboteur/1.png"
+featured: true
 tags: ["C", "C++", "Allegro", "gamedev"]
 order:
   - allegro-01-initialisation
@@ -14,7 +14,9 @@ order:
   - allegro-07-drawing-and-extras
 ---
 
+
 **Allegro 4** is a **C game library** from the early 2000s. It's not what anyone would reach for today, but it is an absolutely brilliant way to learn how graphics programming actually works. No abstraction layers hiding what is happening beneath.
+
 
 I used it during my first and second year computer science courses during my engineering studies and ended up going far deeper than required to validate the course material. I built three projects using this fun library (a wild-west themed implementation of the French board game [*Le Saboteur*](/project/le-saboteur-(french-board-game)), a Hollow Knight themed *"Cluedo"* adaptation ([Cluedo Knight](/project/cluedo-knight)) and an *Animal Crossing* themed [Air Traffic Controller](/project/air-traffic-simulation) simulation that uses Graph Theory algorithms). These blogs posts are some reference I wrote while learning how to use Allegro 4 that I wish had existed when I started.
 ## Prerequisites

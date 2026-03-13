@@ -10,6 +10,11 @@ summary: How to set up an Allegro 4 project from scratch, open a window, and str
 
 Allegro 4 is an old-school C game library that handles graphics, input, and sound. It is not the most modern choice, but it is a genuinely great way to learn how graphics programming works without being buried in API surface area. This post covers the minimum setup to get a window open and running.
 
+![Logo Chaotics](../../img/logos/Chaotics%20White%20Transparent.png)
+
+![Logo Chaotics](../../img/logos/Chaotics%20White%20Transparent.png)
+
+
 ## Installation
 
 The best setup guide for Allegro 4 on Windows with Code::Blocks is the one by Fercoq (Google translated to English from French):

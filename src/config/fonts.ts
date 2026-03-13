@@ -8,7 +8,7 @@ export const fonts = {
   display: ['"Space Grotesk"', 'system-ui', 'sans-serif'],
 
   /** Serif — contrast accent headings */
-  serif: ['"DM Serif Display"', 'Georgia', 'serif'],
+  serif: ['"Source Serif 4"', 'Georgia', 'serif'],
 
   /** Sans — body text */
   sans: ['"Sora"', 'system-ui', 'sans-serif'],
