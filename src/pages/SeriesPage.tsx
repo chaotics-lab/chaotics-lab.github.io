@@ -3,7 +3,7 @@ import { getSeriesById } from "@/lib/blog";
 import { Header } from "@/components/portfolio/Header";
 import { Footer } from "@/components/portfolio/Footer";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Calendar, BookOpen } from "lucide-react";
+import { ArrowLeft, Calendar, BookOpenText } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
@@ -69,7 +69,7 @@ const SeriesPage = () => {
         {/* Series header */}
         <div className="mb-10">
           <div className="flex items-center gap-2 mb-3">
-            <BookOpen className="w-4 h-4 text-space-muted" />
+            <BookOpenText className="w-4 h-4 text-space-muted" />
             <span className="text-space-muted text-xs font-ui uppercase tracking-widest">
               Series
             </span>

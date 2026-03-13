@@ -1,7 +1,8 @@
 ---
 title: "Allegro 4 — A Practical Guide"
 description: "Notes from building games in C with Allegro 4. Covers setup, input, graphics, audio, and a few useful tricks I figured out the hard way."
-coverImage: ""
+coverImage: "blog/world.jpg"
+
 tags: ["C", "C++", "Allegro", "gamedev"]
 order:
   - allegro-01-initialisation

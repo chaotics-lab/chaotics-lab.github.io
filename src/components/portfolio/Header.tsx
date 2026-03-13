@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Mail, Grid2X2, Github, Linkedin, Menu, X, ScrollText, BookOpenText } from 'lucide-react';
+import { Mail, Grid2X2, Github, Linkedin, Menu, X, ScrollText, BookMarked } from 'lucide-react';
 
 export const Header = () => {
   const [isMobile, setIsMobile] = useState(false);
@@ -59,7 +59,7 @@ export const Header = () => {
 
   const links = [
     { name: 'Portfolio', icon: Grid2X2, url: '/', internal: true },
-    { name: 'Blog', icon: BookOpenText, url: '/blog', internal: true },
+    { name: 'Blog', icon: BookMarked, url: '/blog', internal: true },
     { name: 'GitHub', icon: Github, url: 'https://github.com/Loxed' },
     { name: 'LinkedIn', icon: Linkedin, url: 'https://linkedin.com/in/leopold-rombaut' },
     { name: 'Mail', icon: Mail, url: 'mailto:leopold@rombaut.org' },
