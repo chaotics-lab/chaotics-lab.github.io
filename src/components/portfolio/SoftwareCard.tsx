@@ -4,6 +4,8 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowRight } from "lucide-react";
 import { memo, useRef, useState, useReducer, useLayoutEffect, useEffect } from "react";
 import { AISticker } from "@/components/AISticker";
+import { useGithubStars } from "@/hooks/useGithubStars";
+import { GithubStarsBadge } from "../GithubStarBadge";
 
 // Adjust brightness for border
 function adjustHexBrightness(hex: string, minLight = 0.5) {
@@ -45,12 +47,10 @@ const FittingBadges = ({ technologies, borderColor, maxInitial, className }: {
   const [visibleCount, setVisibleCount] = useState(() => Math.min(maxInitial, technologies.length));
   const [, forceRender] = useReducer((x: number) => x + 1, 0);
 
-  // Reset when technologies change
   useEffect(() => {
     setVisibleCount(Math.min(maxInitial, technologies.length));
   }, [technologies, maxInitial]);
 
-  // Measure after render: if any badge overflows the container, reduce visible count
   useLayoutEffect(() => {
     const el = containerRef.current;
     if (!el) return;
@@ -65,13 +65,12 @@ const FittingBadges = ({ technologies, borderColor, maxInitial, className }: {
     }
   });
 
-  // Re-measure when the container width changes (e.g. window resize)
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
     const ro = new ResizeObserver(() => {
       setVisibleCount(Math.min(maxInitial, technologies.length));
-      forceRender(); // guarantee re-render even when visibleCount is already maxInitial
+      forceRender();
     });
     ro.observe(el);
     return () => ro.disconnect();
@@ -99,34 +98,34 @@ export interface SoftwareCardProps {
   type: "Personal Project" | "Academic Project" | "Internship" | "Upcoming";
   imageUrl?: string;
   themeColor?: string;
-  themeColors?: string[]; // Array of colors for gradient
+  themeColors?: string[];
   titleColor?: string;
   AIUsed?: string;
+  githubUrl?: string;
+  showGithubStats?: boolean;
 }
 
 export const SoftwareCard = memo((props: Partial<SoftwareCardProps>) => {
   const {
     id, title, description, technologies = [],
-    type, imageUrl, themeColor = "#8888ff", themeColors, titleColor, AIUsed
+    type, imageUrl, themeColor = "#8888ff", themeColors, titleColor, AIUsed,
+    githubUrl, showGithubStats,
   } = props;
 
-  // Use themeColors array if provided, otherwise fall back to themeColor
   const colors = themeColors && themeColors.length > 0 ? themeColors : [themeColor];
   const primaryColor = colors[0];
   const secondaryColor = colors.length > 1 ? colors[1] : null;
 
-  const borderColor = hexToRGBA(adjustHexBrightness(primaryColor,0.5), 0.3);
-  
-  // For simple element borders (badges, etc), use primary color only
+  const borderColor = hexToRGBA(adjustHexBrightness(primaryColor, 0.5), 0.3);
   const simpleBorderColor = borderColor;
 
   const isUpcoming = type === "Upcoming";
 
-
+  const stars = useGithubStars(githubUrl, showGithubStats);
 
   const cardContent = (
     <div className={`relative w-full flex flex-col ${!isUpcoming ? "group transition-all duration-300 md:hover:-translate-y-2" : ""}`}>
-      {/* Gradient border ring for two-color cards (absolutely positioned, masked to show only the 2px ring) */}
+      {/* Gradient border ring for two-color cards */}
       {secondaryColor && (
         <div
           className="absolute inset-0 z-0 pointer-events-none"
@@ -142,28 +141,27 @@ export const SoftwareCard = memo((props: Partial<SoftwareCardProps>) => {
         />
       )}
 
-      {/* AI Sticker - overlapping card */}
+      {/* AI Sticker — top left, desktop and mobile */}
       {AIUsed && (
         <>
-          {/* Desktop - top left */}
           <div className="hidden md:block absolute -top-5 -left-5 z-30 pointer-events-none">
             <AISticker value={parseInt(AIUsed, 10)} size={58} />
           </div>
-
-          {/* Mobile - top right */}
-          <div className="md:hidden absolute -top-4 -right-4 z-30 pointer-events-none">
+          <div className="md:hidden absolute -top-4 -left-4 z-30 pointer-events-none">
             <AISticker value={parseInt(AIUsed, 10)} size={40} />
           </div>
         </>
       )}
 
+
+
       {/* Card */}
       <Card
         className={`relative overflow-hidden flex flex-col h-full md:min-h-[400px] z-10
-          transition-all duration-300 ${isUpcoming 
-            ? "cursor-default border-dashed border-2" 
-            : secondaryColor 
-              ? "cursor-pointer border-0" 
+          transition-all duration-300 ${isUpcoming
+            ? "cursor-default border-dashed border-2"
+            : secondaryColor
+              ? "cursor-pointer border-0"
               : "cursor-pointer border-2"
           }`}
         style={{
@@ -173,7 +171,7 @@ export const SoftwareCard = memo((props: Partial<SoftwareCardProps>) => {
           ...(secondaryColor ? { margin: '2px', borderRadius: 'calc(0.75rem - 2px)' } : {}),
         }}
       >
-        {/* Liquid glass overlay - layered gradients, no blur for performance */}
+        {/* Liquid glass overlay */}
         <div
           className="absolute inset-0 pointer-events-none z-0 hidden md:block"
           style={{
@@ -207,23 +205,20 @@ export const SoftwareCard = memo((props: Partial<SoftwareCardProps>) => {
           }}
         />
 
-        {/* Inner glows - static gradients, no blur for low-end performance */}
+        {/* Inner glows */}
         {secondaryColor ? (
           <>
-            {/* Primary glow - middle right (desktop only) */}
             <div className="absolute pointer-events-none z-0 hidden md:block" style={{
               top: '60%', right: '0%',
               transform: 'translateY(-50%)',
               width: '60%', height: '50%',
               background: `radial-gradient(ellipse 80% 60% at 50% 50%, ${hexToRGBA(primaryColor, 0.10)} 0%, ${hexToRGBA(primaryColor, 0.04)} 40%, transparent 70%)`,
             }} />
-            {/* Secondary glow - bottom left (desktop only) */}
             <div className="absolute pointer-events-none z-0 hidden md:block" style={{
               bottom: '0%', left: '0%',
               width: '60%', height: '50%',
               background: `radial-gradient(ellipse 80% 60% at 50% 50%, ${hexToRGBA(secondaryColor, 0.08)} 0%, ${hexToRGBA(secondaryColor, 0.03)} 35%, transparent 65%)`,
             }} />
-            {/* Single compact glow for mobile */}
             <div className="absolute pointer-events-none z-0 md:hidden" style={{
               top: '50%', left: '50%',
               transform: 'translate(-50%, -50%)',
@@ -232,7 +227,6 @@ export const SoftwareCard = memo((props: Partial<SoftwareCardProps>) => {
             }} />
           </>
         ) : (
-          /* Single color glow - center */
           <div className="absolute pointer-events-none z-0" style={{
             top: '50%', left: '50%',
             transform: 'translate(-50%, -50%)',
@@ -249,13 +243,16 @@ export const SoftwareCard = memo((props: Partial<SoftwareCardProps>) => {
             </div>
           )}
           <div className="p-6 flex flex-col flex-grow">
-            <h3 className="text-xl font-display font-semibold line-clamp-2 mb-2" style={{color: titleColor||"inherit"}}>{title}</h3>
+            <div className="flex items-start justify-between gap-2 mb-2">
+              <h3 className="text-xl font-display font-semibold line-clamp-2 flex-1 min-w-0" style={{color: titleColor||"inherit"}}>{title}</h3>
+              {stars !== null && <div className="shrink-0 mt-0.5"><GithubStarsBadge stars={stars} /></div>}
+            </div>
             <p className="text-space-secondary leading-relaxed line-clamp-3 mb-4">{description}</p>
-            <FittingBadges technologies={technologies} borderColor={simpleBorderColor} maxInitial={3} className="flex flex-wrap gap-2 items-center" />
+            <FittingBadges technologies={technologies} borderColor={simpleBorderColor} maxInitial={3} className="flex flex-wrap gap-2 items-center mt-auto" />
           </div>
         </div>
 
-        {/* Mobile Layout - no hover effects */}
+        {/* Mobile Layout */}
         <div className={`md:hidden relative z-10 flex flex-row pointer-events-none h-32 ${isUpcoming ? "opacity-30" : ""}`}>
           {imageUrl && (
             <div className="w-32 h-32 flex-shrink-0 relative overflow-hidden rounded-l-md" style={{backgroundColor: `${primaryColor}20`}}>
@@ -263,12 +260,15 @@ export const SoftwareCard = memo((props: Partial<SoftwareCardProps>) => {
             </div>
           )}
           <div className="relative p-4 flex flex-col flex-grow">
-            <h3 className="text-base font-display font-semibold line-clamp-2 mb-2" style={{color: titleColor||"inherit"}}>{title}</h3>
+            <div className="flex items-start justify-between gap-2 mb-2">
+              <h3 className="text-base font-display font-semibold line-clamp-2 flex-1 min-w-0" style={{color: titleColor||"inherit"}}>{title}</h3>
+              {stars !== null && <div className="shrink-0 mt-0.5"><GithubStarsBadge stars={stars} /></div>}
+            </div>
             <FittingBadges technologies={technologies} borderColor={simpleBorderColor} maxInitial={2} className="flex flex-wrap gap-1.5 items-center" />
           </div>
         </div>
 
-        {/* Arrow hover only on desktop */}
+        {/* Arrow hover — desktop only */}
         {!isUpcoming && (
           <div className="hidden md:block absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transition-all duration-300">
             <ArrowRight className="w-6 h-6 text-white" style={{filter:`drop-shadow(0 0 8px ${primaryColor})`}}/>

@@ -5,6 +5,8 @@ import { ArrowLeft, ArrowUp, ExternalLink, Github, X } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { AISticker } from "@/components/AISticker";
+import { useGithubStars } from "@/hooks/useGithubStars";
+import { GithubStarsBadge } from "../GithubStarBadge";
 
 const SoftwarePage = () => {
   const { projectId } = useParams<{ projectId: string }>();
@@ -18,7 +20,7 @@ const SoftwarePage = () => {
   const [isHovering, setIsHovering] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isFullscreenAnimating, setIsFullscreenAnimating] = useState(false);
-  
+
   const touchStartX = useRef(0);
   const touchEndX = useRef(0);
 
@@ -52,7 +54,6 @@ const SoftwarePage = () => {
     const projects = Object.values(modules).map((m) => (m as any).default || m);
     setProject(projects.find((p) => p.id === projectId) || null);
     setLoaded(true);
-    
     window.scrollTo(0, 0);
   }, [projectId]);
 
@@ -104,7 +105,6 @@ const SoftwarePage = () => {
   // --- keyboard navigation for fullscreen ---
   useEffect(() => {
     if (!isFullscreen && !isFullscreenAnimating) return;
-    
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         e.preventDefault();
@@ -115,7 +115,6 @@ const SoftwarePage = () => {
         setCurrentFrame(prev => prev + 1);
       }
     };
-    
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isFullscreen, isFullscreenAnimating, currentFrame, frameCount]);
@@ -128,7 +127,7 @@ const SoftwarePage = () => {
     }
     setCurrentFrame((prev) => prev - 1);
   };
-  
+
   const handleNextFrame = () => {
     if (currentFrame >= frameCount - 1) return;
     if (isMobile) {
@@ -174,7 +173,7 @@ const SoftwarePage = () => {
       setIsFullscreenAnimating(true);
       setTimeout(() => {
         setIsFullscreen(true);
-      }, 300); // Half of the fade duration
+      }, 300);
     } else {
       setIsFullscreen(true);
     }
@@ -185,17 +184,20 @@ const SoftwarePage = () => {
       setIsFullscreen(false);
       setTimeout(() => {
         setIsFullscreenAnimating(false);
-      }, 500); // Full fade duration
+      }, 500);
     } else {
       setIsFullscreen(false);
     }
   };
 
+  // GitHub stars — only fetch when project is loaded and showGithubStats is set
+  const stars = useGithubStars(project?.githubUrl, project?.showGithubStats);
+
   if (!loaded)
     return (
-    <div className="min-h-screen flex items-center justify-center text-white bg-background starfield">
-    <div className="animate-pulse text-space-muted font-ui">Loading...</div>
-    </div>
+      <div className="min-h-screen flex items-center justify-center text-white bg-background starfield">
+        <div className="animate-pulse text-space-muted font-ui">Loading...</div>
+      </div>
     );
 
   if (!project)
@@ -215,7 +217,7 @@ const SoftwarePage = () => {
           </a>
         </main>
       </div>
-  );
+    );
 
   const date = project.date ? new Date(project.date) : null;
   const themeColor = project.themeColor || project.themeColors?.[0] || "#8888ff";
@@ -224,12 +226,12 @@ const SoftwarePage = () => {
   return (
     <div className="relative w-full text-white flex flex-col overflow-hidden min-h-screen bg-starfield">
       {/* Starfield */}
-        <div
-          className="fixed inset-0 -z-10 starfield"
-          style={
-            { "--deep-space-color": hexToRgba(secondaryColor || themeColor) } as React.CSSProperties
-          }
-        />
+      <div
+        className="fixed inset-0 -z-10 starfield"
+        style={
+          { "--deep-space-color": hexToRgba(secondaryColor || themeColor) } as React.CSSProperties
+        }
+      />
 
       <style>{`
         @keyframes softPulse {
@@ -267,14 +269,12 @@ const SoftwarePage = () => {
 
       {/* Fullscreen Image Viewer */}
       {(isFullscreen || isFullscreenAnimating) && (
-        <div 
+        <div
           className={`fixed inset-0 z-[100] flex items-center justify-center transition-opacity duration-500 ${
             isFullscreen ? 'opacity-100' : 'opacity-0'
           }`}
           onClick={closeFullscreen}
-          style={{
-            backgroundColor: 'black',
-          }}
+          style={{ backgroundColor: 'black' }}
         >
           {/* Close button */}
           <button
@@ -285,11 +285,10 @@ const SoftwarePage = () => {
           </button>
 
           {/* Image container */}
-          <div 
+          <div
             className="relative w-full h-full flex items-center justify-center p-4 md:p-8"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Image carousel */}
             <div className="relative w-full h-full max-w-7xl max-h-full flex items-center justify-center">
               <img
                 src={`${project.imageUrl}/${currentFrame + 1}.png`}
@@ -303,10 +302,7 @@ const SoftwarePage = () => {
                 <>
                   {currentFrame > 0 && (
                     <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handlePrevFrame();
-                      }}
+                      onClick={(e) => { e.stopPropagation(); handlePrevFrame(); }}
                       className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-3 md:p-4 rounded-full transition-all z-[105]"
                     >
                       <ArrowLeft size={24} />
@@ -314,10 +310,7 @@ const SoftwarePage = () => {
                   )}
                   {currentFrame < frameCount - 1 && (
                     <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleNextFrame();
-                      }}
+                      onClick={(e) => { e.stopPropagation(); handleNextFrame(); }}
                       className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-3 md:p-4 rounded-full transition-all z-[105]"
                     >
                       <ArrowLeft size={24} className="rotate-180" />
@@ -342,9 +335,7 @@ const SoftwarePage = () => {
                     className="h-2 rounded-full transition-all"
                     style={{
                       width: i === currentFrame ? '32px' : '8px',
-                      backgroundColor: i === currentFrame 
-                        ? 'white'
-                        : 'rgba(255, 255, 255, 0.5)',
+                      backgroundColor: i === currentFrame ? 'white' : 'rgba(255, 255, 255, 0.5)',
                       boxShadow: i === currentFrame ? `0 0 12px rgba(255, 255, 255, 0.8)` : 'none',
                     }}
                   />
@@ -362,14 +353,10 @@ const SoftwarePage = () => {
           <button className="group relative flex items-center gap-2 px-4 py-2 text-sm font-ui overflow-visible rounded-xl transition-all duration-300 hover:-translate-y-0.5">
             <div className="absolute inset-0 bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl transition-all duration-300 group-hover:bg-white/10 group-hover:border-white/25" />
             <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-              style={{
-                background: 'radial-gradient(circle at center, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.1) 50%, transparent 100%)',
-              }}
+              style={{ background: 'radial-gradient(circle at center, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.1) 50%, transparent 100%)' }}
             />
             <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 -z-10"
-              style={{
-                boxShadow: '0 0 20px rgba(255,255,255,0.3), 0 0 40px rgba(255,255,255,0.15)',
-              }}
+              style={{ boxShadow: '0 0 20px rgba(255,255,255,0.3), 0 0 40px rgba(255,255,255,0.15)' }}
             />
             <ArrowLeft className="relative w-4 h-4 text-space-muted group-hover:text-white transition-colors duration-300" />
             <span className="relative text-space-muted group-hover:text-white transition-colors duration-300">
@@ -380,10 +367,10 @@ const SoftwarePage = () => {
 
         {/* --- HERO --- */}
         <div className={`flex flex-col md:flex-row gap-4 ${isMobile ? '' : 'md:h-[25%] md:min-h-[180px] md:max-h-[200px] shrink-0'}`}>
-          {/* Hero Content - flex: 2 */}
-          <div 
+          {/* Hero Content */}
+          <div
             className="relative p-6 rounded-2xl shadow-2xl border-2 overflow-hidden flex flex-col flex-1 md:flex-[2]"
-            style={{ 
+            style={{
               borderColor: secondaryColor ? `${themeColor}50` : `${themeColor}30`,
               backgroundColor: `${themeColor}10`,
               boxShadow: `inset 0 1px 0 rgba(255,255,255,0.08), inset 0 -1px 0 rgba(255,255,255,0.03), 0 0 20px ${themeColor}20`,
@@ -393,7 +380,7 @@ const SoftwarePage = () => {
             <div className="absolute inset-0 pointer-events-none z-0" style={{
               background: 'linear-gradient(165deg, rgba(255,255,255,0.07) 0%, transparent 35%, transparent 75%, rgba(255,255,255,0.03) 100%)',
             }} />
-            {/* Static glow - no blur for performance */}
+            {/* Static glow */}
             <div
               className="absolute inset-0 pointer-events-none z-0"
               style={{
@@ -402,7 +389,7 @@ const SoftwarePage = () => {
                   : `radial-gradient(ellipse 100% 80% at ${glowPositions.hero}, ${hexToRgba(themeColor, 0.10)} 0%, ${hexToRgba(themeColor, 0.02)} 40%, transparent 70%)`,
               }}
             />
-            
+
             <div className="relative z-10 flex flex-col h-full">
               {/* Title Row */}
               <div className="flex items-center gap-4 mb-3 flex-wrap">
@@ -434,26 +421,20 @@ const SoftwarePage = () => {
                 </p>
               )}
 
-              {/* Links */}
-              <div className="flex gap-3 flex-wrap mt-auto">
+              {/* Links row — GitHub button + stars badge inline, then demo link */}
+              <div className="flex items-center gap-3 flex-wrap mt-auto">
                 {project.githubUrl && (
                   <a href={project.githubUrl} target="_blank" rel="noopener noreferrer">
                     <button className="group relative flex items-center gap-2 px-4 py-2 text-sm font-ui overflow-visible rounded-xl transition-all duration-300 hover:-translate-y-0.5">
                       <div className="absolute inset-0 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl transition-all duration-300 group-hover:bg-white/5 group-hover:border-white/10" />
                       <div className="absolute inset-0 rounded-xl opacity-100 group-hover:opacity-0 transition-opacity duration-300"
-                        style={{
-                          background: 'radial-gradient(circle at center, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.2) 50%, transparent 100%)',
-                        }}
+                        style={{ background: 'radial-gradient(circle at center, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.2) 50%, transparent 100%)' }}
                       />
                       <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                        style={{
-                          background: 'radial-gradient(circle at center, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.1) 50%, transparent 100%)',
-                        }}
+                        style={{ background: 'radial-gradient(circle at center, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.1) 50%, transparent 100%)' }}
                       />
                       <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 -z-10"
-                        style={{
-                          boxShadow: '0 0 20px rgba(255,255,255,0.3), 0 0 40px rgba(255,255,255,0.15)',
-                        }}
+                        style={{ boxShadow: '0 0 20px rgba(255,255,255,0.3), 0 0 40px rgba(255,255,255,0.15)' }}
                       />
                       <Github className="relative w-4 h-4 text-gray-300 group-hover:text-white transition-colors duration-300" />
                       <span className="relative text-gray-300 group-hover:text-white transition-colors duration-300">
@@ -462,24 +443,24 @@ const SoftwarePage = () => {
                     </button>
                   </a>
                 )}
+
+                {/* Stars badge sits right after the GitHub button */}
+                {stars !== null && (
+                  <GithubStarsBadge stars={stars} />
+                )}
+
                 {project.demoUrl && (
                   <a href={project.demoUrl} target="_blank" rel="noopener noreferrer">
                     <button className="group relative flex items-center gap-2 px-4 py-2 text-sm font-ui overflow-visible rounded-xl transition-all duration-300 hover:-translate-y-0.5">
                       <div className="absolute inset-0 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl transition-all duration-300 group-hover:bg-white/5 group-hover:border-white/10" />
                       <div className="absolute inset-0 rounded-xl opacity-100 group-hover:opacity-0 transition-opacity duration-300"
-                        style={{
-                          background: 'radial-gradient(circle at center, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.2) 50%, transparent 100%)',
-                        }}
+                        style={{ background: 'radial-gradient(circle at center, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.2) 50%, transparent 100%)' }}
                       />
                       <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                        style={{
-                          background: 'radial-gradient(circle at center, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.1) 50%, transparent 100%)',
-                        }}
+                        style={{ background: 'radial-gradient(circle at center, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.1) 50%, transparent 100%)' }}
                       />
                       <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 -z-10"
-                        style={{
-                          boxShadow: '0 0 20px rgba(255,255,255,0.3), 0 0 40px rgba(255,255,255,0.15)',
-                        }}
+                        style={{ boxShadow: '0 0 20px rgba(255,255,255,0.3), 0 0 40px rgba(255,255,255,0.15)' }}
                       />
                       <ExternalLink className="relative w-4 h-4 text-gray-300 group-hover:text-white transition-colors duration-300" />
                       <span className="relative text-gray-300 group-hover:text-white transition-colors duration-300">
@@ -492,22 +473,20 @@ const SoftwarePage = () => {
             </div>
           </div>
 
-          {/* Logo - aspect-square, shrink-0 (desktop only) */}
+          {/* Logo — desktop only */}
           {project.logoUrl && (
             <div className="hidden md:block shrink-0 max-w-[200px]">
               <div
                 className="relative rounded-2xl shadow-2xl border-2 overflow-hidden h-full aspect-square"
-                style={{ 
-                  borderColor: secondaryColor ? `${themeColor}50` : `${themeColor}30`,  
-                  backgroundColor: `${themeColor}10`, 
+                style={{
+                  borderColor: secondaryColor ? `${themeColor}50` : `${themeColor}30`,
+                  backgroundColor: `${themeColor}10`,
                   boxShadow: `inset 0 1px 0 rgba(255,255,255,0.08), inset 0 -1px 0 rgba(255,255,255,0.03), 0 0 20px ${themeColor}20`,
                 }}
               >
-                {/* Liquid glass highlight */}
                 <div className="absolute inset-0 pointer-events-none z-0" style={{
                   background: 'linear-gradient(165deg, rgba(255,255,255,0.07) 0%, transparent 35%, transparent 75%, rgba(255,255,255,0.03) 100%)',
                 }} />
-                {/* Static glow - no blur for performance */}
                 <div
                   className="absolute inset-0 pointer-events-none z-0"
                   style={{
@@ -516,7 +495,6 @@ const SoftwarePage = () => {
                       : `radial-gradient(ellipse 100% 80% at ${glowPositions.logo}, ${hexToRgba(themeColor, 0.10)} 0%, ${hexToRgba(themeColor, 0.02)} 40%, transparent 70%)`,
                   }}
                 />
-                
                 <div className="relative flex items-center justify-center h-full w-full p-8 z-10">
                   <img
                     src={project.logoUrl}
@@ -536,18 +514,14 @@ const SoftwarePage = () => {
             {/* Markdown (scrollable) */}
             {project.markdown && (
               <div className="relative rounded-2xl shadow-2xl border-2 overflow-hidden h-full"
-                style={{ 
+                style={{
                   borderColor: secondaryColor ? `${themeColor}50` : `${themeColor}30`,
                   backgroundColor: `${themeColor}10`,
                   boxShadow: `inset 0 1px 0 rgba(255,255,255,0.08), inset 0 -1px 0 rgba(255,255,255,0.03), 0 0 20px ${themeColor}20`,
                 }}>
-
-                {/* Liquid glass highlight */}
                 <div className="absolute inset-0 pointer-events-none z-0 rounded-2xl" style={{
                   background: 'linear-gradient(165deg, rgba(255,255,255,0.07) 0%, transparent 35%, transparent 75%, rgba(255,255,255,0.03) 100%)',
                 }} />
-                
-                {/* Static glow - no blur for performance */}
                 <div
                   className="absolute inset-0 pointer-events-none z-0"
                   style={{
@@ -556,10 +530,7 @@ const SoftwarePage = () => {
                       : `radial-gradient(ellipse 100% 80% at ${glowPositions.markdown}, ${hexToRgba(themeColor, 0.10)} 0%, ${hexToRgba(themeColor, 0.02)} 40%, transparent 70%)`,
                   }}
                 />
-                
-                <div
-                  className="markdown-section markdown-scroll p-6 overflow-y-auto h-full relative z-10"
-                >
+                <div className="markdown-section markdown-scroll p-6 overflow-y-auto h-full relative z-10">
                   <ReactMarkdown remarkPlugins={[remarkGfm]}>
                     {project.markdown}
                   </ReactMarkdown>
@@ -569,7 +540,7 @@ const SoftwarePage = () => {
 
             {/* Carousel + tags column */}
             <div className="flex flex-col gap-3 min-h-0">
-              {/* Carousel - 16:9 aspect ratio */}
+              {/* Carousel - 16:9 */}
               <div
                 className="relative w-full flex-shrink-0 cursor-pointer"
                 style={{ paddingTop: "56.25%" }}
@@ -578,16 +549,14 @@ const SoftwarePage = () => {
                 onClick={openFullscreen}
               >
                 <div className="absolute inset-0 overflow-hidden rounded-2xl border-2"
-                  style={{ 
+                  style={{
                     borderColor: secondaryColor ? `${themeColor}50` : `${themeColor}30`,
                     backgroundColor: `${themeColor}10`,
                     boxShadow: `inset 0 1px 0 rgba(255,255,255,0.08), inset 0 -1px 0 rgba(255,255,255,0.03), 0 0 20px ${themeColor}20`,
                   }}>
-                  {/* Liquid glass highlight */}
                   <div className="absolute inset-0 pointer-events-none z-0" style={{
                     background: 'linear-gradient(165deg, rgba(255,255,255,0.07) 0%, transparent 35%, transparent 75%, rgba(255,255,255,0.03) 100%)',
                   }} />
-                  {/* Static glow - no blur for performance */}
                   <div
                     className="absolute inset-0 pointer-events-none z-0"
                     style={{
@@ -596,7 +565,7 @@ const SoftwarePage = () => {
                         : `radial-gradient(ellipse 100% 80% at ${glowPositions.carousel}, ${hexToRgba(themeColor, 0.10)} 0%, ${hexToRgba(themeColor, 0.02)} 40%, transparent 70%)`,
                     }}
                   />
-                  
+
                   <div
                     className="flex h-full transition-transform duration-700 ease-in-out relative z-10"
                     style={{
@@ -620,10 +589,7 @@ const SoftwarePage = () => {
                     <>
                       {currentFrame > 0 && (
                         <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handlePrevFrame();
-                          }}
+                          onClick={(e) => { e.stopPropagation(); handlePrevFrame(); }}
                           className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition-all z-20"
                         >
                           <ArrowLeft size={20} />
@@ -631,10 +597,7 @@ const SoftwarePage = () => {
                       )}
                       {currentFrame < frameCount - 1 && (
                         <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleNextFrame();
-                          }}
+                          onClick={(e) => { e.stopPropagation(); handleNextFrame(); }}
                           className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition-all z-20"
                         >
                           <ArrowLeft size={20} className="rotate-180" />
@@ -659,7 +622,7 @@ const SoftwarePage = () => {
                       className="h-2 rounded-full transition-all"
                       style={{
                         width: i === currentFrame ? '24px' : '8px',
-                        backgroundColor: i === currentFrame 
+                        backgroundColor: i === currentFrame
                           ? `color-mix(in srgb, white 90%, ${themeColor} 10%)`
                           : 'rgba(255, 255, 255, 0.4)',
                         boxShadow: i === currentFrame ? `0 0 8px rgba(255, 255, 255, 0.5)` : 'none',
@@ -672,7 +635,7 @@ const SoftwarePage = () => {
               {/* Tags */}
               {project.tags && project.tags.length > 0 && (
                 <div className="flex flex-wrap gap-2 justify-center flex-shrink-0">
-                  {project.tags.map((tag) => (
+                  {project.tags.map((tag: string) => (
                     <Badge
                       key={tag}
                       variant="secondary"
@@ -689,8 +652,8 @@ const SoftwarePage = () => {
           /* --- MOBILE: stacked layout --- */
           <div className="flex flex-col gap-6 pb-8">
             {/* Carousel */}
-            <div 
-              className="relative w-full cursor-pointer" 
+            <div
+              className="relative w-full cursor-pointer"
               style={{ paddingTop: "56.25%" }}
               onTouchStart={handleTouchStart}
               onTouchMove={handleTouchMove}
@@ -698,16 +661,14 @@ const SoftwarePage = () => {
               onClick={openFullscreen}
             >
               <div className="absolute inset-0 overflow-hidden rounded-2xl border-2"
-                style={{ 
+                style={{
                   borderColor: secondaryColor ? `${themeColor}50` : `${themeColor}30`,
                   backgroundColor: `${themeColor}10`,
                   boxShadow: `inset 0 1px 0 rgba(255,255,255,0.08), inset 0 -1px 0 rgba(255,255,255,0.03), 0 0 20px ${themeColor}20`,
                 }}>
-                {/* Liquid glass highlight */}
                 <div className="absolute inset-0 pointer-events-none z-0" style={{
                   background: 'linear-gradient(165deg, rgba(255,255,255,0.07) 0%, transparent 35%, transparent 75%, rgba(255,255,255,0.03) 100%)',
                 }} />
-                {/* Static glow - no blur for performance */}
                 <div
                   className="absolute inset-0 pointer-events-none z-0"
                   style={{
@@ -716,7 +677,6 @@ const SoftwarePage = () => {
                       : `radial-gradient(ellipse 100% 80% at center, ${hexToRgba(themeColor, 0.10)} 0%, ${hexToRgba(themeColor, 0.02)} 40%, transparent 70%)`,
                   }}
                 />
-                
                 <div
                   className="flex h-full transition-transform duration-700 ease-in-out relative z-10"
                   style={{
@@ -751,7 +711,7 @@ const SoftwarePage = () => {
                     className="h-2 rounded-full transition-all"
                     style={{
                       width: i === currentFrame ? '24px' : '8px',
-                      backgroundColor: i === currentFrame 
+                      backgroundColor: i === currentFrame
                         ? `color-mix(in srgb, white 90%, ${themeColor} 10%)`
                         : 'rgba(255, 255, 255, 0.4)',
                       boxShadow: i === currentFrame ? `0 0 8px rgba(255, 255, 255, 0.5)` : 'none',
@@ -764,7 +724,7 @@ const SoftwarePage = () => {
             {/* Tags */}
             {project.tags && project.tags.length > 0 && (
               <div className="flex flex-wrap gap-2 justify-center">
-                {project.tags.map((tag) => (
+                {project.tags.map((tag: string) => (
                   <Badge
                     key={tag}
                     variant="secondary"
@@ -784,11 +744,9 @@ const SoftwarePage = () => {
                   backgroundColor: `${themeColor}10`,
                   boxShadow: `inset 0 1px 0 rgba(255,255,255,0.08), inset 0 -1px 0 rgba(255,255,255,0.03), 0 0 20px ${themeColor}20`,
                 }}>
-                {/* Liquid glass highlight */}
                 <div className="absolute inset-0 pointer-events-none z-0 rounded-2xl" style={{
                   background: 'linear-gradient(165deg, rgba(255,255,255,0.07) 0%, transparent 35%, transparent 75%, rgba(255,255,255,0.03) 100%)',
                 }} />
-                {/* Static glow - no blur for performance */}
                 <div
                   className="absolute inset-0 pointer-events-none z-0"
                   style={{
@@ -797,7 +755,6 @@ const SoftwarePage = () => {
                       : `radial-gradient(ellipse 100% 80% at center, ${hexToRgba(themeColor, 0.10)} 0%, ${hexToRgba(themeColor, 0.02)} 40%, transparent 70%)`,
                   }}
                 />
-                
                 <div className="markdown-section p-6 h-full overflow-y-auto relative z-10">
                   <ReactMarkdown remarkPlugins={[remarkGfm]}>
                     {project.markdown}

@@ -12,6 +12,7 @@
     "sp"
   ],
   "githubUrl": "https://github.com/Loxed/porypal",
+  "showGithubStats": true,
   "tags": [
     "Python",
     "Qt",
