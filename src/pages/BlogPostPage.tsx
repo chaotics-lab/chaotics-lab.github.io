@@ -286,7 +286,17 @@ const BlogPostPage = () => {
           <div className="mt-8 h-px bg-white/10" />
         </header>
 
-        <article className="prose prose-invert prose-sm md:prose-base max-w-none">
+        <article 
+            className="prose prose-invert prose-sm md:prose-base max-w-none
+            prose-headings:font-display prose-headings:text-white prose-headings:font-semibold
+            prose-p:font-prose prose-p:text-space-muted prose-p:leading-relaxed prose-p:text-base
+            prose-a:text-white prose-a:underline prose-a:decoration-white/30 hover:prose-a:decoration-white/70
+            prose-strong:text-white prose-strong:font-semibold
+            prose-code:text-white/85 prose-code:bg-white/8 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-sm prose-code:font-mono prose-code:before:content-none prose-code:after:content-none
+            prose-blockquote:border-white/20 prose-blockquote:text-space-muted
+            prose-hr:border-white/10
+            prose-li:text-space-muted prose-li:font-prose"
+            >
           {(() => {
             figureCounter.current = 0; // reset counter per post
             return (
