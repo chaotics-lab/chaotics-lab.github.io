@@ -2,7 +2,7 @@
   "title": "Porypal (GBA Toolchain)",
   "date": "2025-03-28",
   "titleColor": "#FFFFFF",
-  "description": "Full-stack local web app for extracting and processing GBA-compatible sprites and palettes for Pokémon ROM hacks.",
+  "description": "Full-stack local web app for extracting and processing Game Boy Advance compatible sprites and palettes for Pokémon ROM hacks.",
   "imageUrl": "/img/porypal",
   "logoUrl": "/img/porypal/logo.png",
   "themeColors": ["#FFB6C1", "#2139ef"],
