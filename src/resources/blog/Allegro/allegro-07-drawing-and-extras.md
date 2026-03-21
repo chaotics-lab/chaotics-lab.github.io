@@ -7,6 +7,7 @@ tags:
   - gamedev
   - graphics
 summary: A reference for Allegro 4's primitive drawing functions, how to implement a custom mouse cursor with state changes, and a utility for using hex colour codes with makecol().
+tester:
 ---
 	
 # Drawing Shapes, Custom Cursors, and Hex Colours in Allegro 4

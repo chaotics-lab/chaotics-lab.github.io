@@ -5,9 +5,10 @@ import { ArrowRight } from "lucide-react";
 import { memo, useRef, useState, useReducer, useLayoutEffect, useEffect } from "react";
 import { AISticker } from "@/components/AISticker";
 import { useGithubStars } from "@/hooks/useGithubStars";
+import { useGithubDownloads } from "@/hooks/useGithubDownloads";
 import { GithubStarsBadge } from "../GithubStarBadge";
+import { GithubDownloadsBadge } from "../GithubDownloadsBadge";
 
-// Adjust brightness for border
 function adjustHexBrightness(hex: string, minLight = 0.5) {
   hex = hex.replace(/^#/, '');
   if (hex.length === 3) hex = hex.split('').map(c => c + c).join('');
@@ -26,7 +27,6 @@ function adjustHexBrightness(hex: string, minLight = 0.5) {
   return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
 }
 
-// Convert hex to rgba for border opacity
 function hexToRGBA(hex: string, alpha = 1) {
   hex = hex.replace(/^#/, '');
   if (hex.length === 3) hex = hex.split('').map(c => c+c).join('');
@@ -36,7 +36,6 @@ function hexToRGBA(hex: string, alpha = 1) {
   return `rgba(${r},${g},${b},${alpha})`;
 }
 
-/** Renders as many tech badges as fit on a single line, collapsing the rest into "+X". */
 const FittingBadges = ({ technologies, borderColor, maxInitial, className }: {
   technologies: string[];
   borderColor: string;
@@ -122,10 +121,10 @@ export const SoftwareCard = memo((props: Partial<SoftwareCardProps>) => {
   const isUpcoming = type === "Upcoming";
 
   const stars = useGithubStars(githubUrl, showGithubStats);
+  const downloads = useGithubDownloads(githubUrl, showGithubStats);
 
   const cardContent = (
     <div className={`relative w-full flex flex-col ${!isUpcoming ? "group transition-all duration-300 md:hover:-translate-y-2" : ""}`}>
-      {/* Gradient border ring for two-color cards */}
       {secondaryColor && (
         <div
           className="absolute inset-0 z-0 pointer-events-none"
@@ -141,7 +140,6 @@ export const SoftwareCard = memo((props: Partial<SoftwareCardProps>) => {
         />
       )}
 
-      {/* AI Sticker — top left, desktop and mobile */}
       {AIUsed && (
         <>
           <div className="hidden md:block absolute -top-5 -left-5 z-30 pointer-events-none">
@@ -153,9 +151,6 @@ export const SoftwareCard = memo((props: Partial<SoftwareCardProps>) => {
         </>
       )}
 
-
-
-      {/* Card */}
       <Card
         className={`relative overflow-hidden flex flex-col h-full md:min-h-[400px] z-10
           transition-all duration-300 ${isUpcoming
@@ -171,7 +166,6 @@ export const SoftwareCard = memo((props: Partial<SoftwareCardProps>) => {
           ...(secondaryColor ? { margin: '2px', borderRadius: 'calc(0.75rem - 2px)' } : {}),
         }}
       >
-        {/* Liquid glass overlay */}
         <div
           className="absolute inset-0 pointer-events-none z-0 hidden md:block"
           style={{
@@ -205,7 +199,6 @@ export const SoftwareCard = memo((props: Partial<SoftwareCardProps>) => {
           }}
         />
 
-        {/* Inner glows */}
         {secondaryColor ? (
           <>
             <div className="absolute pointer-events-none z-0 hidden md:block" style={{
@@ -245,7 +238,10 @@ export const SoftwareCard = memo((props: Partial<SoftwareCardProps>) => {
           <div className="p-6 flex flex-col flex-grow">
             <div className="flex items-start justify-between gap-2 mb-2">
               <h3 className="text-xl font-display font-semibold line-clamp-2 flex-1 min-w-0" style={{color: titleColor||"inherit"}}>{title}</h3>
-              {stars !== null && <div className="shrink-0 mt-0.5"><GithubStarsBadge stars={stars} /></div>}
+              <div className="flex items-center gap-1.5 shrink-0 mt-0.5">
+                {stars !== null && <GithubStarsBadge stars={stars} />}
+                {downloads !== null && <GithubDownloadsBadge downloads={downloads} />}
+              </div>
             </div>
             <p className="text-space-secondary leading-relaxed line-clamp-3 mb-4">{description}</p>
             <FittingBadges technologies={technologies} borderColor={simpleBorderColor} maxInitial={3} className="flex flex-wrap gap-2 items-center mt-auto" />
@@ -262,13 +258,15 @@ export const SoftwareCard = memo((props: Partial<SoftwareCardProps>) => {
           <div className="relative p-4 flex flex-col flex-grow">
             <div className="flex items-start justify-between gap-2 mb-2">
               <h3 className="text-base font-display font-semibold line-clamp-2 flex-1 min-w-0" style={{color: titleColor||"inherit"}}>{title}</h3>
-              {stars !== null && <div className="shrink-0 mt-0.5"><GithubStarsBadge stars={stars} /></div>}
+              <div className="flex items-center gap-1.5 shrink-0 mt-0.5">
+                {stars !== null && <GithubStarsBadge stars={stars} />}
+                {downloads !== null && <GithubDownloadsBadge downloads={downloads} />}
+              </div>
             </div>
             <FittingBadges technologies={technologies} borderColor={simpleBorderColor} maxInitial={2} className="flex flex-wrap gap-1.5 items-center" />
           </div>
         </div>
 
-        {/* Arrow hover — desktop only */}
         {!isUpcoming && (
           <div className="hidden md:block absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transition-all duration-300">
             <ArrowRight className="w-6 h-6 text-white" style={{filter:`drop-shadow(0 0 8px ${primaryColor})`}}/>

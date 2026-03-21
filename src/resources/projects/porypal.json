@@ -1,29 +1,19 @@
 {
-  "title": "Porypal (GBA Graphics Toolchain)",
+  "title": "Porypal (GBA Toolchain)",
   "date": "2025-03-28",
   "titleColor": "#FFFFFF",
-  "description": "Image processing toolchain for converting modern graphics into GBA-compatible sprites and tilesets for Pokémon ROM hacks.",
+  "description": "Full-stack local web app for extracting and processing GBA-compatible sprites and palettes for Pokémon ROM hacks.",
   "imageUrl": "/img/porypal",
   "logoUrl": "/img/porypal/logo.png",
   "themeColors": ["#FFB6C1", "#2139ef"],
   "logoBackgroundColor": "transparent",
-  "category": [
-    "gui",
-    "sp"
-  ],
+  "category": ["gui", "sp"],
   "githubUrl": "https://github.com/Loxed/porypal",
   "showGithubStats": true,
-  "tags": [
-    "Python",
-    "Qt",
-    "Image Processing",
-    "CIEDE2000",
-    "LZ77",
-    "JASC-PAL",
-    "GBA"
-  ],
+  "showGithubDownload": true,
+  "tags": ["Python", "React", "FastAPI", "Vite", "Image Processing", "Oklab", "JASC-PAL", "GBA"],
   "type": "Personal Project",
   "id": "porypal",
   "AIUsed": "60",
-  "markdown": "## What\nA specialized image processing tool for Pokémon Gen 3 ROM hacking, automating conversion of modern graphics into Game Boy Advance-compatible sprites and tilesets. Addresses GBA's tile-based rendering constraints (16-color palettes, 8×8 tile system, JASC-PAL format) that make batch sprite creation tedious and error-prone for ROM hackers working on decompilation projects.\n\n## How\nImplemented intelligent color quantization using CIEDE2000 perceptual color distance for 24-bit RGB → 4-bit indexed conversion with transparency slot enforcement. Built tile-based decomposition system with hash-based deduplication, flip/rotate operations, and interactive Qt GUI editor. Created YAML-driven batch processing pipeline supporting multiple output formats (C arrays, binary, assembly) with LZ77 compression, achieving 40-60% size reduction.\n\n## Result\n10x faster sprite conversion workflow with zero palette errors and ROM space savings through duplicate tile elimination. Adopted by Pokémon ROM hacking community (pokecommunity, r/PokemonROMhacks) and integrated into popular decompilation projects (pokeemerald, pokefirered). Enables batch processing of 100+ sprites in minutes, now used daily by known developers in the ROM hacking space.\n\n### AI Usage (60%)\nInitial proof-of-concept was fully AI-generated to validate feasibility. After seeing community interest, completely reimplemented from scratch following proper MVC architecture. AI assisted with specific GUI components in Qt (custom paint events, drag-and-drop tile rearrangement) and complex image processing functions I struggled with. Core architecture, domain logic for GBA constraints, and batch processing pipeline were manually designed and implemented."
+"markdown": "## What\nPorypal is a sprite and palette toolchain for Pokémon Gen 3 ROM hacking, targeting developers working on decompilation projects like pokeemerald and pokefirered.\n\n## How\n- Local web app written in React/Vite (frontend) and FastAPI (backend)\n- Perceptual color quantization in Oklab space using pure numpy k-means, no ML dependencies\n- Resource browser/search engine that indexes decomp project folders (thousands of sprites and palettes) with lazy-loading and wildcard filtering\n- Group extraction for index-aligned palettes across sprite variants, shiny palette pair matching, tile arranger with reusable presets\n\n## Result\nWidely adopted by the ROM hacking community for processing and inserting sprites across full decomp projects. Ships as a self-contained local web app, one script to run, no configuration.\n\n### AI Usage (60%)\nv1 was fully AI-generated as a proof of concept. v2 shipped a usable tool suite to the community. v3 rebuilt the entire UI from scratch with a proper full-stack architecture and expanded capabilities. AI assisted with frontend components and some backend scaffolding. Core domain logic, GBA constraint handling, palette alignment algorithms, and pipeline design were written manually."
 }
