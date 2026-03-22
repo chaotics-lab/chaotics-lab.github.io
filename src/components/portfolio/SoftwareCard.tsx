@@ -147,10 +147,10 @@ export const SoftwareCard = memo((props: Partial<SoftwareCardProps>) => {
       {AIUsed && (
         <>
           <div className="hidden md:block absolute -top-5 -left-5 z-30 pointer-events-none">
-            <AISticker value={parseInt(AIUsed, 10)} size={58} />
+            <AISticker value={parseInt(AIUsed, 10)} size={75} />
           </div>
           <div className="md:hidden absolute -top-4 -left-4 z-30 pointer-events-none">
-            <AISticker value={parseInt(AIUsed, 10)} size={40} />
+            <AISticker value={parseInt(AIUsed, 10)} size={50} />
           </div>
         </>
       )}
