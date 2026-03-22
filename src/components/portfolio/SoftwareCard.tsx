@@ -5,9 +5,8 @@ import { ArrowRight } from "lucide-react";
 import { memo, useRef, useState, useReducer, useLayoutEffect, useEffect } from "react";
 import { AISticker } from "@/components/AISticker";
 import { useGithubStars } from "@/hooks/useGithubStars";
-import { useGithubDownloads } from "@/hooks/useGithubDownloads";
-import { GithubStarsBadge } from "../GithubStarBadge";
-import { GithubDownloadsBadge } from "../GithubDownloadsBadge";
+import { useGithubStats } from "@/hooks/useGithubStats";
+import { GithubStarsBadge, GithubDownloadsBadge } from "@/components/GithubBadges";
 
 function adjustHexBrightness(hex: string, minLight = 0.5) {
   hex = hex.replace(/^#/, '');
@@ -16,12 +15,12 @@ function adjustHexBrightness(hex: string, minLight = 0.5) {
   let g = parseInt(hex.slice(2,4),16)/255;
   let b = parseInt(hex.slice(4,6),16)/255;
   const max = Math.max(r,g,b), min = Math.min(r,g,b);
-  let l = (max+min)/2;
-  if(l<minLight) {
+  const l = (max+min)/2;
+  if (l < minLight) {
     const scale = minLight/l;
-    r = Math.min(1,r*scale);
-    g = Math.min(1,g*scale);
-    b = Math.min(1,b*scale);
+    r = Math.min(1, r*scale);
+    g = Math.min(1, g*scale);
+    b = Math.min(1, b*scale);
   }
   const toHex = (x: number) => Math.round(x*255).toString(16).padStart(2,'0');
   return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
@@ -114,14 +113,19 @@ export const SoftwareCard = memo((props: Partial<SoftwareCardProps>) => {
   const colors = themeColors && themeColors.length > 0 ? themeColors : [themeColor];
   const primaryColor = colors[0];
   const secondaryColor = colors.length > 1 ? colors[1] : null;
-
   const borderColor = hexToRGBA(adjustHexBrightness(primaryColor, 0.5), 0.3);
-  const simpleBorderColor = borderColor;
-
   const isUpcoming = type === "Upcoming";
 
   const stars = useGithubStars(githubUrl, showGithubStats);
-  const downloads = useGithubDownloads(githubUrl, showGithubStats);
+  const stats = useGithubStats(showGithubStats);
+  const combinedDownloads = stats ? stats.total_downloads + stats.unique_cloners : null;
+
+  const statsBadges = showGithubStats && (
+    <div className="flex items-center gap-1.5 shrink-0 mt-0.5">
+      {stars !== null && <GithubStarsBadge stars={stars} />}
+      <GithubDownloadsBadge downloads={combinedDownloads} />
+    </div>
+  );
 
   const cardContent = (
     <div className={`relative w-full flex flex-col ${!isUpcoming ? "group transition-all duration-300 md:hover:-translate-y-2" : ""}`}>
@@ -129,7 +133,7 @@ export const SoftwareCard = memo((props: Partial<SoftwareCardProps>) => {
         <div
           className="absolute inset-0 z-0 pointer-events-none"
           style={{
-            background: `linear-gradient(135deg, ${hexToRGBA(adjustHexBrightness(primaryColor,0.5), 0.7)}, ${hexToRGBA(adjustHexBrightness(secondaryColor,0.4), 0.5)})`,
+            background: `linear-gradient(135deg, ${hexToRGBA(adjustHexBrightness(primaryColor, 0.5), 0.7)}, ${hexToRGBA(adjustHexBrightness(secondaryColor, 0.4), 0.5)})`,
             padding: '2px',
             borderRadius: '0.75rem',
             WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
@@ -166,117 +170,86 @@ export const SoftwareCard = memo((props: Partial<SoftwareCardProps>) => {
           ...(secondaryColor ? { margin: '2px', borderRadius: 'calc(0.75rem - 2px)' } : {}),
         }}
       >
-        <div
-          className="absolute inset-0 pointer-events-none z-0 hidden md:block"
-          style={{
-            background: [
-              `linear-gradient(165deg, ${hexToRGBA(primaryColor, 0.20)} 0%, rgba(255,255,255,0.05) 24%, transparent 44%)`,
-              secondaryColor
-                ? `linear-gradient(345deg, transparent 55%, ${hexToRGBA(secondaryColor, 0.12)} 78%, rgba(255,255,255,0.03) 100%)`
-                : 'linear-gradient(345deg, transparent 55%, rgba(255,255,255,0.10) 78%, rgba(255,255,255,0.03) 100%)',
-              `radial-gradient(120% 90% at 12% 10%, ${hexToRGBA(primaryColor, 0.16)} 0%, transparent 58%)`,
-              secondaryColor
-                ? `radial-gradient(120% 90% at 88% 85%, ${hexToRGBA(secondaryColor, 0.12)} 0%, transparent 62%)`
-                : `radial-gradient(120% 90% at 88% 85%, ${hexToRGBA(primaryColor, 0.10)} 0%, transparent 62%)`,
-            ].join(', '),
-            borderRadius: 'inherit',
-          }}
-        />
-        <div
-          className="absolute inset-0 pointer-events-none z-0 hidden md:block"
-          style={{
-            background: `linear-gradient(90deg, ${hexToRGBA(primaryColor, 0.12)} 0%, transparent 35%, transparent 65%, rgba(255,255,255,0.07) 100%)`,
-            borderRadius: 'inherit',
-            opacity: 0.95,
-          }}
-        />
-        <div
-          className="absolute inset-0 pointer-events-none z-0 md:hidden"
-          style={{
-            background: `linear-gradient(160deg, ${hexToRGBA(primaryColor, 0.18)} 0%, rgba(255,255,255,0.04) 30%, transparent 55%)`,
-            borderRadius: 'inherit',
-            opacity: 0.9,
-          }}
-        />
+        {/* Background gradients */}
+        <div className="absolute inset-0 pointer-events-none z-0 hidden md:block" style={{
+          background: [
+            `linear-gradient(165deg, ${hexToRGBA(primaryColor, 0.20)} 0%, rgba(255,255,255,0.05) 24%, transparent 44%)`,
+            secondaryColor
+              ? `linear-gradient(345deg, transparent 55%, ${hexToRGBA(secondaryColor, 0.12)} 78%, rgba(255,255,255,0.03) 100%)`
+              : 'linear-gradient(345deg, transparent 55%, rgba(255,255,255,0.10) 78%, rgba(255,255,255,0.03) 100%)',
+            `radial-gradient(120% 90% at 12% 10%, ${hexToRGBA(primaryColor, 0.16)} 0%, transparent 58%)`,
+            secondaryColor
+              ? `radial-gradient(120% 90% at 88% 85%, ${hexToRGBA(secondaryColor, 0.12)} 0%, transparent 62%)`
+              : `radial-gradient(120% 90% at 88% 85%, ${hexToRGBA(primaryColor, 0.10)} 0%, transparent 62%)`,
+          ].join(', '),
+          borderRadius: 'inherit',
+        }} />
+        <div className="absolute inset-0 pointer-events-none z-0 hidden md:block" style={{
+          background: `linear-gradient(90deg, ${hexToRGBA(primaryColor, 0.12)} 0%, transparent 35%, transparent 65%, rgba(255,255,255,0.07) 100%)`,
+          borderRadius: 'inherit',
+          opacity: 0.95,
+        }} />
+        <div className="absolute inset-0 pointer-events-none z-0 md:hidden" style={{
+          background: `linear-gradient(160deg, ${hexToRGBA(primaryColor, 0.18)} 0%, rgba(255,255,255,0.04) 30%, transparent 55%)`,
+          borderRadius: 'inherit',
+          opacity: 0.9,
+        }} />
 
         {secondaryColor ? (
           <>
-            <div className="absolute pointer-events-none z-0 hidden md:block" style={{
-              top: '60%', right: '0%',
-              transform: 'translateY(-50%)',
-              width: '60%', height: '50%',
-              background: `radial-gradient(ellipse 80% 60% at 50% 50%, ${hexToRGBA(primaryColor, 0.10)} 0%, ${hexToRGBA(primaryColor, 0.04)} 40%, transparent 70%)`,
-            }} />
-            <div className="absolute pointer-events-none z-0 hidden md:block" style={{
-              bottom: '0%', left: '0%',
-              width: '60%', height: '50%',
-              background: `radial-gradient(ellipse 80% 60% at 50% 50%, ${hexToRGBA(secondaryColor, 0.08)} 0%, ${hexToRGBA(secondaryColor, 0.03)} 35%, transparent 65%)`,
-            }} />
-            <div className="absolute pointer-events-none z-0 md:hidden" style={{
-              top: '50%', left: '50%',
-              transform: 'translate(-50%, -50%)',
-              width: '55%', height: '45%',
-              background: `radial-gradient(ellipse 80% 60% at 50% 50%, ${hexToRGBA(primaryColor, 0.08)} 0%, transparent 65%)`,
-            }} />
+            <div className="absolute pointer-events-none z-0 hidden md:block" style={{ top: '60%', right: '0%', transform: 'translateY(-50%)', width: '60%', height: '50%', background: `radial-gradient(ellipse 80% 60% at 50% 50%, ${hexToRGBA(primaryColor, 0.10)} 0%, ${hexToRGBA(primaryColor, 0.04)} 40%, transparent 70%)` }} />
+            <div className="absolute pointer-events-none z-0 hidden md:block" style={{ bottom: '0%', left: '0%', width: '60%', height: '50%', background: `radial-gradient(ellipse 80% 60% at 50% 50%, ${hexToRGBA(secondaryColor, 0.08)} 0%, ${hexToRGBA(secondaryColor, 0.03)} 35%, transparent 65%)` }} />
+            <div className="absolute pointer-events-none z-0 md:hidden" style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '55%', height: '45%', background: `radial-gradient(ellipse 80% 60% at 50% 50%, ${hexToRGBA(primaryColor, 0.08)} 0%, transparent 65%)` }} />
           </>
         ) : (
-          <div className="absolute pointer-events-none z-0" style={{
-            top: '50%', left: '50%',
-            transform: 'translate(-50%, -50%)',
-            width: '60%', height: '50%',
-            background: `radial-gradient(ellipse 80% 60% at 50% 50%, ${hexToRGBA(primaryColor, 0.10)} 0%, ${hexToRGBA(primaryColor, 0.04)} 40%, transparent 70%)`,
-          }} />
+          <div className="absolute pointer-events-none z-0" style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '60%', height: '50%', background: `radial-gradient(ellipse 80% 60% at 50% 50%, ${hexToRGBA(primaryColor, 0.10)} 0%, ${hexToRGBA(primaryColor, 0.04)} 40%, transparent 70%)` }} />
         )}
 
         {/* Desktop Layout */}
         <div className={`hidden md:flex relative z-10 flex-col pointer-events-none ${isUpcoming ? "opacity-30" : ""}`}>
           {imageUrl && (
-            <div className="relative w-full h-52 overflow-hidden rounded-t-md" style={{backgroundColor: `${primaryColor}20`}}>
-              <img src={`${imageUrl}/1.png`} alt={title||"Project"} className="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-110"/>
+            <div className="relative w-full h-52 overflow-hidden rounded-t-md" style={{ backgroundColor: `${primaryColor}20` }}>
+              <img src={`${imageUrl}/1.png`} alt={title || "Project"} className="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-110" />
             </div>
           )}
           <div className="p-6 flex flex-col flex-grow">
             <div className="flex items-start justify-between gap-2 mb-2">
-              <h3 className="text-xl font-display font-semibold line-clamp-2 flex-1 min-w-0" style={{color: titleColor||"inherit"}}>{title}</h3>
-              <div className="flex items-center gap-1.5 shrink-0 mt-0.5">
-                {stars !== null && <GithubStarsBadge stars={stars} />}
-                {downloads !== null && <GithubDownloadsBadge downloads={downloads} />}
-              </div>
+              <h3 className="text-xl font-display font-semibold line-clamp-2 flex-1 min-w-0" style={{ color: titleColor || "inherit" }}>{title}</h3>
+              {statsBadges}
             </div>
             <p className="text-space-secondary leading-relaxed line-clamp-3 mb-4">{description}</p>
-            <FittingBadges technologies={technologies} borderColor={simpleBorderColor} maxInitial={3} className="flex flex-wrap gap-2 items-center mt-auto" />
+            <FittingBadges technologies={technologies} borderColor={borderColor} maxInitial={3} className="flex flex-wrap gap-2 items-center mt-auto" />
           </div>
         </div>
 
         {/* Mobile Layout */}
         <div className={`md:hidden relative z-10 flex flex-row pointer-events-none h-32 ${isUpcoming ? "opacity-30" : ""}`}>
           {imageUrl && (
-            <div className="w-32 h-32 flex-shrink-0 relative overflow-hidden rounded-l-md" style={{backgroundColor: `${primaryColor}20`}}>
-              <img src={`${imageUrl}/1.png`} alt={title||"Project"} className="absolute inset-0 w-full h-full object-cover object-center"/>
+            <div className="w-32 h-32 flex-shrink-0 relative overflow-hidden rounded-l-md" style={{ backgroundColor: `${primaryColor}20` }}>
+              <img src={`${imageUrl}/1.png`} alt={title || "Project"} className="absolute inset-0 w-full h-full object-cover object-center" />
             </div>
           )}
           <div className="relative p-4 flex flex-col flex-grow">
             <div className="flex items-start justify-between gap-2 mb-2">
-              <h3 className="text-base font-display font-semibold line-clamp-2 flex-1 min-w-0" style={{color: titleColor||"inherit"}}>{title}</h3>
-              <div className="flex items-center gap-1.5 shrink-0 mt-0.5">
-                {stars !== null && <GithubStarsBadge stars={stars} />}
-                {downloads !== null && <GithubDownloadsBadge downloads={downloads} />}
-              </div>
+              <h3 className="text-base font-display font-semibold line-clamp-2 flex-1 min-w-0" style={{ color: titleColor || "inherit" }}>{title}</h3>
+              {statsBadges}
             </div>
-            <FittingBadges technologies={technologies} borderColor={simpleBorderColor} maxInitial={2} className="flex flex-wrap gap-1.5 items-center" />
+            <FittingBadges technologies={technologies} borderColor={borderColor} maxInitial={2} className="flex flex-wrap gap-1.5 items-center" />
           </div>
         </div>
 
         {!isUpcoming && (
           <div className="hidden md:block absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transition-all duration-300">
-            <ArrowRight className="w-6 h-6 text-white" style={{filter:`drop-shadow(0 0 8px ${primaryColor})`}}/>
+            <ArrowRight className="w-6 h-6 text-white" style={{ filter: `drop-shadow(0 0 8px ${primaryColor})` }} />
           </div>
         )}
       </Card>
     </div>
   );
 
-  return isUpcoming ? <div className="block w-full">{cardContent}</div> : <Link to={`/project/${id}`} className="block w-full">{cardContent}</Link>;
+  return isUpcoming
+    ? <div className="block w-full">{cardContent}</div>
+    : <Link to={`/project/${id}`} className="block w-full">{cardContent}</Link>;
 });
 
 SoftwareCard.displayName = "SoftwareCard";
