@@ -27,7 +27,7 @@ export function useGithubStats(enabled = true) {
       setStats(statsCache.data);
       return;
     }
-    fetch("https://raw.githubusercontent.com/Loxed/porypal/main/stats.json")
+    fetch("https://raw.githubusercontent.com/Loxed/porypal/main/scripts/stats.json")
       .then(r => r.ok ? r.json() : null)
       .then(data => {
         if (!data) return;
