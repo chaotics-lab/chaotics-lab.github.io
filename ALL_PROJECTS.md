@@ -15,7 +15,7 @@ Decoded NEC protocol IR signals through a FSM for input handling. Implemented du
 ### Result
 Fully functional calculator supporting 8 operational modes across signed/unsigned and internal/external configurations. Validated through comprehensive testbenches and 37 documented physical test cases.
 
-### AI Usage (0%)
+### AI Usage (AI-Free)
 None. This project was completed in October 2021 as part of an electronics course at ECE Paris, prior to the availability of modern AI coding assistants.
 
 ---
@@ -33,7 +33,7 @@ Built using mdBook (Rust-based static site generator) to transform StrategyWiki 
 ### Result
 A zero-latency reference tool with instant page loads and clean URL structure for bookmarking. Community-maintainable through GitHub PRs with Markdown source control. Successfully deployed with comprehensive coverage of the entire Ace Attorney series, including a play order chart for newcomers.
 
-### AI Usage (0%)
+### AI Usage (AI-Free)
 None. This is a static site generation project using existing documentation tools (mdBook) and community-sourced content from StrategyWiki, with manual content organization and deployment configuration.
 
 ---
@@ -51,7 +51,7 @@ Implemented Dijkstra's algorithm for optimal pathfinding between airports, with 
 ### Result
 Fully functional simulation handling multiple simultaneous flights with autonomous navigation and dynamic adaptation. Demonstrated practical application of graph algorithms and OOP design patterns (State, Observer, Factory) in a real-time system. Achieved efficient performance through spatial indexing and algorithm optimization, reducing collision checks from O(n²) to O(n log n).
 
-### AI Usage (0%)
+### AI Usage (AI-Free)
 None. This project was completed as a computer science coursework assignment, implementing fundamental algorithms and design patterns through manual coding and architecture design. Art style and UI were completely designed by me, inspired by Animal Crossing: New Horizons.
 
 ---
@@ -69,7 +69,7 @@ Generated synthetic racing circuits and computed optimal baselines using minimum
 ### Result
 Production-ready system achieving real-time operation for competitive autonomous racing. Successfully replaced computationally expensive iterative optimization with neural network inference, validated through simulation and team integration. Created reusable synthetic track generation framework for training data augmentation as technical lead coordinating across Manufacturing, Perception, Trajectory, and DevOps teams.
 
-### AI Usage (40%)
+### AI Usage (Automation)
 AI tools (like code assistants) were used for boilerplate code, formatting, scripting, and automation tasks. The core ML work (state-of-the-art trajectory optimization research, synthetic data generation pipeline, neural network architecture design, model training, and real-time inference implementation) was designed and developed by the team from scratch.
 
 ---
@@ -87,7 +87,7 @@ ESP8266 hosts HTML5/JavaScript web interface for real-time joystick control via 
 ### Result
 Successfully competed in 3 ECE-CUP tournaments with reliable autonomous operation. Achieved 100% flag deployment reliability, 120+ minute battery life, and zero disqualifications. Complete electromechanical system designed and integrated by 4-person team, rapid prototyping with 3D printing, and WiFi protocol implementation.
 
-### AI Usage (0%)
+### AI Usage (AI-Free)
 None. This project was completed in 2020-2021, before modern LLMs. Development relied on tutorial videos, ESP8266 documentation, trial-and-error iteration, and adapting existing examples through hands-on experimentation until achieving functional results.
 
 ---
@@ -105,7 +105,7 @@ Built in Python with Flask handling both frontend and backend routing. Audio is 
 ### Result
 A fully functional self-hosted application that accelerates video editing by accurately removing silence, previewing edits before rendering, and exporting directly to professional editing software. It reduces repetitive manual trimming while preserving precision and workflow control. Free and open source, it is designed for long-term local use without cloud dependency.
 
-### AI Usage (80%)
+### AI Usage (Situational Autonomy)
 AI was primarily used to accelerate frontend development and assist with code completion. The original command-line MVP integrating Silero VAD and FFmpeg, along with the core editing logic and system architecture, were engineered and implemented independently.
 
 ---
@@ -123,7 +123,7 @@ Built in C++ with Allegro 4 using OOP design patterns (State, Observer, Factory,
 ### Result
 Complete game loop with atmospheric presentation faithful to Hollow Knight's tone. Successfully adapted Victorian mansion mystery to dark fantasy setting through hand-crafted pixel art (50+ hours): character sprites with animations, weapon icons, location backgrounds, and UI merging detective aesthetics with minimalist design. Demonstrated mastery of game AI, state machines, and 2D rendering pipeline.
 
-### AI Usage (0%)
+### AI Usage (AI-Free)
 None. This project predates modern LLMs. All pixel art assets (sprites, backgrounds, UI elements) were hand-drawn from scratch over 50+ hours, inspired by Hollow Knight's visual style. Programming followed Allegro 4 documentation and OOP principles through manual implementation.
 
 ---
@@ -141,7 +141,7 @@ Designed flight controller PCB in KiCad with ATmega328p microcontroller, IMU sen
 ### Result
 Achieved stable hands-off hover with altitude hold, <50ms control latency, 8-12 minute flight time, and 100m+ wireless range. Successfully integrated multi-sensor system on single microcontroller with real-time control at 100-200Hz. Demonstrated complete hardware-software co-design from schematic to flight-tested hardware.
 
-### AI Usage (0%)
+### AI Usage (AI-Free)
 None. My primary contributions were sensor testing and validation (IMU calibration, ToF accuracy verification, vibration analysis) and 3D modeling in Fusion 360 (frame structure, motor mounts with dampening, weight-optimized component placement). Development relied on datasheets, control theory fundamentals, and iterative hardware testing.
 
 ---
@@ -159,7 +159,7 @@ Built production-grade microservices in Rust with Domain-Driven Design architect
 ### Result
 Successfully deployed remittance integration to production in Botim app and referral system driving viral growth. Handled thousands of transactions daily with horizontal scaling, memory-safe concurrent processing, and <1ms Redis lookups. Contributed to $500M M&A technical integration, supporting 300M+ user base across distributed team of 50+ engineers in 2 countries.
 
-### AI Usage (0%)
+### AI Usage (AI-Free)
 None. This work occurred in late 2022/early 2023 when LLMs were just emerging. Development focused on learning Domain-Driven Design principles, Rust's ownership/borrowing model through pair programming and code reviews, and enterprise-grade microservices architecture patterns through hands-on implementation and mentorship.
 
 ---
@@ -177,7 +177,7 @@ The tool takes a source image, applies a consistent border, color gradient, and 
 ### Result
 A fast and reliable workflow for generating cohesive game visuals. Every title in Kioku uses this tool for a clean, unified presentation of the user's game library that improves readability, navigation, and overall frontend polish.
 
-### AI Usage (80%)
+### AI Usage (Situational Autonomy)
 The web GUI of the application was generated using AI. The image processing logic was designed and implemented by me, from Photoshop to TypeScript and Flutter (upcoming cross-platform app).
 
 ---
@@ -195,7 +195,7 @@ Built in C with Allegro 4 using procedural programming and manual memory managem
 ### Result
 Full ruleset implementation supporting 3-10 players with strategic depth through deduction, bluffing, and path optimization. Created 50+ custom wild-west pixel art assets (card sprites, character avatars, UI elements) adapting the medieval theme. Demonstrated low-level C programming proficiency, 2D game development techniques, and modular architecture with separate rendering, logic, and input systems.
 
-### AI Usage (0%)
+### AI Usage (AI-Free)
 None. This project predates modern LLMs. All pixel art assets were hand-crafted, game logic implemented through manual C programming, and development relied on Allegro 4 documentation, memory debugging with valgrind, and iterative playtesting for game balance.
 
 ---
@@ -213,7 +213,7 @@ Implemented MVC architecture with JavaFX frontend (FXML layouts), Java backend u
 ### Result
 Production-ready desktop application with complete user account management, video catalog populated via external APIs, community forums with upvote system, star rating aggregation, and responsive grid-based UI. Successfully applied enterprise Java patterns (Hibernate, JPA, repository pattern) and multi-layer architecture across full stack from database design to user interface.
 
-### AI Usage (40%)
+### AI Usage (Automation)
 Completed shortly after a semester abroad Fullstack course using Spring/Springboot, with strong understanding of MVC, Hibernate, and Maven implementation patterns. AI assisted with code autocompletion, boilerplate generation (entity annotations, repository methods), test database population scripts, and documentation. All architectural decisions, UI design in JavaFX, database schema design, and core business logic were implemented manually.
 
 ---
@@ -231,7 +231,7 @@ Implemented intelligent color quantization using CIEDE2000 perceptual color dist
 ### Result
 10x faster sprite conversion workflow with zero palette errors and ROM space savings through duplicate tile elimination. Adopted by Pokémon ROM hacking community (pokecommunity, r/PokemonROMhacks) and integrated into popular decompilation projects (pokeemerald, pokefirered). Enables batch processing of 100+ sprites in minutes, now used daily by known developers in the ROM hacking space.
 
-### AI Usage (60%)
+### AI Usage (Collaboration)
 Initial proof-of-concept was fully AI-generated to validate feasibility. After seeing community interest, completely reimplemented from scratch following proper MVC architecture. AI assisted with specific GUI components in Qt (custom paint events, drag-and-drop tile rearrangement) and complex image processing functions I struggled with. Core architecture, domain logic for GBA constraints, and batch processing pipeline were manually designed and implemented.
 
 ---
@@ -249,7 +249,7 @@ Designed custom binary format using cumulative sum encoding, reducing average ca
 ### Result
 10x GUI responsiveness (<100ms vs 10+ sec), unlimited acquisition length (20+ hours vs <2 hours), and 500 KB/s sustained streaming. Successfully deployed to production, catching critical firmware bugs like weight-on-scale 10× power consumption issue. Enabled Withings teams (embedded, industrialization, SQA) to accelerate development cycles and reduce warranty costs through pre-production power profiling.
 
-### AI Usage (40%)
+### AI Usage (Automation)
 Spent 4 months deliberately learning Qt, Python, and embedded C firmware development. AI assisted with documentation generation, debugging edge cases, and test case creation, but core engineering decisions were manual (cumulative sum optimization algorithm, dual-ADC synchronization protocol, etc.). Project's simplicity resulted from extensive architecture head-scratching and multi-tasking simplification, not AI generation.
 
 ---
@@ -285,7 +285,7 @@ Content script injection monitors YouTube's SPA navigation via MutationObserver 
 ### Result
 Delivered a lightweight extension with persistent per-video progress, fast playlist rendering through virtualization, and zero server dependencies. Published on Firefox Add-ons to support course and playlist tracking without accounts or sync.
 
-### AI Usage (100%)
+### AI Usage (Vibe Coding)
 This was a 2-hour experiment testing Claude Code (via Atlassian's Rovodev at the time) capabilities for rapid prototyping. Wanted a personal tool for tracking music playlists and course progress on YouTube but dislike frontend/web development. Entire extension generated through copy-pasting and yelling at the AI's outputs; architecture, DOM manipulation, storage logic, performance optimizations. Miserable experience workflow-wise, but functional result validated AI's capability for throwaway utility tools. Great tool I never made.
 
 ---
