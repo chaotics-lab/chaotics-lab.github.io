@@ -10,18 +10,19 @@ export const projectOrder = {
     'fintech-app-development',
     'ececopter-(remote-controlled-drone)',
     // Row 3 – interesting but secondary
-    'chaotics-slice',
+    'easyscope',
     'loryx-capital',
     'personaplay-(netflix-clone)',
-    // Row 4 – full stack / software
+    // Row 4 – allegro-based games
     'air-traffic-simulation',
     'cluedo-knight',
     'le-saboteur-(french-board-game)',
-    // Row 5 – game projects / utilities
+    // Row 5 – older/side projects that are less impressive today
+    'chaotics-slice',
     '8-bit-calculator-(fpga)',
-    'logo-maker',
     'autonomous-robot-competition',
-    // Row 6 – niche / personal
+    // Row 6 – niche / personal / side
+    'logo-maker',
     'youtube-video-tracker',
     'ace-attorney-guide',
   ],
