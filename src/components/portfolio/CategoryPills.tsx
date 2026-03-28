@@ -11,7 +11,7 @@ interface CategoryPillsProps {
 const CATEGORY_CONFIG: Record<string, { label: string; description: string; color: string; icon: LucideIcon }> = {
   all:     {
     label: 'All Projects',
-    description: 'Everything. Some of them shipped, some burnt (literally, a certain drone project caught on fire).',
+    description: 'Everything. Some of them shipped, some burnt (literally, a certain drone caught on fire..)',
     color: 'from-slate-500 to-gray-500',
     icon: Grid2X2,
   },
