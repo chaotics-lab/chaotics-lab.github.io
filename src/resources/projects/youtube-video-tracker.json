@@ -8,8 +8,7 @@
   "themeColors": ["#A50000", "#FF5733"],
   "logoBackgroundColor": "transparent",
   "category": [
-    "web",
-    "gui"
+    "apps"
   ],
   "githubUrl": "https://github.com/Loxed/youtube-video-tracker",
   "demoUrl": "https://addons.mozilla.org/firefox/addon/youtube-video-tracker/",

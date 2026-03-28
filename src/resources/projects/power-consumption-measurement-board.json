@@ -8,9 +8,8 @@
   "themeColors": ["#00FF00", "#FFFFFF"],
   "logoBackgroundColor": "#FFFFFF",
   "category": [
-    "sp",
-    "embedded-systems",
-    "gui"
+    "systems",
+    "apps"
   ],
   "tags": [
     "C++",

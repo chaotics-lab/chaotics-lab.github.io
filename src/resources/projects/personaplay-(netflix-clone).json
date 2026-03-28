@@ -9,9 +9,7 @@
   "themeColors": ["#393939", "#808080"],
   "logoBackgroundColor": "transparent",
   "category": [
-    "gui",
-    "backend",
-    "fullstack"
+    "apps"
   ],
   "tags": [
     "JavaFX",

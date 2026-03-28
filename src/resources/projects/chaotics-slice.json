@@ -9,11 +9,8 @@
   "logoBackgroundColor": "transparent",
   "githubUrl": "https://github.com/chaotics-labs/Slice",
   "category": [
-    "gui",
-    "web",
-    "fullstack",
-    "ai",
-    "sp"
+    "apps",
+    "ai"
   ],
   "tags": [
     "Flask",

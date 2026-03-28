@@ -7,7 +7,7 @@
   "logoUrl": "/img/porypal/logo.png",
   "themeColors": ["#FFB6C1", "#2139ef"],
   "logoBackgroundColor": "transparent",
-  "category": ["gui", "sp", "fullstack"],
+  "category": ["apps", "games"],
   "githubUrl": "https://github.com/Loxed/porypal",
   "showGithubStats": true,
   "showGithubDownload": true,

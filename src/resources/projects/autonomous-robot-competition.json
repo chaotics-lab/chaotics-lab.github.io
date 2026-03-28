@@ -9,9 +9,7 @@
   "logoBackgroundColor": "#FFFFFF",
   "demoUrl": "https://www.instagram.com/sylv_1_le_robot/",
   "category": [
-    "embedded-systems",
-    "robotics",
-    "sp"
+    "systems"
   ],
   "tags": [
     "OpenCV2",

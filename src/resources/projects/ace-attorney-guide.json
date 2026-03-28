@@ -10,7 +10,9 @@
   "githubUrl": "https://github.com/Loxed/AceAttorneyGuide",
   "demoUrl": "https://aceattorneyguide.github.io/",
   "category": [
-    "gui"
+    "games",
+    "apps"
+
   ],
   "tags": [
     "Rust",

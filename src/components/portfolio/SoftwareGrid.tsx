@@ -47,7 +47,9 @@ export const SoftwareGrid: React.FC = () => {
 
   const filteredProjects = useMemo(() => {
     if (selectedCategory === 'all') return projects;
-    return projects.filter(project => project.category?.includes(selectedCategory));
+    return projects.filter(project =>
+      project.category?.some(cat => cat === selectedCategory)
+    );
   }, [projects, selectedCategory]);
 
   // Placeholder counts per breakpoint to fill incomplete rows.

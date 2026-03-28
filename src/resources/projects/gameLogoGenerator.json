@@ -8,8 +8,8 @@
   "logoUrl": "/img/logo-maker/logo.png",
   "themeColors": ["#00FFFF", "#FF00FF"],
   "category": [
-    "web",
-    "gui"
+    "apps",
+    "games"
   ],
   "githubUrl": "https://github.com/chaotics-labs/iisu-icon-maker",
   "tags": [

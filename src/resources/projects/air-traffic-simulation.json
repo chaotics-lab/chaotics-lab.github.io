@@ -8,8 +8,8 @@
   "themeColors": ["#9CFFF7", "#2991ce"],
   "githubUrl": "https://github.com/Loxed/flight-traffic-simulation",
   "category": [
-    "game",
-    "gui"
+    "games",
+    "apps"
   ],
   "tags": [
     "C++",
