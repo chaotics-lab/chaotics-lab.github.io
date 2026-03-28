@@ -8,8 +8,8 @@ interface FooterProps {
 }
 
 export const Footer = ({
-  githubUrl = "https://github.com/yourusername",
-  linkedinUrl = "https://linkedin.com/in/yourusername"
+  githubUrl = "https://github.com/Loxed",
+  linkedinUrl = "https://linkedin.com/in/leopold-rombaut"
 }: FooterProps) => {
   return (
     <footer className="border-t border-space-border mt-auto">
