@@ -1,0 +1,77 @@
+name: Count Visitors
+
+on:
+  schedule:
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  count:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Fetch and merge traffic into count.json
+        env:
+          GH_TOKEN: ${{ secrets.TRAFFIC_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          node <<'EOF'
+          const https = require('https');
+          const fs = require('fs');
+
+          const [owner, repo] = process.env.REPO.split('/');
+          const token = process.env.GH_TOKEN;
+
+          const options = {
+            hostname: 'api.github.com',
+            path: `/repos/${owner}/${repo}/traffic/views`,
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Accept': 'application/vnd.github+json',
+              'User-Agent': 'visitor-counter-action'
+            }
+          };
+
+          https.get(options, (res) => {
+            let body = '';
+            res.on('data', chunk => body += chunk);
+            res.on('end', () => {
+              const traffic = JSON.parse(body);
+
+              let existing = { total_views: 0, total_uniques: 0, days: {} };
+              if (fs.existsSync('count.json')) {
+                existing = JSON.parse(fs.readFileSync('count.json', 'utf8'));
+              }
+
+              for (const entry of (traffic.views || [])) {
+                const date = entry.timestamp.slice(0, 10);
+                existing.days[date] = { views: entry.count, uniques: entry.uniques };
+              }
+
+              let totalViews = 0, totalUniques = 0;
+              for (const day of Object.values(existing.days)) {
+                totalViews += day.views;
+                totalUniques += day.uniques;
+              }
+              existing.total_views = totalViews;
+              existing.total_uniques = totalUniques;
+              existing.last_updated = new Date().toISOString();
+
+              fs.writeFileSync('count.json', JSON.stringify(existing, null, 2));
+              console.log(`Done. Total views: ${totalViews}, uniques: ${totalUniques}`);
+            });
+          });
+          EOF
+
+      - name: Commit updated count.json
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add count.json
+          git diff --cached --quiet || git commit -m "chore: update visitor count [skip ci]"
+          git push
