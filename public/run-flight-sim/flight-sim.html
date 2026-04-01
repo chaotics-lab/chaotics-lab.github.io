@@ -117,14 +117,19 @@
     const canvasElement = document.getElementById("canvas");
     const query = new URLSearchParams(window.location.search);
     const remoteDataUrl = query.get("dataUrl") || window.FLIGHTSIM_DATA_URL || "";
+    const assetVersion = query.get("v") || "2026-04-01-1";
+    const withVersion = (url) => {
+      const join = url.includes("?") ? "&" : "?";
+      return `${url}${join}v=${encodeURIComponent(assetVersion)}`;
+    };
 
     window.Module = {
       canvas: canvasElement,
       locateFile(path) {
         if (path === "FlightSim.data" && remoteDataUrl) {
-          return remoteDataUrl;
+          return withVersion(remoteDataUrl);
         }
-        return `./${path}`;
+        return withVersion(`./${path}`);
       },
       setStatus(text) {
         statusElement.textContent = text || "";
@@ -143,7 +148,10 @@
         }
       },
     };
+
+    const simScript = document.createElement("script");
+    simScript.src = withVersion("./FlightSim.js");
+    document.body.appendChild(simScript);
   </script>
-  <script src="./FlightSim.js"></script>
 </body>
 </html>
