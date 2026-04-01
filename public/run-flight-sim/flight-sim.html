@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Air Traffic Simulator - WASM</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0b1020;
+      --panel: #121a30;
+      --text: #eaf1ff;
+      --muted: #94a3c7;
+      --accent: #56c4ff;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(1200px 600px at 10% -10%, #1b2a55 0%, transparent 50%),
+        radial-gradient(1000px 700px at 90% 120%, #102441 0%, transparent 50%),
+        var(--bg);
+      display: grid;
+      place-items: center;
+      padding: 16px;
+    }
+
+    .shell {
+      width: min(1200px, 100%);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
+    }
+
+    .topbar {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      padding: 10px 14px;
+      background: rgba(10, 14, 26, 0.8);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      background: #5f738f;
+    }
+
+    .title {
+      margin-left: 8px;
+      font-size: 14px;
+      color: var(--muted);
+      letter-spacing: 0.02em;
+    }
+
+    .canvas-wrap {
+      position: relative;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      background: #000;
+    }
+
+    canvas {
+      width: 100%;
+      max-width: 1200px;
+      height: auto;
+      display: block;
+      image-rendering: auto;
+    }
+
+    #status {
+      position: absolute;
+      left: 12px;
+      bottom: 12px;
+      font-size: 12px;
+      color: var(--text);
+      background: rgba(0, 0, 0, 0.55);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 8px;
+      padding: 6px 10px;
+      backdrop-filter: blur(6px);
+    }
+
+    #status:empty {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <div class="topbar" aria-hidden="true">
+      <span class="dot"></span>
+      <span class="dot"></span>
+      <span class="dot"></span>
+      <span class="title">Air Traffic Simulator (WASM)</span>
+    </div>
+    <div class="canvas-wrap">
+      <canvas id="canvas" oncontextmenu="event.preventDefault()"></canvas>
+      <div id="status">Initializing...</div>
+    </div>
+  </main>
+
+  <script>
+    const statusElement = document.getElementById("status");
+    const canvasElement = document.getElementById("canvas");
+    const query = new URLSearchParams(window.location.search);
+    const remoteDataUrl = query.get("dataUrl") || window.FLIGHTSIM_DATA_URL || "";
+
+    window.Module = {
+      canvas: canvasElement,
+      locateFile(path) {
+        if (path === "FlightSim.data" && remoteDataUrl) {
+          return remoteDataUrl;
+        }
+        return `./${path}`;
+      },
+      setStatus(text) {
+        statusElement.textContent = text || "";
+      },
+      printErr(text) {
+        console.error(text);
+        statusElement.textContent = "Error: see console output";
+      },
+      onRuntimeInitialized() {
+        statusElement.textContent = "Starting simulator...";
+        if (typeof Module._flightsim_web_start === "function") {
+          Module._flightsim_web_start();
+          statusElement.textContent = "";
+        } else {
+          statusElement.textContent = "Start function not found.";
+        }
+      },
+    };
+  </script>
+  <script src="./FlightSim.js"></script>
+</body>
+</html>

@@ -26,3 +26,6 @@ dist-ssr
 .obsidian
 
 dump.md
+
+# Local WASM data package (too large for GitHub)
+public/run-flight-sim/FlightSim.data
