@@ -117,7 +117,7 @@ export const SoftwareGrid: React.FC = () => {
               className="hidden sm:flex lg:hidden relative w-full flex-col items-center justify-center rounded-xl border-2 border-dashed border-white/10 bg-white/[0.02] min-h-[130px] animate-grid-item-in"
               style={{ animationDelay: `${(filteredProjects.length + i) * 40}ms` }}
             >
-              <span className="text-white/20 text-sm font-ui font-medium tracking-wide">Coming Soon</span>
+              <span className="text-white/20 text-sm font-ui font-medium tracking-wide">Coming Soon 👀</span>
             </div>
           ))}
           {/* 3-col placeholders: visible at lg only */}
@@ -127,7 +127,7 @@ export const SoftwareGrid: React.FC = () => {
               className="hidden lg:flex relative w-full flex-col items-center justify-center rounded-xl border-2 border-dashed border-white/10 bg-white/[0.02] md:min-h-[400px] animate-grid-item-in"
               style={{ animationDelay: `${(filteredProjects.length + i) * 40}ms` }}
             >
-              <span className="text-white/20 text-sm font-ui font-medium tracking-wide">Coming Soon</span>
+              <span className="text-white/20 text-sm font-ui font-medium tracking-wide">Coming Soon 👀</span>
             </div>
           ))}
         </div>

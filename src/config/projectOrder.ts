@@ -10,8 +10,8 @@ export const projectOrder = {
     'fintech-app-development',
     'ececopter-(remote-controlled-drone)',
     // Row 3 – interesting but secondary
+    'marque',
     'easyscope',
-    'loryx-capital',
     'personaplay-(netflix-clone)',
     // Row 4 – allegro-based games
     'air-traffic-simulation',
@@ -22,8 +22,11 @@ export const projectOrder = {
     '8-bit-calculator-(fpga)',
     'autonomous-robot-competition',
     // Row 6 – niche / personal / side
+    'loryx-capital',
     'logo-maker',
     'youtube-video-tracker',
+
+    // Row 7 - niche / personal / side
     'ace-attorney-guide',
   ],
 };
