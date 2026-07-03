@@ -59,7 +59,7 @@ export const Header = () => {
 
   const links = [
     { name: 'Portfolio', icon: Grid2X2, url: '/', internal: true },
-    { name: 'Blog', icon: BookMarked, url: '/blog', internal: true },
+    // { name: 'Blog', icon: BookMarked, url: '/blog', internal: true },
     { name: 'GitHub', icon: Github, url: 'https://github.com/Loxed' },
     { name: 'LinkedIn', icon: Linkedin, url: 'https://linkedin.com/in/leopold-rombaut' },
     { name: 'Mail', icon: Mail, url: 'mailto:leopold@rombaut.org' },
