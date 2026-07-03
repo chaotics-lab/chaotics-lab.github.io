@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>iiSU - News</title>
+<meta name="description" content="Stay updated with the latest news, announcements, and development updates from the iiSU team.">
+<meta name="theme-color" content="#7c3aed">
+<link rel="stylesheet" href="styles.css">
+<script>
+  // resolve theme before first paint — avoids a flash of the wrong mode
+  (function(){
+    try{
+      var stored = localStorage.getItem("iisu-theme");
+      var theme = (stored === "light" || stored === "dark")
+        ? stored
+        : (window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark");
+      document.documentElement.setAttribute("data-theme", theme);
+    }catch(e){}
+  })();
+</script>
+</head>
+<body>
+
+<div class="bg-orbs" aria-hidden="true"></div>
+<div class="bg-grid" aria-hidden="true"></div>
+<div class="theme-flash" aria-hidden="true"></div>
+
+<header class="site-header">
+  <div class="header-inner">
+    <a href="index.html" class="brand">
+      <span class="brand-mark">ii</span>
+      iiSU
+    </a>
+
+    <nav class="main-nav" aria-label="Primary">
+      <a href="index.html">Home</a>
+      <a href="gallery.html">Gallery</a>
+      <a href="#resources">Resources</a>
+      <a href="#community">Community</a>
+    </nav>
+
+    <div class="header-actions">
+      <button class="theme-toggle" id="themeToggle" type="button" aria-label="Switch between light and dark mode">
+        <span class="toggle-glyph">
+          <svg class="icon-moon" viewBox="0 0 24 24" fill="none"><path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+          <svg class="icon-sun" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="4.2" stroke="currentColor" stroke-width="1.8"/><path d="M12 2.5v2.6M12 18.9v2.6M4.6 4.6l1.8 1.8M17.6 17.6l1.8 1.8M2.5 12h2.6M18.9 12h2.6M4.6 19.4l1.8-1.8M17.6 6.4l1.8-1.8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        </span>
+      </button>
+      <a class="kofi-btn" href="https://ko-fi.com/iisunetwork" target="_blank" rel="noopener">
+        <span class="kofi-dot">☕</span>
+        <span class="label">Support on Ko-fi</span>
+      </a>
+      <button class="nav-toggle" aria-label="Toggle navigation"><span></span></button>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <section class="news-hero wrap" data-reveal>
+    <span class="eyebrow"><span class="ping"></span>Dev log</span>
+    <h1>News &amp; Updates</h1>
+    <p>Announcements, development logs, and more from the iiSU team.</p>
+  </section>
+
+  <section class="section wrap" style="padding-top: 0;">
+
+    <div class="news-toolbar" data-reveal>
+      <div class="filter-pills" role="tablist" aria-label="Filter articles">
+        <button class="active" role="tab" aria-selected="true">All articles</button>
+        <button role="tab" aria-selected="false">Releases</button>
+        <button role="tab" aria-selected="false">Announcements</button>
+      </div>
+      <div class="sort-select">
+        <span>Sort:</span>
+        <select aria-label="Sort articles">
+          <option>Newest first</option>
+          <option>Oldest first</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="news-list" data-reveal-group>
+
+      <a class="news-card featured" href="news-iisu-alpha-0-0-7.html">
+        <div class="featured-top">
+          <span class="featured-badge">Latest release</span>
+          <span style="color:var(--text-faint); font-size:0.85rem; font-family:var(--font-mono);">6/14/2026</span>
+        </div>
+        <h3>iiSU Alpha 0.0.7 — A Fresh New Look</h3>
+        <p>After a long wait, 0.0.7 is here! This update focuses on home page customization, performance, and a visual overhaul to menus.</p>
+        <span class="read-more" style="margin-top:18px;">Read article <svg viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+      </a>
+
+      <a class="news-card" href="news-iisu-0-0-6-2.html">
+        <div class="date-block">
+          <div class="month">Mar</div>
+          <div class="day">17</div>
+          <div class="year">2026</div>
+        </div>
+        <div class="news-content">
+          <h3>iiSU 0.0.6.2 — Style and Stability</h3>
+          <p>This release focuses on patching bugs from 0.0.6.1 while including a host of QOL improvements.</p>
+        </div>
+        <span class="read-more">Read article <svg viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+      </a>
+
+      <a class="news-card" href="news-iisu-alpha-0-0-6.html">
+        <div class="date-block">
+          <div class="month">Mar</div>
+          <div class="day">14</div>
+          <div class="year">2026</div>
+        </div>
+        <div class="news-content">
+          <h3>iiSU Alpha 0.0.6 — Modes, Metadata and Messaging</h3>
+          <p>This update brings new features to all devices, including a Single-Screen mode overhaul, XMB mode, Discord integration, ES-DE linking, collections, and much, much more!</p>
+        </div>
+        <span class="read-more">Read article <svg viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+      </a>
+
+      <a class="news-card" href="news-alpha-v5.html">
+        <div class="date-block">
+          <div class="month">Feb</div>
+          <div class="day">02</div>
+          <div class="year">2026</div>
+        </div>
+        <div class="news-content">
+          <h3>iiSU Alpha 0.0.5 — Scrapers and Stylization</h3>
+          <p>A new release featuring scraping from sources like ScreenScraper and SteamGridDB, as well as a host of customizations with a new UI to manage them!</p>
+        </div>
+        <span class="read-more">Read article <svg viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+      </a>
+
+      <a class="news-card" href="news-public-alpha-v0041.html">
+        <div class="date-block">
+          <div class="month">Jan</div>
+          <div class="day">01</div>
+          <div class="year">2026</div>
+        </div>
+        <div class="news-content">
+          <h3>iiSU Public Alpha v0.0.4.1: New Years, New Features</h3>
+          <p>Happy New Year! Alpha v0.0.4.1 arrives with a focus on polish and usability, featuring improved visuals, navigation fixes, and new personalization options.</p>
+        </div>
+        <span class="read-more">Read article <svg viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+      </a>
+
+      <a class="news-card" href="news-public-alpha-v004.html">
+        <div class="date-block">
+          <div class="month">Dec</div>
+          <div class="day">21</div>
+          <div class="year">2025</div>
+        </div>
+        <div class="news-content">
+          <h3>iiSU Public Alpha v0.0.4: The Christmas Update</h3>
+          <p>We're excited to announce that iiSU will remain fully free. No Pro licenses or paywalls, just a community-funded passion project.</p>
+        </div>
+        <span class="read-more">Read article <svg viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+      </a>
+
+      <a class="news-card" href="news-iisu-remains-free.html">
+        <div class="date-block">
+          <div class="month">Dec</div>
+          <div class="day">21</div>
+          <div class="year">2025</div>
+        </div>
+        <div class="news-content">
+          <h3>Our Commitment to Free and Accessible Software</h3>
+          <p>We're excited to announce that iiSU will remain fully free. No Pro licenses or paywalls, just a community-funded passion project.</p>
+        </div>
+        <span class="read-more">Read article <svg viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+      </a>
+
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer wrap">
+  <div class="footer-grid">
+    <div class="footer-brand">
+      <a href="index.html" class="brand">
+        <span class="brand-mark">ii</span>
+        iiSU
+      </a>
+      <p>A beautiful Android frontend that brings the charm of retro gaming interfaces to modern handheld devices.</p>
+      <div class="footer-socials">
+        <a href="https://discord.com/invite/iisu" target="_blank" rel="noopener" aria-label="Discord">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M19 5.5c-1.4-.7-2.9-1.1-4.5-1.4l-.2.4c1.4.3 2.7.8 3.9 1.5M5 5.5c1.4-.7 2.9-1.1 4.5-1.4l.2.4C8.3 4.8 7 5.3 5.8 6M5 5.5C3.6 7.8 3 10.6 3.2 13.4c1.5.9 3.1 1.5 4.8 1.9M19 5.5c1.4 2.3 2 5.1 1.8 7.9-1.5.9-3.1 1.5-4.8 1.9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="9" cy="12" r="1.2" fill="currentColor"/><circle cx="15" cy="12" r="1.2" fill="currentColor"/></svg>
+        </a>
+        <a href="https://github.com/iisu-network" target="_blank" rel="noopener" aria-label="GitHub">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M12 2a10 10 0 00-3.16 19.49c.5.1.68-.22.68-.48v-1.7c-2.78.6-3.37-1.34-3.37-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.89 1.52 2.34 1.08 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.56-1.11-4.56-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.65 0 0 .84-.27 2.75 1.03a9.6 9.6 0 015 0c1.91-1.3 2.75-1.03 2.75-1.03.55 1.38.2 2.4.1 2.65.64.7 1.03 1.59 1.03 2.68 0 3.84-2.35 4.69-4.58 4.94.36.31.68.92.68 1.85v2.75c0 .26.18.58.69.48A10 10 0 0012 2z" fill="currentColor"/></svg>
+        </a>
+        <a href="https://twitter.com/iisu_network" target="_blank" rel="noopener" aria-label="Twitter">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M21 5.4c-.7.3-1.4.6-2.2.7.8-.5 1.4-1.2 1.7-2.1-.8.4-1.6.8-2.5.9A3.5 3.5 0 0012 7.5c0 .3 0 .6.1.9-3-.1-5.6-1.5-7.4-3.8-.3.6-.5 1.2-.5 1.9 0 1.3.7 2.5 1.7 3.2-.6 0-1.2-.2-1.7-.4 0 1.9 1.3 3.4 3.1 3.8-.3.1-.7.1-1.1.1-.3 0-.5 0-.8-.1.5 1.5 1.9 2.6 3.6 2.7-1.3 1-3 1.6-4.8 1.6-.3 0-.6 0-.9-.1A11 11 0 008.3 19c6.3 0 9.8-5.4 9.8-10.1v-.5c.7-.5 1.3-1.1 1.8-1.9z" fill="currentColor"/></svg>
+        </a>
+        <a href="mailto:hello@iisu.network" aria-label="Email">
+          <svg viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M4 7l8 6 8-6" stroke="currentColor" stroke-width="1.5"/></svg>
+        </a>
+      </div>
+    </div>
+
+    <div class="footer-col">
+      <h4>Pages</h4>
+      <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="faq.html">FAQ</a></li>
+        <li><a href="gallery.html">Gallery</a></li>
+        <li><a href="asset-guide.html">Asset Guide</a></li>
+      </ul>
+    </div>
+
+    <div class="footer-col" id="community">
+      <h4>Community</h4>
+      <ul>
+        <li><a href="https://discord.com/invite/iisu" target="_blank" rel="noopener">Discord</a></li>
+        <li><a href="https://x.com/iisu_network" target="_blank" rel="noopener">Twitter</a></li>
+        <li><a href="https://www.youtube.com/@iisu.network" target="_blank" rel="noopener">YouTube</a></li>
+        <li><a href="https://github.com/iisu-network/iiSU/issues" target="_blank" rel="noopener">Bug Reports</a></li>
+      </ul>
+    </div>
+
+    <div class="footer-col" id="resources">
+      <h4>Resources</h4>
+      <ul>
+        <li><a href="database.html">iiSU DB</a></li>
+        <li><a href="asset-guide-boxart.html">Box Art Guide</a></li>
+        <li><a href="asset-guide-icons.html">Group Icons Guide</a></li>
+        <li><a href="https://github.com/iisu-network/iiSU" target="_blank" rel="noopener">GitHub</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="footer-bottom">
+    <span>© 2025–2026 iiSU. Made with ♥ for the retro gaming community.</span>
+    <div class="legal-links">
+      <a href="privacy.html">Privacy Policy</a>
+      <a href="terms.html">Terms of Service</a>
+      <a href="https://accounts.iisu.network" target="_blank" rel="noopener">iiSU Network</a>
+    </div>
+  </div>
+</footer>
+
+<script src="app.js"></script>
+
+</body>
+</html>

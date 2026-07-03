@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>XMB</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: #111;
+  color: #fff;
+  font-family: sans-serif;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* Outer column: [items above] / [center row] / [items below] */
+#xmb {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+}
+
+/* Vertical axis — item peers above / below */
+.v-item {
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  min-width: 240px;
+  cursor: pointer;
+  user-select: none;
+  transition: opacity 0.15s;
+}
+
+/* Center row: [cats left] / [node] / [cats right] */
+#center-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 36px;
+}
+
+/* Horizontal axis — category peers left / right */
+.h-side {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 36px;
+}
+
+.h-cat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  user-select: none;
+  transition: opacity 0.15s;
+}
+.h-cat .icon  { font-size: 26px; line-height: 1; }
+.h-cat .label { font-size: 9px; letter-spacing: 0.07em; text-transform: uppercase; white-space: nowrap; }
+
+/* Center node — intersection of the cross */
+#node {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  min-width: 120px;
+}
+#node .icon      { font-size: 44px; line-height: 1; }
+#node .item-name {
+  font-size: 15px;
+  white-space: nowrap;
+  border-bottom: 1px solid rgba(255,255,255,0.45);
+  padding-bottom: 3px;
+  letter-spacing: 0.03em;
+}
+
+#hint {
+  position: fixed;
+  bottom: 16px;
+  width: 100%;
+  text-align: center;
+  font-size: 11px;
+  color: rgba(255,255,255,0.2);
+  letter-spacing: 0.06em;
+}
+</style>
+</head>
+<body>
+
+<div id="xmb">
+  <div id="v-above"></div>
+  <div id="center-row">
+    <div id="h-left"  class="h-side"></div>
+    <div id="node">
+      <span class="icon"></span>
+      <span class="item-name"></span>
+    </div>
+    <div id="h-right" class="h-side"></div>
+  </div>
+  <div id="v-below"></div>
+</div>
+<div id="hint">← → category &nbsp;|&nbsp; ↑ ↓ item &nbsp;|&nbsp; ↵ select</div>
+
+<script>
+const DATA = [
+  { label: "Users",   icon: "👤", items: ["Profile", "Friends", "Messages", "Settings", "Activity"] },
+  { label: "Media",   icon: "🎵", items: ["Music", "Videos", "Photos", "Podcasts", "Radio"] },
+  { label: "Games",   icon: "🎮", items: ["Library", "Store", "Trophies", "Friends Playing", "Recent"] },
+  { label: "Network", icon: "🌐", items: ["Browser", "Downloads", "Sharing", "Remote Play"] },
+  { label: "System",  icon: "⚙️",  items: ["Display", "Sound", "Power", "About", "Updates", "Storage"] },
+];
+
+let catIdx = 0;
+const cache = DATA.map(() => 0);
+
+function mod(n, m) { return ((n % m) + m) % m; }
+
+function makeVItem(text, opacity, onClick) {
+  const el = document.createElement("div");
+  el.className = "v-item";
+  el.style.opacity = opacity;
+  el.textContent = text;
+  el.addEventListener("click", onClick);
+  return el;
+}
+
+function makeHCat(cat, opacity, onClick) {
+  const el = document.createElement("div");
+  el.className = "h-cat";
+  el.style.opacity = opacity;
+  el.innerHTML = `<span class="icon">${cat.icon}</span><span class="label">${cat.label}</span>`;
+  el.addEventListener("click", onClick);
+  return el;
+}
+
+function render() {
+  const cat   = DATA[catIdx];
+  const items = cat.items;
+  const sel   = cache[catIdx];
+
+  // ── Center node ──
+  document.querySelector("#node .icon").textContent      = cat.icon;
+  document.querySelector("#node .item-name").textContent = items[sel];
+
+  // ── Items above (d = -2, -1) ──
+  const vAbove = document.getElementById("v-above");
+  vAbove.innerHTML = "";
+  [-2, -1].forEach(d => {
+    const i = mod(sel + d, items.length);
+    vAbove.appendChild(makeVItem(items[i], d === -2 ? 0.15 : 0.38, () => { cache[catIdx] = i; render(); }));
+  });
+
+  // ── Items below (d = +1, +2) ──
+  const vBelow = document.getElementById("v-below");
+  vBelow.innerHTML = "";
+  [1, 2].forEach(d => {
+    const i = mod(sel + d, items.length);
+    vBelow.appendChild(makeVItem(items[i], d === 1 ? 0.38 : 0.15, () => { cache[catIdx] = i; render(); }));
+  });
+
+  // ── Categories left (d = -2, -1) ──
+  const hLeft = document.getElementById("h-left");
+  hLeft.innerHTML = "";
+  [-2, -1].forEach(d => {
+    const i = mod(catIdx + d, DATA.length);
+    hLeft.appendChild(makeHCat(DATA[i], d === -2 ? 0.15 : 0.38, () => { catIdx = i; render(); }));
+  });
+
+  // ── Categories right (d = +1, +2) ──
+  const hRight = document.getElementById("h-right");
+  hRight.innerHTML = "";
+  [1, 2].forEach(d => {
+    const i = mod(catIdx + d, DATA.length);
+    hRight.appendChild(makeHCat(DATA[i], d === 1 ? 0.38 : 0.15, () => { catIdx = i; render(); }));
+  });
+}
+
+document.addEventListener("keydown", e => {
+  if (!["ArrowLeft","ArrowRight","ArrowUp","ArrowDown","Enter"].includes(e.key)) return;
+  e.preventDefault();
+  const items = DATA[catIdx].items;
+  if (e.key === "ArrowLeft")  { catIdx = mod(catIdx - 1, DATA.length); render(); }
+  if (e.key === "ArrowRight") { catIdx = mod(catIdx + 1, DATA.length); render(); }
+  if (e.key === "ArrowUp")    { cache[catIdx] = mod(cache[catIdx] - 1, items.length); render(); }
+  if (e.key === "ArrowDown")  { cache[catIdx] = mod(cache[catIdx] + 1, items.length); render(); }
+  if (e.key === "Enter")      { alert(`${DATA[catIdx].label}  →  ${items[cache[catIdx]]}`); }
+});
+
+render();
+</script>
+</body>
+</html>
