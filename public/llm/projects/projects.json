@@ -1,0 +1,690 @@
+{
+  "schema": "chaotics-lab.llm-projects.v1",
+  "description": "Static, scrape-friendly dataset of Chaotics Lab portfolio projects.",
+  "sourceGlob": "src/resources/projects/*.json",
+  "projectCount": 19,
+  "routes": {
+    "html": "/llm/projects/",
+    "json": "/llm/projects/projects.json",
+    "dataDirectory": "/llm/projects/data/"
+  },
+  "projects": [
+    {
+      "title": "Neuromorphic Winner-Take-All Circuit",
+      "date": "2025-12-24",
+      "titleColor": "#FFFFFF",
+      "description": "A 4 Neuron Head-Direction Cell using a Winner-Take-All Network using thyristor-based electronics spiking LIFs.",
+      "imageUrl": "/img/WTA",
+      "logoUrl": "/img/WTA/logo.png",
+      "demoUrl": "https://sites.google.com/view/marcelo-j-rozenberg/research/spiking-neurons/memristive-silicon-spiking-neurons?authuser=0/",
+      "themeColors": [
+        "#f9d047",
+        "#a047f9"
+      ],
+      "logoBackgroundColor": "#FFFFFF",
+      "category": [
+        "ai",
+        "systems"
+      ],
+      "tags": [
+        "Neuromorphic Hardware",
+        "Analog Electronics",
+        "LTSpice"
+      ],
+      "type": "Internship",
+      "id": "winner-take-all",
+      "AIUsed": "0",
+      "markdown": "## What\nA neuromorphic hardware implementation of a Head Direction (HD) cell using Winner-Take-All (WTA) neural networks with thyristor-based spiking neurons. Replicates the fruit fly's internal compass system, where only 8 neurons arranged in a ring maintain stable orientation tracking, using ultra-compact electronic circuits that consume power only during spike events.\n\n## How\nDesigned thyristor-based Leaky Integrate-and-Fire (LIF) neurons using just three components: resistor (leak), capacitor (integration), and Silicon Controlled Rectifier (threshold/reset). Built modular PCBs for neurons and synapses (exponential/alpha types, excitatory/inhibitory modes) enabling scalable network assembly. Modeled WTA architectures (2, 4, 6, 8 neurons) in LTSpice with custom abstracted components, implementing self-excitation for activity bump stability and global inhibition for winner selection. Control neurons (CW/CCW) shift the bump around the ring by exciting neighboring direction-tuned populations.\n\n## Result\nSuccessfully validated WTA dynamics through LTSpice simulations showing stable activity bumps and smooth propagation during rotational updates. Demonstrated proof-of-concept on breadboard with 2-neuron WTA and Central Pattern Generator circuits. Designed production-ready modular PCBs with visual LED indicators, achieving biologically realistic spiking behavior (spike-frequency adaptation, refractory periods) using orders of magnitude fewer components than traditional LIF implementations.\n\n### AI Usage (AI-Free)\nNone. This was a 6-month fundamental research internship (July-December 2025) at Integrative Neuroscience & Cognition Center (INCC)/Centre National de Recherche Scientifique (CNRS) under CNRS Dr. Marcelo Rozenberg. Work involved deep literature review of neuroscience (EPG neurons, ring attractors, Drosophila central complex), analog electronics design, LTSpice circuit simulation, and hands-on hardware prototyping. All circuit designs, component abstractions, PCB schematics in KiCad, and experimental validation were manually developed through iterative research process combining computational neuroscience theory with practical electronics engineering.",
+      "_meta": {
+        "sourceFile": "src/resources/projects/winner-take-all.json",
+        "sourceJson": "/llm/projects/data/winner-take-all.json",
+        "canonicalSourceJson": "https://lox.rombaut.org/llm/projects/data/winner-take-all.json",
+        "portfolioPage": "/project/winner-take-all",
+        "canonicalPortfolioPage": "https://lox.rombaut.org/project/winner-take-all"
+      }
+    },
+    {
+      "title": "Autonomous Racing Car",
+      "date": "2024-07-21",
+      "titleColor": "#FFFFFF",
+      "description": "Led a team of 30 students in developing a fully autonomous vehicle and implemented Edge AI for race trajectory.",
+      "imageUrl": "/img/arece",
+      "logoUrl": "/img/arece/logo.png",
+      "themeColors": [
+        "#ff121a",
+        "#000FFF"
+      ],
+      "logoBackgroundColor": "#FFFFFF",
+      "category": [
+        "ai",
+        "systems"
+      ],
+      "githubUrl": "https://github.com/arece-fs",
+      "demoUrl": "https://www.linkedin.com/company/autonomous-racing-ece/",
+      "tags": [
+        "Project Management",
+        "PyTorch",
+        "Numpy",
+        "Python",
+        "Graph Machine Learning"
+      ],
+      "type": "Personal Project",
+      "AIUsed": "40",
+      "id": "autonomous-racing-car",
+      "markdown": "## What\nAn AI-powered trajectory planning system for ARECE, an autonomous racing vehicle competing in Formula Student Driverless competitions. Reduced trajectory computation time from 17.31 seconds to <1ms per segment using machine learning.\n\n## How\nGenerated a large synthetic dataset of racing circuits and computed optimal baselines using minimum curvature trajectory optimization based on vehicle dynamics. Each track was split into overlapping segments via a sliding-window approach, with a tuned 'foresight' (fore/aft context window) so the network could see upcoming and preceding track geometry rather than just the current point. Track geometry was encoded per boundary-normal as length, angular change, and angle offset, avoiding raw curvature which is unstable near hairpins and undefined on straights. Designed and trained a feed-forward neural network on these track/trajectory pairs, predicting multiple neighboring waypoints per window and averaging overlapping predictions across windows to produce a smooth racing line without expensive post-hoc filtering. Integrated real-time inference (<1ms) into a ROS2 pipeline, receiving cone positions from perception and publishing waypoint commands to vehicle control.\n\n## Result\nProduction-ready system achieving real-time operation for competitive autonomous racing, cutting trajectory generation time by several orders of magnitude versus iterative optimal-control optimization. Successfully replaced computationally expensive iterative optimization with neural network inference, validated through simulation and team integration. Created a reusable synthetic track generation framework for training data augmentation as technical lead coordinating across Manufacturing, Perception, Trajectory, and DevOps teams.\n\n### AI Usage (Automation)\nAI tools (like code assistants) were used for boilerplate code, formatting, scripting, and automation tasks. The core ML work (state-of-the-art trajectory optimization research, synthetic data generation pipeline, neural network architecture design, model training, and real-time inference implementation) was designed and developed by the team from scratch.",
+      "_meta": {
+        "sourceFile": "src/resources/projects/autonomous-racing-car.json",
+        "sourceJson": "/llm/projects/data/autonomous-racing-car.json",
+        "canonicalSourceJson": "https://lox.rombaut.org/llm/projects/data/autonomous-racing-car.json",
+        "portfolioPage": "/project/autonomous-racing-car",
+        "canonicalPortfolioPage": "https://lox.rombaut.org/project/autonomous-racing-car"
+      }
+    },
+    {
+      "title": "Embedded Power Profiler @Withings",
+      "date": "2024-08-21",
+      "titleColor": "#FFFFFF",
+      "description": "Real-time power consumption analysis toolchain for IoT healthcare devices (smart watches, smart scales), in production at Withings.",
+      "imageUrl": "/img/withings",
+      "logoUrl": "/img/withings/logo.png",
+      "themeColors": [
+        "#00FF00",
+        "#FFFFFF"
+      ],
+      "logoBackgroundColor": "#FFFFFF",
+      "category": [
+        "systems",
+        "apps"
+      ],
+      "tags": [
+        "C++",
+        "Python",
+        "Wireshark",
+        "Kinetis K60",
+        "Qt",
+        "Ethernet"
+      ],
+      "type": "Internship",
+      "AIUsed": "40",
+      "id": "power-consumption-measurement-board",
+      "markdown": "## What\nA real-time power consumption analysis toolchain for Withings' connected health devices, processing up to 13 billion data points per day from dual ADCs to identify firmware bugs and power inefficiencies. Enables engineers to validate battery life optimisations critical for products like ScanWatch (30-day battery vs Apple Watch's 18 hours).\n\n## How\nReverse-engineered a proprietary Ethernet protocol running over a non-standard EtherType from 2017 internal documentation and firmware source: a mixed byte stream encoding two ADCs (ADS1247 24-bit @ 2kHz, LTC2378-18 18-bit @ 62.5kHz) with an implicit upsampling scheme via pipe markers used to synchronise sampling rates. Designed a custom binary storage format using cumulative sum encoding, reducing range average calculation from O(n) to O(1) and enabling constant-time downsampling of arbitrarily large acquisitions directly from disk. Prototyped file I/O performance in C++ and Rust before settling on Python with numpy for the final implementation. Built a Qt/PyQtGraph GUI replacing a 46-class legacy Tkinter/matplotlib system with a streamlined 10-class MVC architecture, achieving smooth real-time rendering of billions of points downsampled to screen pixel width.\n\n## Result\nUnlimited acquisition length (24+ hours, 13 billion points per day), 500 KB/s sustained streaming, and fluid real-time visualisation regardless of dataset size. Successfully deployed to production, catching critical firmware bugs including a weight-on-scale state machine issue causing excess power consumption. Used across embedded software, industrialisation and SQA teams for pre-production power profiling.\n\n### AI Usage\nSpent 4 months deliberately learning Qt, PyQtGraph and the embedded hardware stack. AI assisted with documentation generation, debugging edge cases and test case creation. Core engineering decisions were manual: cumulative sum storage design, protocol reverse-engineering, dual-ADC synchronisation logic and architecture simplification.",
+      "_meta": {
+        "sourceFile": "src/resources/projects/power-consumption-measurement-board.json",
+        "sourceJson": "/llm/projects/data/power-consumption-measurement-board.json",
+        "canonicalSourceJson": "https://lox.rombaut.org/llm/projects/data/power-consumption-measurement-board.json",
+        "portfolioPage": "/project/power-consumption-measurement-board",
+        "canonicalPortfolioPage": "https://lox.rombaut.org/project/power-consumption-measurement-board"
+      }
+    },
+    {
+      "title": "Porypal (GBA Toolchain)",
+      "date": "2025-03-28",
+      "titleColor": "#FFFFFF",
+      "description": "Full-stack local web app for extracting and processing Game Boy Advance compatible sprites and palettes for Pokémon ROM hacks.",
+      "imageUrl": "/img/porypal",
+      "logoUrl": "/img/porypal/logo.png",
+      "themeColors": [
+        "#FFB6C1",
+        "#2139ef"
+      ],
+      "logoBackgroundColor": "transparent",
+      "category": [
+        "apps",
+        "games"
+      ],
+      "githubUrl": "https://github.com/Loxed/porypal",
+      "showGithubStats": true,
+      "showGithubDownload": true,
+      "tags": [
+        "Python",
+        "React",
+        "FastAPI",
+        "Vite",
+        "Image Processing",
+        "GBA"
+      ],
+      "type": "Personal Project",
+      "id": "porypal",
+      "AIUsed": "60",
+      "markdown": "## What\nPorypal is a sprite and palette toolchain for Pokémon Gen 3 ROM hacking, targeting developers working on decompilation projects like pokeemerald and pokefirered.\n\n## How\n- Local web app written in React/Vite (frontend) and FastAPI (backend)\n- Perceptual color quantization in Oklab space using pure numpy k-means, no ML dependencies\n- Resource browser/search engine that indexes decomp project folders (thousands of sprites and palettes) with lazy-loading and wildcard filtering\n- Group extraction for index-aligned palettes across sprite variants, shiny palette pair matching, tile arranger with reusable presets\n\n## Result\nWidely adopted by the ROM hacking community for processing and inserting sprites across full decomp projects. Ships as a self-contained local web app, one script to run, no configuration.\n\n### AI Usage (Collaboration)\nv1 was fully AI-generated as a proof of concept. v2 shipped a usable tool suite to the community. v3 rebuilt the entire UI from scratch with a proper full-stack architecture and expanded capabilities. AI assisted with frontend components and some backend scaffolding. Core domain logic, GBA constraint handling, palette alignment algorithms, and pipeline design were written manually.",
+      "_meta": {
+        "sourceFile": "src/resources/projects/porypal.json",
+        "sourceJson": "/llm/projects/data/porypal.json",
+        "canonicalSourceJson": "https://lox.rombaut.org/llm/projects/data/porypal.json",
+        "portfolioPage": "/project/porypal",
+        "canonicalPortfolioPage": "https://lox.rombaut.org/project/porypal"
+      }
+    },
+    {
+      "title": "Fintech App Development @PayBy",
+      "date": "2023-01-12",
+      "titleColor": "#FFFFFF",
+      "description": "Implemented microservices (fund transfers, transaction history, image compression) into 300M+ users Fintech super app.",
+      "imageUrl": "/img/payby",
+      "logoUrl": "/img/payby/logo.png",
+      "demoUrl": "https://www.botim.money/point-of-sale",
+      "themeColors": [
+        "#4ADE4A",
+        "#00FFFF"
+      ],
+      "logoBackgroundColor": "#FFFFFF",
+      "category": [
+        "apps"
+      ],
+      "tags": [
+        "Microservices",
+        "Rust",
+        "Domain-Driven Design",
+        "Backend",
+        "Kanban"
+      ],
+      "type": "Internship",
+      "AIUsed": "0",
+      "id": "fintech-app-development",
+      "markdown": "## What\nMission-critical microservices for Astra Tech's ultra-app ecosystem (300M+ users), integrating remittance (international money transfer), referral systems, and backend infrastructure during a high-stakes merger of PayBy, Botim, and Rizek. Worked across two consecutive internships (2022-2023) during the $500M-funded transformation into the Middle East's first WeChat-style super-app.\n\n## How\nBuilt production-grade microservices in Rust with Domain-Driven Design architecture. Implemented remittance service with real-time exchange rates, multi-currency support, and asynchronous processing via AMQP/RabbitMQ. Designed referral/loyalty system with Redis caching for campaign rules, fraud detection, and event-driven reward distribution. Applied DDD patterns: bounded contexts, aggregates, value objects, and domain events for complex financial domain modeling.\n\n## Result\nSuccessfully deployed remittance integration to production in Botim app and referral system driving viral growth. Handled thousands of transactions daily with horizontal scaling, memory-safe concurrent processing, and <1ms Redis lookups. Contributed to $500M M&A technical integration, supporting 300M+ user base across distributed team of 50+ engineers in 2 countries.\n\n### AI Usage (AI-Free)\nNone. This work occurred in late 2022/early 2023 when LLMs were just emerging. Development focused on learning Domain-Driven Design principles, Rust's ownership/borrowing model through pair programming and code reviews, and enterprise-grade microservices architecture patterns through hands-on implementation and mentorship.",
+      "_meta": {
+        "sourceFile": "src/resources/projects/fintech-app-development.json",
+        "sourceJson": "/llm/projects/data/fintech-app-development.json",
+        "canonicalSourceJson": "https://lox.rombaut.org/llm/projects/data/fintech-app-development.json",
+        "portfolioPage": "/project/fintech-app-development",
+        "canonicalPortfolioPage": "https://lox.rombaut.org/project/fintech-app-development"
+      }
+    },
+    {
+      "title": "Remote Controlled Drone",
+      "date": "2024-02-15",
+      "titleColor": "#FFFFFF",
+      "description": "Designed and built a fully functional drone and remote system, including PCBs, sensors, and communication protocols.",
+      "imageUrl": "/img/ececopter",
+      "logoUrl": "/img/ececopter/logo.png",
+      "themeColors": [
+        "#A0A0A0",
+        "#00848c"
+      ],
+      "logoBackgroundColor": "#FFFFFF",
+      "category": [
+        "systems"
+      ],
+      "demoUrl": "https://www.linkedin.com/posts/leopold-rombaut_ececopter-embeddedsystems-dronetechnology-activity-7134805600864989185-h-t2",
+      "tags": [
+        "ATmega328p",
+        "KiCad",
+        "Fusion360",
+        "ToF",
+        "IMU"
+      ],
+      "type": "Academic Project",
+      "AIUsed": "0",
+      "id": "ececopter-(remote-controlled-drone)",
+      "markdown": "## What\nA fully functional quadcopter drone system built from scratch, including custom PCB design, IMU-based stabilization, Time-of-Flight altitude sensing, and wireless remote control. Complete drone ecosystem spanning electrical engineering, mechanical design, firmware development, and flight control algorithms.\n\n## How\nDesigned flight controller PCB in KiCad with ATmega328p microcontroller, IMU sensor integration, ToF distance measurement, and wireless transceiver. Implemented sensor fusion using complementary filter combining gyroscope and accelerometer data. Developed PID control loops for roll/pitch/yaw stabilization and altitude hold. Created mechanical frame and motor mounts in Fusion 360 with vibration dampening and weight optimization (<400g total).\n\n## Result\nAchieved stable hands-off hover with altitude hold, <50ms control latency, 8-12 minute flight time, and 100m+ wireless range. Successfully integrated multi-sensor system on single microcontroller with real-time control at 100-200Hz. Demonstrated complete hardware-software co-design from schematic to flight-tested hardware.\n\n### AI Usage (AI-Free)\nNone. My primary contributions were sensor testing and validation (IMU calibration, ToF accuracy verification, vibration analysis) and 3D modeling in Fusion 360 (frame structure, motor mounts with dampening, weight-optimized component placement). Development relied on datasheets, control theory fundamentals, and iterative hardware testing.",
+      "_meta": {
+        "sourceFile": "src/resources/projects/ececopter-(remote-controlled-drone).json",
+        "sourceJson": "/llm/projects/data/ececopter-(remote-controlled-drone).json",
+        "canonicalSourceJson": "https://lox.rombaut.org/llm/projects/data/ececopter-(remote-controlled-drone).json",
+        "portfolioPage": "/project/ececopter-(remote-controlled-drone)",
+        "canonicalPortfolioPage": "https://lox.rombaut.org/project/ececopter-(remote-controlled-drone)"
+      }
+    },
+    {
+      "title": "Marque (Static Site Generator)",
+      "date": "2026-03-01",
+      "titleColor": "#FFFFFF",
+      "description": "An enhanced Markdown static site generator focused on structured content, modular layouts, and fast iteration.",
+      "imageUrl": "/img/marque",
+      "logoUrl": "/img/marque/logo.png",
+      "demoUrl": "https://getmarque.pages.dev",
+      "githubUrl": "https://github.com/Loxed/marque",
+      "themeColors": [
+        "#f7f5f0",
+        "#c85a2a"
+      ],
+      "logoBackgroundColor": "#f7f5f0",
+      "category": [
+        "apps"
+      ],
+      "tags": [
+        "Static Site Generator",
+        "Markdown",
+        "Node.js",
+        "CLI",
+        "Documentation",
+        "Frontend"
+      ],
+      "type": "Personal Project",
+      "id": "marque",
+      "AIUsed": "60",
+      "markdown": "## What\nMarque is a static site generator designed to create structured, modular, and highly readable websites using a custom Markdown-based syntax. It focuses on simplicity, clarity, and developer control while enabling rich layouts through composable primitives like cards, steps, and grids.\n\n## How\nBuilt with Node.js as a CLI tool, Marque parses extended Markdown into structured HTML. It introduces a custom component system using directives (e.g. @card, @step, @row) to define layout directly within content. The build pipeline transforms content into static assets, enabling fast local development with a live preview server and optimized production builds.\n\n## Result\nA fully functional documentation and content framework capable of generating clean, modular websites with minimal setup. Used to build structured project pages, technical documentation, and content-driven platforms with a strong focus on readability and layout consistency.\n\n### AI Usage\nThis project was developed with partial assistance from AI tools for ideation, iteration, and refinement, while maintaining full control over architecture and implementation decisions.",
+      "_meta": {
+        "sourceFile": "src/resources/projects/marque.json",
+        "sourceJson": "/llm/projects/data/marque.json",
+        "canonicalSourceJson": "https://lox.rombaut.org/llm/projects/data/marque.json",
+        "portfolioPage": "/project/marque",
+        "canonicalPortfolioPage": "https://lox.rombaut.org/project/marque"
+      }
+    },
+    {
+      "title": "Function Generator and Oscilloscope",
+      "date": "2023-11-10",
+      "titleColor": "#FFFFFF",
+      "description": "Implementation of a function generator and a real-time oscilloscope and multimeter, built on two 8-bit PIC18F microcontrollers.",
+      "imageUrl": "/img/easyscope",
+      "logoUrl": "/img/easyscope/logo.png",
+      "themeColors": [
+        "#d4af37",
+        "#008c4a"
+      ],
+      "logoBackgroundColor": "#FFFFFF",
+      "githubUrl": null,
+      "liveUrl": "https://www.youtube.com/watch?v=tca28-bj014",
+      "category": [
+        "systems"
+      ],
+      "tags": [
+        "PIC18F",
+        "Assembly",
+        "Embedded C",
+        "Function Generator",
+        "Oscilloscope"
+      ],
+      "type": "Academic Project",
+      "AIUsed": "0",
+      "id": "easyscope",
+      "markdown": "## What\nEasyScope is a two-part embedded instrumentation system built on dual 8-bit PIC18F microcontrollers running on EasyPIC V7 development boards. The first MCU acts as a low-frequency signal generator capable of producing DC, sinusoidal, triangular, and square waveforms with adjustable frequency (0–1000 Hz for sinusoidal and triangular, 1000 or 10 000 Hz for square) and configurable duty cycle (0.1 to 0.9) for the square signal. The second MCU implements an oscilloscope and multimeter that samples, stores, and displays incoming signals in real time on a GLCD screen.\n\n## How\nThe signal generator uses a DAC to output waveforms computed in firmware, with frequency and duty cycle parameters driven by potentiometers and push buttons. 7-segment displays provide live parameter feedback to the user. The oscilloscope side reads analog input through an ADC at a 2000 Hz sampling rate, applies sub-sampling to fit the acquisition window into the constrained RAM, and renders the reconstructed waveform on the GLCD. All logic (waveform generation, ADC acquisition, display refresh, and user input handling) runs concurrently on 8-bit RISC cores with no operating system, requiring careful scheduling and memory management entirely in Assembly.\n\n## Result\nA fully functional benchtop instrument capable of generating and visualizing signals across the 0–10 000 Hz range. The system demonstrates stable real-time display of sinusoidal waveforms generated by the first MCU and captured by the second, validating the end-to-end signal chain. Key engineering constraints met: operating within a few kilobytes of RAM, performing all arithmetic in 8-bit, and sustaining real-time acquisition and rendering in parallel, all without a higher-level language or an RTOS.\n\n### AI Usage (AI-Free)\nNone. The project was developed entirely in Assembly on constrained 8-bit hardware. All waveform math, ADC driver code, GLCD rendering routines, and inter-peripheral timing were implemented manually from datasheets and first principles, with no AI-assisted tooling involved.",
+      "_meta": {
+        "sourceFile": "src/resources/projects/easyscope.json",
+        "sourceJson": "/llm/projects/data/easyscope.json",
+        "canonicalSourceJson": "https://lox.rombaut.org/llm/projects/data/easyscope.json",
+        "portfolioPage": "/project/easyscope",
+        "canonicalPortfolioPage": "https://lox.rombaut.org/project/easyscope"
+      }
+    },
+    {
+      "title": "PersonaPlay (Netflix Clone)",
+      "date": "2023-03-10",
+      "titleColor": "#FFFFFF",
+      "description": "Developed a fullstack Netflix-like application for browsing and watching videos with features like forums, reviews, and search.",
+      "imageUrl": "/img/personaplay",
+      "logoUrl": "/img/personaplay/logo.png",
+      "githubUrl": "https://github.com/Loxed/PersonaPlayApplication",
+      "themeColors": [
+        "#393939",
+        "#808080"
+      ],
+      "logoBackgroundColor": "transparent",
+      "category": [
+        "apps"
+      ],
+      "tags": [
+        "JavaFX",
+        "Hibernate",
+        "MySQL",
+        "MVC",
+        "APIs"
+      ],
+      "type": "Academic Project",
+      "AIUsed": "40",
+      "id": "personaplay-(netflix-clone)",
+      "markdown": "## What\nA full-stack Netflix-inspired streaming platform built with JavaFX, featuring video browsing, user authentication with email verification, community forums, review system, search with filters, and watchlist management. Demonstrates comprehensive software engineering with MVC architecture, ORM patterns, and RESTful API integration.\n\n## How\nImplemented MVC architecture with JavaFX frontend (FXML layouts), Java backend using Hibernate ORM for MySQL database persistence, and OkHttp for external API integration. Built user authentication with BCrypt password hashing and SMTP email verification. Designed relational database schema with entities for users, videos, reviews, and forum posts. Created search system using Hibernate Criteria API with multi-criteria filtering (text, genre, year, rating) and pagination for performance.\n\n## Result\nProduction-ready desktop application with complete user account management, video catalog populated via external APIs, community forums with upvote system, star rating aggregation, and responsive grid-based UI. Successfully applied enterprise Java patterns (Hibernate, JPA, repository pattern) and multi-layer architecture across full stack from database design to user interface.\n\n### AI Usage (Automation)\nCompleted shortly after a semester abroad Fullstack course using Spring/Springboot, with strong understanding of MVC, Hibernate, and Maven implementation patterns. AI assisted with code autocompletion, boilerplate generation (entity annotations, repository methods), test database population scripts, and documentation. All architectural decisions, UI design in JavaFX, database schema design, and core business logic were implemented manually.",
+      "_meta": {
+        "sourceFile": "src/resources/projects/personaplay-(netflix-clone).json",
+        "sourceJson": "/llm/projects/data/personaplay-(netflix-clone).json",
+        "canonicalSourceJson": "https://lox.rombaut.org/llm/projects/data/personaplay-(netflix-clone).json",
+        "portfolioPage": "/project/personaplay-(netflix-clone)",
+        "canonicalPortfolioPage": "https://lox.rombaut.org/project/personaplay-(netflix-clone)"
+      }
+    },
+    {
+      "title": "Air Traffic Simulator",
+      "date": "2022-04-03",
+      "titleColor": "#FFFFFF",
+      "description": "An air traffic simulation using graph-theory enabling automatic planes, airport management, weather event rerouting.",
+      "imageUrl": "/img/kvl",
+      "logoUrl": "/img/kvl/logo.png",
+      "themeColors": [
+        "#9CFFF7",
+        "#2991ce"
+      ],
+      "githubUrl": "https://github.com/Loxed/flight-traffic-simulation",
+      "demoUrl": "/run-flight-sim/flight-sim.html",
+      "category": [
+        "games",
+        "apps"
+      ],
+      "tags": [
+        "C++",
+        "Allegro 4",
+        "Graph Theory",
+        "OOP"
+      ],
+      "type": "Academic Project",
+      "AIUsed": "0",
+      "id": "air-traffic-simulation",
+      "markdown": "## What\nA graph-theory-based air traffic control simulation in C++ with Allegro 4, featuring autonomous aircraft navigation through a weighted directed graph of airports and flight routes. Aircraft dynamically reroute around weather events while managing airport capacity constraints and collision avoidance.\n\n## How\nImplemented Dijkstra's algorithm for optimal pathfinding between airports, with real-time path recalculation when weather disables graph edges. Used finite state machines for aircraft behavior (taxiing, takeoff, cruising, landing) and spatial partitioning for efficient collision detection. Airport systems managed landing queues and runway allocation with FIFO scheduling. Event bus pattern broadcast route changes to affected aircraft for immediate rerouting.\n\n## Result\nFully functional simulation handling multiple simultaneous flights with autonomous navigation and dynamic adaptation. Demonstrated practical application of graph algorithms and OOP design patterns (State, Observer, Factory) in a real-time system. Achieved efficient performance through spatial indexing and algorithm optimization, reducing collision checks from O(n²) to O(n log n).\n\n### AI Usage (AI-Free)\nNone. This project was completed as a computer science coursework assignment, implementing fundamental algorithms and design patterns through manual coding and architecture design. Art style and UI were completely designed by me, inspired by Animal Crossing: New Horizons.",
+      "_meta": {
+        "sourceFile": "src/resources/projects/air-traffic-simulation.json",
+        "sourceJson": "/llm/projects/data/air-traffic-simulation.json",
+        "canonicalSourceJson": "https://lox.rombaut.org/llm/projects/data/air-traffic-simulation.json",
+        "portfolioPage": "/project/air-traffic-simulation",
+        "canonicalPortfolioPage": "https://lox.rombaut.org/project/air-traffic-simulation"
+      }
+    },
+    {
+      "title": "Cluedo Knight",
+      "date": "2021-11-10",
+      "titleColor": "#FFFFFF",
+      "description": "A digital adaptation of the classic Cluedo board game, featuring a hollow knight theme and interactive gameplay.",
+      "imageUrl": "/img/cluedo",
+      "logoUrl": "/img/cluedo/logo.png",
+      "themeColors": [
+        "#42009c",
+        "#9c0042"
+      ],
+      "logoBackgroundColor": "transparent",
+      "githubUrl": "https://github.com/Loxed/cluedo-knight",
+      "category": [
+        "games"
+      ],
+      "tags": [
+        "C++",
+        "Allegro 4",
+        "Pixel Art",
+        "OOP"
+      ],
+      "type": "Academic Project",
+      "AIUsed": "0",
+      "id": "cluedo-knight",
+      "markdown": "## What\nA thematic digital reimagining of Cluedo (Clue) set in Hollow Knight's underground kingdom of Hallownest. Players navigate interconnected caverns as iconic characters, deducing which character committed murder, with which weapon, and in which location through strategic interrogation and elimination—all rendered in custom pixel art faithful to the game's monochromatic aesthetic.\n\n## How\nBuilt in C++ with Allegro 4 using OOP design patterns (State, Observer, Factory, Strategy). Implemented graph-based board navigation, dice roll mechanics, and secret passages. Developed AI opponents using Bayesian inference probability matrices and knowledge tracking across game history. Created full Cluedo ruleset with 216 possible solution combinations (6 characters × 6 weapons × 9 locations) supporting 3-6 players.\n\n## Result\nComplete game loop with atmospheric presentation faithful to Hollow Knight's tone. Successfully adapted Victorian mansion mystery to dark fantasy setting through hand-crafted pixel art (50+ hours): character sprites with animations, weapon icons, location backgrounds, and UI merging detective aesthetics with minimalist design. Demonstrated mastery of game AI, state machines, and 2D rendering pipeline.\n\n### AI Usage (AI-Free)\nNone. This project predates modern LLMs. All pixel art assets (sprites, backgrounds, UI elements) were hand-drawn from scratch over 50+ hours, inspired by Hollow Knight's visual style. Programming followed Allegro 4 documentation and OOP principles through manual implementation.",
+      "_meta": {
+        "sourceFile": "src/resources/projects/cluedo-knight.json",
+        "sourceJson": "/llm/projects/data/cluedo-knight.json",
+        "canonicalSourceJson": "https://lox.rombaut.org/llm/projects/data/cluedo-knight.json",
+        "portfolioPage": "/project/cluedo-knight",
+        "canonicalPortfolioPage": "https://lox.rombaut.org/project/cluedo-knight"
+      }
+    },
+    {
+      "title": "Le Saboteur (French Board Game)",
+      "date": "2021-02-10",
+      "titleColor": "#FFFFFF",
+      "description": "A video game adaptation of 'Le Saboteur', a French board game, with a wild-west pixel art theme.",
+      "imageUrl": "/img/saboteur",
+      "logoUrl": "/img/saboteur/logo.png",
+      "themeColors": [
+        "#ffe7a5",
+        "#8b4513"
+      ],
+      "logoBackgroundColor": "transparent",
+      "githubUrl": "https://github.com/Loxed/le-saboteur",
+      "category": [
+        "games"
+      ],
+      "tags": [
+        "C",
+        "Allegro 4",
+        "Pixel Art"
+      ],
+      "type": "Academic Project",
+      "AIUsed": "0",
+      "id": "le-saboteur-(french-board-game)",
+      "markdown": "## What\nA digital adaptation of the French social deduction board game Saboteur, reimagined with wild-west pixel art theme. Players take hidden roles as gold miners or saboteurs, collaboratively building tunnel paths toward treasure while saboteurs secretly undermine progress through strategic path-building and sabotage mechanics.\n\n## How\nBuilt in C with Allegro 4 using procedural programming and manual memory management. Implemented path validation system with adjacency matrix for connection rules and flood-fill detection for dead ends. Designed turn-based multiplayer with hot-seat play, hidden role screens, and hand management. Created finite state machine for game phases (setup, playing, scoring) with mouse/keyboard input handling and double-buffered rendering for flicker-free graphics.\n\n## Result\nFull ruleset implementation supporting 3-10 players with strategic depth through deduction, bluffing, and path optimization. Created 50+ custom wild-west pixel art assets (card sprites, character avatars, UI elements) adapting the medieval theme. Demonstrated low-level C programming proficiency, 2D game development techniques, and modular architecture with separate rendering, logic, and input systems.\n\n### AI Usage (AI-Free)\nNone. This project predates modern LLMs. All pixel art assets were hand-crafted, game logic implemented through manual C programming, and development relied on Allegro 4 documentation, memory debugging with valgrind, and iterative playtesting for game balance.",
+      "_meta": {
+        "sourceFile": "src/resources/projects/le-saboteur-(french-board-game).json",
+        "sourceJson": "/llm/projects/data/le-saboteur-(french-board-game).json",
+        "canonicalSourceJson": "https://lox.rombaut.org/llm/projects/data/le-saboteur-(french-board-game).json",
+        "portfolioPage": "/project/le-saboteur-(french-board-game)",
+        "canonicalPortfolioPage": "https://lox.rombaut.org/project/le-saboteur-(french-board-game)"
+      }
+    },
+    {
+      "title": "Chaotics Slice (AI Video Editor)",
+      "date": "2026-02-18",
+      "titleColor": "#FFFFFF",
+      "description": "An AI-powered silence remover that uses Silero VAD to detect speech and automatically cut non-speech segments.",
+      "imageUrl": "/img/chaotics-slice",
+      "logoUrl": "/img/chaotics-slice/logo.png",
+      "themeColors": [
+        "#505050",
+        "#8F0000"
+      ],
+      "logoBackgroundColor": "transparent",
+      "githubUrl": "https://github.com/chaotics-labs/Slice",
+      "category": [
+        "apps",
+        "ai"
+      ],
+      "tags": [
+        "Flask",
+        "PyTorch",
+        "FFmpeg",
+        "Silero VAD",
+        "Python",
+        "Video Editing"
+      ],
+      "type": "Personal Project",
+      "AIUsed": "80",
+      "id": "chaotics-slice",
+      "markdown": "## What\nChaotics Slice is a self-hosted, AI-powered silence remover for video editors. Users upload a video, choose an aggression preset from Chill to Savage, and the app detects speech using Silero VAD while removing non-speech segments. An interactive timeline preview shows all cuts before rendering. Exports include a fully sliced video or professional cut lists in EDL, FCPXML, and Premiere XML formats for seamless integration into major NLEs. Unlike simple volume-threshold trimmers, detection is based on voice activity modeling, enabling more reliable and precise silence removal.\n\n## How\nBuilt in Python with Flask handling both frontend and backend routing. Audio is extracted via FFmpeg, converted to 16 kHz mono PCM, and processed with Silero VAD for frame-level speech detection. Cut segments are computed using configurable padding and minimum silence thresholds, then rendered through FFmpeg CLI orchestration. The system supports macOS, Windows, and Linux with automatic CUDA or Apple Silicon MPS detection and CPU fallback. Model weights download once and are cached locally, allowing fully offline operation after first use.\n\n## Result\nA fully functional self-hosted application that accelerates video editing by accurately removing silence, previewing edits before rendering, and exporting directly to professional editing software. It reduces repetitive manual trimming while preserving precision and workflow control. Free and open source, it is designed for long-term local use without cloud dependency.\n\n### AI Usage (Situational Autonomy)\nAI was primarily used to accelerate frontend development and assist with code completion. The original command-line MVP integrating Silero VAD and FFmpeg, along with the core editing logic and system architecture, were engineered and implemented independently.",
+      "_meta": {
+        "sourceFile": "src/resources/projects/chaotics-slice.json",
+        "sourceJson": "/llm/projects/data/chaotics-slice.json",
+        "canonicalSourceJson": "https://lox.rombaut.org/llm/projects/data/chaotics-slice.json",
+        "portfolioPage": "/project/chaotics-slice",
+        "canonicalPortfolioPage": "https://lox.rombaut.org/project/chaotics-slice"
+      }
+    },
+    {
+      "title": "8-Bit Calculator (FPGA)",
+      "date": "2021-10-03",
+      "titleColor": "#FFFFFF",
+      "description": "An 8-bit signed calculator capable of performing basic operations on FPGA. Controllable with a remote.",
+      "imageUrl": "/img/FPGA",
+      "logoUrl": "/img/FPGA/logo.png",
+      "githubUrl": "https://github.com/Loxed/vhdl-calc",
+      "themeColors": [
+        "#3680AA",
+        "#00AA80"
+      ],
+      "logoBackgroundColor": "#FFFFFF",
+      "category": [
+        "systems"
+      ],
+      "tags": [
+        "DE10-Lite",
+        "VHDL",
+        "FPGA",
+        "IR NEC Protocol",
+        "FSM"
+      ],
+      "type": "Academic Project",
+      "id": "8-bit-calculator-(fpga)",
+      "AIUsed": "0",
+      "markdown": "## What\nAn 8-bit calculator implemented on an Intel DE10-Lite FPGA using VHDL, featuring IR remote input, signed/unsigned arithmetic operations, and multi-modal output including 7-segment displays, LEDs, and audible buzzer feedback.\n\n## How\nDecoded NEC protocol IR signals through a FSM for input handling. Implemented dual computation modes: internal VHDL arithmetic and external 74LS283 CLA adder integration via GPIO. Designed custom two's complement signed operation logic. Results displayed through 7-segment displays and buzzer output.\n\n## Result\nFully functional calculator supporting 8 operational modes across signed/unsigned and internal/external configurations. Validated through comprehensive testbenches and 37 documented physical test cases.\n\n### AI Usage (AI-Free)\nNone. This project was completed in October 2021 as part of an electronics course at ECE Paris, prior to the availability of modern AI coding assistants.",
+      "_meta": {
+        "sourceFile": "src/resources/projects/8-bit-calculator-(fpga).json",
+        "sourceJson": "/llm/projects/data/8-bit-calculator-(fpga).json",
+        "canonicalSourceJson": "https://lox.rombaut.org/llm/projects/data/8-bit-calculator-(fpga).json",
+        "portfolioPage": "/project/8-bit-calculator-(fpga)",
+        "canonicalPortfolioPage": "https://lox.rombaut.org/project/8-bit-calculator-(fpga)"
+      }
+    },
+    {
+      "title": "Autonomous Robot (ECECUP)",
+      "date": "2022-05-20",
+      "titleColor": "#FFFFFF",
+      "description": "Built a fully autonomous robot from scratch with computer vision, state machine and graph-based pathfinding.",
+      "imageUrl": "/img/ececup",
+      "logoUrl": "/img/ececup/logo.png",
+      "themeColors": [
+        "#00ffff",
+        "#de2900"
+      ],
+      "logoBackgroundColor": "#FFFFFF",
+      "demoUrl": "https://www.instagram.com/sylv_1_le_robot/",
+      "category": [
+        "systems"
+      ],
+      "tags": [
+        "OpenCV2",
+        "C++",
+        "ESP32",
+        "AJAX",
+        "MQTT"
+      ],
+      "type": "Academic Project",
+      "AIUsed": "0",
+      "id": "autonomous-robot-competition",
+      "markdown": "## What\nA competition-grade autonomous robot built from scratch for ECE-CUP tournaments, featuring web-based WiFi teleoperation, 3D-printed PETG gripper mechanism, and real-time embedded control. Navigates a 2m×3m arena to collect and stack containers on scoring craters within 90-second matches.\n\n## How\nESP8266 hosts HTML5/JavaScript web interface for real-time joystick control via AJAX (<10ms latency). Differential drive system uses PWM motor control with 8-directional zone detection for movement. Custom dual-jaw gripper actuated by SG90 servo through 3D-printed gear train designed in Tinkercad. Automated flag deployment at 90s via onboard timer triggered on first joystick input.\n\n## Result\nSuccessfully competed in 3 ECE-CUP tournaments with reliable autonomous operation. Achieved 100% flag deployment reliability, 120+ minute battery life, and zero disqualifications. Complete electromechanical system designed and integrated by 4-person team, rapid prototyping with 3D printing, and WiFi protocol implementation.\n\n### AI Usage (AI-Free)\nNone. This project was completed in 2020-2021, before modern LLMs. Development relied on tutorial videos, ESP8266 documentation, trial-and-error iteration, and adapting existing examples through hands-on experimentation until achieving functional results.",
+      "_meta": {
+        "sourceFile": "src/resources/projects/autonomous-robot-competition.json",
+        "sourceJson": "/llm/projects/data/autonomous-robot-competition.json",
+        "canonicalSourceJson": "https://lox.rombaut.org/llm/projects/data/autonomous-robot-competition.json",
+        "portfolioPage": "/project/autonomous-robot-competition",
+        "canonicalPortfolioPage": "https://lox.rombaut.org/project/autonomous-robot-competition"
+      }
+    },
+    {
+      "title": "CRM & Outreach Platform",
+      "date": "2026-02-01",
+      "titleColor": "#FFFFFF",
+      "description": "Self-hosted CRM deployment and business automation platform for a private investment advisor. EspoCRM, DNS, SMTP/IMAP, contact normalization, and investor outreach templating. Zero subscription cost.",
+      "imageUrl": "/img/loryx-capital",
+      "logoUrl": "/img/loryx-capital/logo.png",
+      "githubUrl": null,
+      "themeColors": [
+        "#FBF1C7",
+        "#E1E1E1"
+      ],
+      "logoBackgroundColor": "#E1E1E1",
+      "category": [
+        "apps"
+      ],
+      "tags": [
+        "EspoCRM",
+        "Docker",
+        "Python",
+        "Homelab",
+        "DNS",
+        "Zimbra",
+        "Brevo",
+        "SPF/DKIM/DMARC"
+      ],
+      "type": "Freelance Project",
+      "id": "loryx-capital",
+      "AIUsed": "20",
+      "markdown": "## What\nFull-stack CRM deployment and business automation platform for Loryx Capital, a private investment advisory entity. Self-hosted EspoCRM on a Mac Mini running 24/7 as a homelab server, with custom domain via OVH, inbound email via Zimbra (IMAP), outbound campaigns via Brevo (SMTP), and a contact normalization pipeline for investor deal flow outreach.\n\n## How\nDeployed EspoCRM in Docker on a self-hosted Mac Mini configured as a personal cloud server. Configured custom domain via OVH with DNS records (MX, SPF, DKIM, DMARC) for reliable email deliverability. Set up Zimbra IMAP for inbound mail sync into EspoCRM and Brevo SMTP for outbound transactional and campaign emails. Built a Python data ingestion tool to load, deduplicate, and normalize contacts from heterogeneous sources into a structured CRM schema. Designed outreach email templates for investment opportunity communications targeting venture capital contacts.\n\n## Result\nFully operational self-hosted CRM used in production by Loryx Capital. The alternative was Salesforce or HubSpot Starter ($240 to $600 per year before hitting feature limits). This setup costs a single domain name (~15 EUR per year): EspoCRM is open source, Brevo free tier covers 300 emails per day which comfortably fits the client outreach volume, and the server runs on existing homelab hardware. End-to-end ownership from infrastructure and email configuration to business workflow design, delivering a system a non-technical client can operate independently.\n\n### AI Usage (Referencing)\nAI was used to research appropriate technologies for the client's specific use cases and assist with configuration and debugging. Architecture decisions, DNS setup, email pipeline design, and the contact normalization tool were implemented manually.",
+      "_meta": {
+        "sourceFile": "src/resources/projects/loryx-capital.json",
+        "sourceJson": "/llm/projects/data/loryx-capital.json",
+        "canonicalSourceJson": "https://lox.rombaut.org/llm/projects/data/loryx-capital.json",
+        "portfolioPage": "/project/loryx-capital",
+        "canonicalPortfolioPage": "https://lox.rombaut.org/project/loryx-capital"
+      }
+    },
+    {
+      "title": "Retro Game Logo Generator",
+      "date": "2025-12-09",
+      "titleColor": "#FFFFFF",
+      "description": "A web application that allows users to create beautiful normalized icons for their retro games collection.",
+      "imageUrl": "/img/logo-maker",
+      "demoUrl": "https://iisu-icon-maker.vercel.app/",
+      "logoUrl": "/img/logo-maker/logo.png",
+      "themeColors": [
+        "#00FFFF",
+        "#FF00FF"
+      ],
+      "category": [
+        "apps",
+        "games"
+      ],
+      "githubUrl": "https://github.com/chaotics-labs/iisu-icon-maker",
+      "tags": [
+        "Flutter",
+        "Vite",
+        "TypeScript",
+        "Node.js"
+      ],
+      "type": "Personal Project",
+      "AIUsed": "80",
+      "id": "logo-maker",
+      "markdown": "## What\nA streamlined web application used to produce uniform, high quality game icons for my upcoming cross-platform retro emulation frontend Kioku (きおく), inspired by the iiSU project.\n\n## How\nThe tool takes a source image, applies a consistent border, color gradient, and system icon either from pre-existing templates or custom-made ones, previews the icon in context, and exports ready to use. It ensures each asset aligns within the layout.\n\n## Result\nA fast and reliable workflow for generating cohesive game visuals. Every title in Kioku uses this tool for a clean, unified presentation of the user’s game library that improves readability, navigation, and overall frontend polish.\n\n### AI Usage (Situational Autonomy)\nThe web GUI of the application was generated using AI. The image processing logic was designed and implemented by me, from Photoshop to TypeScript and Flutter (upcoming cross-platform app).",
+      "_meta": {
+        "sourceFile": "src/resources/projects/gameLogoGenerator.json",
+        "sourceJson": "/llm/projects/data/gameLogoGenerator.json",
+        "canonicalSourceJson": "https://lox.rombaut.org/llm/projects/data/gameLogoGenerator.json",
+        "portfolioPage": "/project/logo-maker",
+        "canonicalPortfolioPage": "https://lox.rombaut.org/project/logo-maker"
+      }
+    },
+    {
+      "title": "YouTube Video Tracker",
+      "date": "2025-06-18",
+      "titleColor": "#FFFFFF",
+      "description": "A Firefox extension that automatically provides real-time progress tracking for educational content and courses.",
+      "imageUrl": "/img/youtube-tracker",
+      "logoUrl": "/img/youtube-tracker/logo.png",
+      "themeColors": [
+        "#A50000",
+        "#FF5733"
+      ],
+      "logoBackgroundColor": "transparent",
+      "category": [
+        "apps"
+      ],
+      "githubUrl": "https://github.com/Loxed/youtube-video-tracker",
+      "demoUrl": "https://addons.mozilla.org/firefox/addon/youtube-video-tracker/",
+      "tags": [
+        "JavaScript",
+        "Firefox",
+        "Local Storage",
+        "WebExtensions API",
+        "DOM Manipulation"
+      ],
+      "type": "Personal Project",
+      "AIUsed": "100",
+      "id": "youtube-video-tracker",
+      "markdown": "## What\nA lightweight Firefox extension that automatically tracks viewing progress across YouTube playlists and channels. Provides persistent visual progress indicators without user accounts or external servers, using browser local storage for privacy-focused tracking.\n\n## How\nContent script injection monitors YouTube's SPA navigation via MutationObserver and detects video completion through dual triggers: natural ending events and 90% threshold with continuous watch time validation. Batch storage reads fetch all tracking data in single call, using IntersectionObserver for virtual scrolling to render progress bars only for visible playlist items. Extracts playlist metadata through CSS selector chains and regex parsing of YouTube's dynamically generated HTML.\n\n## Result\nLightweight extension with persistent per-video progress, fast playlist rendering through virtualization, and zero server dependencies. Published on Firefox Add-ons. Still in daily personal use for tracking music playlists and course progress.\n\n### AI Usage (Vibe Coding)\nA 2-hour vibe coding experiment with Claude Code to test AI-assisted rapid prototyping. Entire extension generated through iterative prompting: architecture, DOM manipulation, storage logic, performance optimizations. The goal was a personal tool for YouTube tracking without writing frontend code. Ended up being good enough to use every day, which is its own kind of validation.",
+      "_meta": {
+        "sourceFile": "src/resources/projects/youtube-video-tracker.json",
+        "sourceJson": "/llm/projects/data/youtube-video-tracker.json",
+        "canonicalSourceJson": "https://lox.rombaut.org/llm/projects/data/youtube-video-tracker.json",
+        "portfolioPage": "/project/youtube-video-tracker",
+        "canonicalPortfolioPage": "https://lox.rombaut.org/project/youtube-video-tracker"
+      }
+    },
+    {
+      "title": "Ace Attorney Guide",
+      "date": "2024-05-02",
+      "titleColor": "#FFFFFF",
+      "description": "Guide website made to easily access 'Phoenix Wright: Ace Attorney' Series guides from StrategyWiki.",
+      "imageUrl": "/img/aag",
+      "logoUrl": "/img/aag/logo.png",
+      "themeColors": [
+        "#006cb7",
+        "#fff100"
+      ],
+      "logoBackgroundColor": "transparent",
+      "githubUrl": "https://github.com/Loxed/AceAttorneyGuide",
+      "demoUrl": "https://aceattorneyguide.github.io/",
+      "category": [
+        "games",
+        "apps"
+      ],
+      "tags": [
+        "Rust",
+        "Web",
+        "mdbook"
+      ],
+      "type": "Personal Project",
+      "id": "ace-attorney-guide",
+      "AIUsed": "0",
+      "markdown": "## What\nA lightweight, fast-access guide website for the Phoenix Wright: Ace Attorney game series, providing one-click navigation to specific cases and chapters. Solves the friction of navigating traditional wiki hierarchies during active gameplay by offering direct deep-linking to any game segment.\n\n## How\nBuilt using mdBook (Rust-based static site generator) to transform StrategyWiki content into an instantly accessible reference. Organized 6 mainline games plus spin-offs and crossovers with hierarchical link structure. Deployed via GitHub Pages with automatic CI/CD pipeline. Implemented mobile-first responsive design, tested using ngrok for real device validation during development.\n\n## Result\nA zero-latency reference tool with instant page loads and clean URL structure for bookmarking. Community-maintainable through GitHub PRs with Markdown source control. Successfully deployed with comprehensive coverage of the entire Ace Attorney series, including a play order chart for newcomers.\n\n### AI Usage (AI-Free)\nNone. This is a static site generation project using existing documentation tools (mdBook) and community-sourced content from StrategyWiki, with manual content organization and deployment configuration.",
+      "_meta": {
+        "sourceFile": "src/resources/projects/ace-attorney-guide.json",
+        "sourceJson": "/llm/projects/data/ace-attorney-guide.json",
+        "canonicalSourceJson": "https://lox.rombaut.org/llm/projects/data/ace-attorney-guide.json",
+        "portfolioPage": "/project/ace-attorney-guide",
+        "canonicalPortfolioPage": "https://lox.rombaut.org/project/ace-attorney-guide"
+      }
+    }
+  ]
+}

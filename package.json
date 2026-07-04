@@ -5,8 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "prebuild": "node scripts/generateLlmProjects.mjs && node scripts/generateGithubMetricsCache.mjs",
     "build": "vite build",
     "build:dev": "vite build --mode development",
+    "generate:llm-projects": "node scripts/generateLlmProjects.mjs",
+    "generate:github-metrics": "node scripts/generateGithubMetricsCache.mjs",
     "lint": "eslint .",
     "preview": "vite preview"
   },

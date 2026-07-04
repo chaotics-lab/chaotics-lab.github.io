@@ -1,0 +1,27 @@
+{
+  "title": "Marque (Static Site Generator)",
+  "date": "2026-03-01",
+  "titleColor": "#FFFFFF",
+  "description": "An enhanced Markdown static site generator focused on structured content, modular layouts, and fast iteration.",
+  "imageUrl": "/img/marque",
+  "logoUrl": "/img/marque/logo.png",
+  "demoUrl": "https://getmarque.pages.dev",
+  "githubUrl": "https://github.com/Loxed/marque",
+  "themeColors": ["#f7f5f0", "#c85a2a"],
+  "logoBackgroundColor": "#f7f5f0",
+  "category": [
+    "apps"
+  ],
+  "tags": [
+    "Static Site Generator",
+    "Markdown",
+    "Node.js",
+    "CLI",
+    "Documentation",
+    "Frontend"
+  ],
+  "type": "Personal Project",
+  "id": "marque",
+  "AIUsed": "60",
+  "markdown": "## What\nMarque is a static site generator designed to create structured, modular, and highly readable websites using a custom Markdown-based syntax. It focuses on simplicity, clarity, and developer control while enabling rich layouts through composable primitives like cards, steps, and grids.\n\n## How\nBuilt with Node.js as a CLI tool, Marque parses extended Markdown into structured HTML. It introduces a custom component system using directives (e.g. @card, @step, @row) to define layout directly within content. The build pipeline transforms content into static assets, enabling fast local development with a live preview server and optimized production builds.\n\n## Result\nA fully functional documentation and content framework capable of generating clean, modular websites with minimal setup. Used to build structured project pages, technical documentation, and content-driven platforms with a strong focus on readability and layout consistency.\n\n### AI Usage\nThis project was developed with partial assistance from AI tools for ideation, iteration, and refinement, while maintaining full control over architecture and implementation decisions."
+}

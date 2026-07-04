@@ -1,0 +1,25 @@
+{
+  "title": "Remote Controlled Drone",
+  "date": "2024-02-15",
+  "titleColor": "#FFFFFF",
+  "description": "Designed and built a fully functional drone and remote system, including PCBs, sensors, and communication protocols.",
+  "imageUrl": "/img/ececopter",
+  "logoUrl": "/img/ececopter/logo.png",
+  "themeColors": ["#A0A0A0", "#00848c"],
+  "logoBackgroundColor": "#FFFFFF",
+  "category": [
+    "systems"
+  ],
+  "demoUrl": "https://www.linkedin.com/posts/leopold-rombaut_ececopter-embeddedsystems-dronetechnology-activity-7134805600864989185-h-t2",
+  "tags": [
+    "ATmega328p",
+    "KiCad",
+    "Fusion360",
+    "ToF",
+    "IMU"
+  ],
+  "type": "Academic Project",
+  "AIUsed": "0",
+  "id": "ececopter-(remote-controlled-drone)",
+  "markdown": "## What\nA fully functional quadcopter drone system built from scratch, including custom PCB design, IMU-based stabilization, Time-of-Flight altitude sensing, and wireless remote control. Complete drone ecosystem spanning electrical engineering, mechanical design, firmware development, and flight control algorithms.\n\n## How\nDesigned flight controller PCB in KiCad with ATmega328p microcontroller, IMU sensor integration, ToF distance measurement, and wireless transceiver. Implemented sensor fusion using complementary filter combining gyroscope and accelerometer data. Developed PID control loops for roll/pitch/yaw stabilization and altitude hold. Created mechanical frame and motor mounts in Fusion 360 with vibration dampening and weight optimization (<400g total).\n\n## Result\nAchieved stable hands-off hover with altitude hold, <50ms control latency, 8-12 minute flight time, and 100m+ wireless range. Successfully integrated multi-sensor system on single microcontroller with real-time control at 100-200Hz. Demonstrated complete hardware-software co-design from schematic to flight-tested hardware.\n\n### AI Usage (AI-Free)\nNone. My primary contributions were sensor testing and validation (IMU calibration, ToF accuracy verification, vibration analysis) and 3D modeling in Fusion 360 (frame structure, motor mounts with dampening, weight-optimized component placement). Development relied on datasheets, control theory fundamentals, and iterative hardware testing."
+}

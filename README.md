@@ -141,6 +141,16 @@ The portfolio showcases 14+ projects including:
 
 3. Add project images to `public/img/`
 
+### LLM-Friendly Project Index
+
+Project metadata is also exported as static, scrape-friendly files for crawlers and online LLMs:
+
+- `/llm/projects/` - HTML page with every project summary and embedded aggregate JSON
+- `/llm/projects/projects.json` - Aggregate JSON dataset
+- `/llm/projects/data/*.json` - Individual copies of every source project JSON file
+
+Run `npm run generate:llm-projects` after editing `src/resources/projects/*.json`, or let `npm run build` regenerate it automatically.
+
 ### Theme Configuration
 
 Customize Tailwind CSS in `tailwind.config.ts` and use dark mode support via the theme provider.

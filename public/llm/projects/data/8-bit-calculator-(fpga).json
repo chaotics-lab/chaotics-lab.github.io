@@ -1,0 +1,24 @@
+{
+  "title": "8-Bit Calculator (FPGA)",
+  "date": "2021-10-03",
+  "titleColor": "#FFFFFF",
+  "description": "An 8-bit signed calculator capable of performing basic operations on FPGA. Controllable with a remote.",
+  "imageUrl": "/img/FPGA",
+  "logoUrl": "/img/FPGA/logo.png",
+  "githubUrl": "https://github.com/Loxed/vhdl-calc",
+  "themeColors": ["#3680AA", "#00AA80"],
+  "logoBackgroundColor": "#FFFFFF",
+  "category": [
+    "systems"
+  ],
+  "tags": [
+    "DE10-Lite",
+    "VHDL",
+    "FPGA",
+    "IR NEC Protocol",
+    "FSM"
+  ],
+  "type": "Academic Project",
+  "id": "8-bit-calculator-(fpga)",
+  "AIUsed": "0",
+  "markdown": "## What\nAn 8-bit calculator implemented on an Intel DE10-Lite FPGA using VHDL, featuring IR remote input, signed/unsigned arithmetic operations, and multi-modal output including 7-segment displays, LEDs, and audible buzzer feedback.\n\n## How\nDecoded NEC protocol IR signals through a FSM for input handling. Implemented dual computation modes: internal VHDL arithmetic and external 74LS283 CLA adder integration via GPIO. Designed custom two's complement signed operation logic. Results displayed through 7-segment displays and buzzer output.\n\n## Result\nFully functional calculator supporting 8 operational modes across signed/unsigned and internal/external configurations. Validated through comprehensive testbenches and 37 documented physical test cases.\n\n### AI Usage (AI-Free)\nNone. This project was completed in October 2021 as part of an electronics course at ECE Paris, prior to the availability of modern AI coding assistants."  }
