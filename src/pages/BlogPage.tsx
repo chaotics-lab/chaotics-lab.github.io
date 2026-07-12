@@ -4,6 +4,7 @@ import { usePageTransition } from "@/hooks/usePageTransition";
 import { Header } from "@/components/portfolio/Header";
 import { Footer } from "@/components/portfolio/Footer";
 import { BookOpenText, Calendar, ChevronDown } from "lucide-react";
+import { SmartImage } from "@/components/SmartImage";
 
 function formatDate(dateStr: string) {
   if (!dateStr) return null;
@@ -29,7 +30,7 @@ function FeaturedCard({
       style={{ aspectRatio: "16/9" }}
     >
       {coverImage
-        ? <img src={coverImage} alt={title} className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+        ? <SmartImage src={coverImage} alt={title} className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
         : <div className="absolute inset-0 bg-white/5 border border-white/10" />
       }
       <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
@@ -71,7 +72,7 @@ function PostCard({
       style={{ aspectRatio: "3/4" }}
     >
       {coverImage
-        ? <img src={coverImage} alt={title} className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+        ? <SmartImage src={coverImage} alt={title} className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
         : <div className="absolute inset-0 bg-white/5 border border-white/10" />
       }
       <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent" />
@@ -107,7 +108,7 @@ function SidebarRow({
     <button onClick={onClick} className="group flex gap-3 items-start text-left w-full">
       <div className="w-16 h-16 shrink-0 rounded-xl overflow-hidden bg-white/5 border border-white/10 flex items-center justify-center">
         {coverImage
-          ? <img src={coverImage} alt={title} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
+          ? <SmartImage src={coverImage} alt={title} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
           : (icon ?? <div className="w-full h-full bg-white/5" />)
         }
       </div>

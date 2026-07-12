@@ -8,6 +8,7 @@ import { AISticker } from "@/components/AISticker";
 import { useGithubStars } from "@/hooks/useGithubStars";
 import { useGithubStats } from "@/hooks/useGithubStats";
 import { GithubStarsBadge, GithubDownloadsBadge, GithubClonersBadge } from "@/components/GithubBadges";
+import { SmartImage } from "@/components/SmartImage";
 
 const SoftwarePage = () => {
   const { projectId } = useParams<{ projectId: string }>();
@@ -58,7 +59,7 @@ const SoftwarePage = () => {
         img.onload = () => { found.push(img.src); checkFrame(index + 1); };
         img.onerror = () => tryExtensions(exts.slice(1));
       };
-      tryExtensions(["png", "gif", "jpg", "webp"]);
+      tryExtensions(["webp", "gif", "jpg", "jpeg", "png"]);
     };
     checkFrame(1);
   }, [project?.imageUrl]);
@@ -205,7 +206,7 @@ const SoftwarePage = () => {
           {Array.from({ length: frameCount }, (_, i) => (
             <img
               key={i}
-              src={frames[i] || `${project.imageUrl}/${i + 1}.png`}
+              src={frames[i] || `${project.imageUrl}/${i + 1}.webp`}
               alt={`Frame ${i + 1}`}
               loading={i === 0 ? "eager" : "lazy"}
               className="w-full h-full object-cover object-center"
@@ -271,7 +272,7 @@ const SoftwarePage = () => {
           <div className="relative w-full h-full flex items-center justify-center p-4 md:p-8" onClick={e => e.stopPropagation()}>
             <div className="relative w-full h-full max-w-7xl max-h-full flex items-center justify-center">
               <img
-                src={frames[currentFrame] || `${project.imageUrl}/${currentFrame + 1}.png`}
+                src={frames[currentFrame] || `${project.imageUrl}/${currentFrame + 1}.webp`}
                 alt={`Frame ${currentFrame + 1}`}
                 className="max-w-full max-h-full object-contain"
                 onClick={e => e.stopPropagation()}
@@ -363,7 +364,7 @@ const SoftwarePage = () => {
                 <PanelShine />
                 <div className="absolute inset-0 pointer-events-none z-0" style={{ background: glowBg(glowPositions.logo) }} />
                 <div className="relative flex items-center justify-center h-full w-full p-8 z-10">
-                  <img src={project.logoUrl} alt={`${project.title} logo`} className="max-w-full max-h-full object-contain drop-shadow-2xl" />
+                  <SmartImage src={project.logoUrl} alt={`${project.title} logo`} className="max-w-full max-h-full object-contain drop-shadow-2xl" />
                 </div>
               </div>
             </div>

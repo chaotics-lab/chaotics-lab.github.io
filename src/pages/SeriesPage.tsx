@@ -11,6 +11,7 @@ import rehypeRaw from "rehype-raw";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 import type { Components } from "react-markdown";
+import { SmartImage } from "@/components/SmartImage";
 
 // ----------------- CodeBlock -----------------
 function CodeBlock({ language, codeString }: { language: string; codeString: string }) {
@@ -96,7 +97,7 @@ const SeriesPage = () => {
         return (
           <figure style={{ margin: "2rem 0", width: "100%" }} className="not-prose">
             <div style={{ border: "1px solid rgba(255,255,255,0.1)", borderRadius: "0.75rem", overflow: "hidden" }}>
-              <img src={src} alt={alt} style={{ width: "100%", display: "block" }} />
+              <SmartImage src={src} alt={alt} style={{ width: "100%", display: "block" }} />
             </div>
             <figcaption className="font-ui font-medium italic" style={{ textAlign: "left", fontSize: "1.5em", marginTop: "0.5rem", color: "var(--color-space-muted)" }}>
               Figure {figureCounter.current}: {alt}
@@ -105,7 +106,7 @@ const SeriesPage = () => {
         );
       }
 
-      return <img src={src} alt="" style={{ width: "100%", display: "block", margin: "2rem 0" }} />;
+      return <SmartImage src={src} alt="" style={{ width: "100%", display: "block", margin: "2rem 0" }} />;
     },
   };
 
@@ -123,7 +124,7 @@ const SeriesPage = () => {
 
         {series.coverImage && (
           <div className="relative w-full h-56 md:h-72 rounded-2xl overflow-hidden mb-10 border border-white/10">
-            <img src={series.coverImage} alt={series.title} className="w-full h-full object-cover" />
+            <SmartImage src={series.coverImage} alt={series.title} className="w-full h-full object-cover" />
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
           </div>
         )}

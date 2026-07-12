@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { AISticker } from '@/components/AISticker';
 import { ChevronDown, Code, Sparkles, Zap, Brain, Cpu, Rocket, ExternalLink } from 'lucide-react';
+import { SmartImage } from '@/components/SmartImage';
 
 const AI_USAGE_LEVELS = [
   { value: 0, label: 'AI-Free', description: 'I do everything by hand. Every design decision, line of code, and debug session is mine. I learn by doing and thinking through every step, looking at the docs and on StackOverflow / Tutorials.', icon: Code },
@@ -53,7 +54,7 @@ export const AIUsedShowcase: React.FC = () => {
                 }`}
               />
               <div className="hidden md:flex items-center justify-center flex-shrink-0">
-                <img
+                <SmartImage
                   src="/img/AI Seal of Quality.png"
                   alt="AI Seal of Quality"
                   className={`transition-all duration-300 object-contain ${

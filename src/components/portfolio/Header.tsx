@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Mail, Grid2X2, Github, Linkedin, Menu, X, ScrollText, BookMarked } from 'lucide-react';
+import { SmartImage } from '@/components/SmartImage';
 
 export const Header = () => {
   const [isMobile, setIsMobile] = useState(false);
@@ -77,7 +78,7 @@ export const Header = () => {
             
             {/* Logo */}
             <a href="/" className="flex items-center relative z-50">
-              <img
+              <SmartImage
                 src="/img/logos/Chaotics White Transparent.png"
                 alt="Chaotics"
                 className="h-8 w-auto drop-shadow-[0_0_10px_rgba(255,255,255,0.2)] hover:drop-shadow-[0_0_15px_rgba(255,255,255,0.4)] transition-all duration-300"

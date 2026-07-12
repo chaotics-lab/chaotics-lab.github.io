@@ -7,6 +7,7 @@ import { AISticker } from "@/components/AISticker";
 import { useGithubStars } from "@/hooks/useGithubStars";
 import { useGithubStats } from "@/hooks/useGithubStats";
 import { GithubStarsBadge, GithubDownloadsBadge } from "@/components/GithubBadges";
+import { SmartImage } from "@/components/SmartImage";
 
 function adjustHexBrightness(hex: string, minLight = 0.5) {
   hex = hex.replace(/^#/, '');
@@ -209,7 +210,7 @@ export const SoftwareCard = memo((props: Partial<SoftwareCardProps>) => {
         <div className={`hidden md:flex relative z-10 flex-col pointer-events-none ${isUpcoming ? "opacity-30" : ""}`}>
           {imageUrl && (
             <div className="relative w-full h-52 overflow-hidden rounded-t-md" style={{ backgroundColor: `${primaryColor}20` }}>
-              <img src={`${imageUrl}/1.png`} alt={title || "Project"} className="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-110" />
+              <SmartImage src={`${imageUrl}/1`} alt={title || "Project"} className="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-110" />
             </div>
           )}
           <div className="p-6 flex flex-col flex-grow">
@@ -226,7 +227,7 @@ export const SoftwareCard = memo((props: Partial<SoftwareCardProps>) => {
         <div className={`md:hidden relative z-10 flex flex-row pointer-events-none h-32 ${isUpcoming ? "opacity-30" : ""}`}>
           {imageUrl && (
             <div className="w-32 h-32 flex-shrink-0 relative overflow-hidden rounded-l-md" style={{ backgroundColor: `${primaryColor}20` }}>
-              <img src={`${imageUrl}/1.png`} alt={title || "Project"} className="absolute inset-0 w-full h-full object-cover object-center" />
+              <SmartImage src={`${imageUrl}/1`} alt={title || "Project"} className="absolute inset-0 w-full h-full object-cover object-center" />
             </div>
           )}
           <div className="relative p-4 flex flex-col flex-grow">
