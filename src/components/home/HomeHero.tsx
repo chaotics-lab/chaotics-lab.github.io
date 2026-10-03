@@ -31,11 +31,14 @@ export const HomeHero = () => {
             href="#projects"
             onClick={e => {
               e.preventDefault();
-              // land with "How I use AI" just above the projects, in view
-              scrollTo(() => {
-                const el = document.getElementById('ai-usage') ?? document.getElementById('projects');
-                return el ? el.getBoundingClientRect().top + window.scrollY - 24 : window.scrollY;
-              });
+              // Land on the projects, but come out of the sea above "How I
+              // use AI" and drift down past it for a while.
+              const top = (id: string) => {
+                const el = document.getElementById(id);
+                return el ? el.getBoundingClientRect().top + window.scrollY : window.scrollY;
+              };
+              const projects = () => top('projects') - parseFloat(getComputedStyle(document.getElementById('projects')!).scrollMarginTop || '0');
+              scrollTo(projects, undefined, { after: () => projects() - top('ai-usage') + 260, tail: 1500 });
             }}
             className="h-btn h-btn-line h-swap-host self-start md:self-auto"
           >

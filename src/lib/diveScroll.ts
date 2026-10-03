@@ -15,17 +15,22 @@ const RUN = 240; // px moved on each side of the cut, at most
 
 const jump = (y: number) => window.scrollTo({ top: y, behavior: 'instant' as ScrollBehavior });
 
+// Optional: `after` (px, or measured at the cut) and `tail` (ms) make the
+// part after the sea longer, e.g. to pass through a section on the way.
+type RunOpts = { after?: number | (() => number); tail?: number };
+
 export function useDiveScroll() {
   const { dive } = usePageTransition();
-  return useCallback((target: () => number, opts?: TransitionOpts) => {
+  return useCallback((target: () => number, opts?: TransitionOpts, more: RunOpts = {}) => {
     const y0 = window.scrollY;
     const goal0 = target();
     if (prefersReducedMotion() || Math.abs(goal0 - y0) < 2) { jump(goal0); return; }
     const sign = Math.sign(goal0 - y0);
-    const run = Math.min(RUN, Math.abs(goal0 - y0) / 3);
+    const measure = () => (typeof more.after === 'function' ? more.after() : more.after);
+    const run = Math.min(measure() ?? RUN, Math.abs(goal0 - y0) / 2);
     const tA = LEAD + COVER;
-    const tB = REVEAL + TAIL;
-    const runA = run * (tA / tB); // same speed at the cut
+    const tB = REVEAL + (more.tail ?? TAIL);
+    const runA = Math.min(RUN, run * (tA / tB)); // same speed at the cut
     let raf = 0;
 
     // speeding up (ease-in) until the swap
@@ -43,12 +48,13 @@ export function useDiveScroll() {
         cancelAnimationFrame(raf);
         // slowing down (ease-out) onto the target, starting while covered
         const goal = target();
-        const from = goal - sign * run;
+        const runB = Math.min(measure() ?? run, Math.abs(goal - window.scrollY));
+        const from = goal - sign * runB;
         jump(from);
         const startB = performance.now();
         const stepB = (now: number) => {
           const k = Math.min(1, (now - startB) / tB);
-          jump(from + sign * run * (1 - (1 - k) * (1 - k)));
+          jump(from + sign * runB * (1 - (1 - k) * (1 - k)));
           if (k < 1) raf = requestAnimationFrame(stepB);
         };
         raf = requestAnimationFrame(stepB);
