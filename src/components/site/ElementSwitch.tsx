@@ -1,12 +1,15 @@
 import { useEffect, useState } from 'react';
 import { ELEMENTS } from '@/config/elements';
 import { applyTheme, currentElement, onThemeChange } from '@/lib/theme';
+import { usePageTransition } from '@/lib/pageTransition';
 import { ElementGlyph } from './ElementGlyph';
 
 // The seven elements as a header-style pill (footer). Hovering tints an
-// icon towards its element's colour; clicking switches the colour scheme.
+// icon towards its element's colour; clicking switches the colour scheme (behind the
+// element transition, PageTransition 'element').
 export const ElementSwitch = () => {
   const [active, setActive] = useState(currentElement);
+  const { dive } = usePageTransition();
   useEffect(() => onThemeChange(() => setActive(currentElement())), []);
 
   return (
@@ -20,7 +23,7 @@ export const ElementSwitch = () => {
           aria-pressed={active === e.id}
           aria-label={`${e.name} colour scheme`}
           title={e.name}
-          onClick={() => { if (e.id !== currentElement()) applyTheme(e.id, true); }}
+          onClick={() => { if (e.id !== currentElement()) dive(() => applyTheme(e.id), { kind: 'element', element: e.id }); }}
         >
           <ElementGlyph id={e.id} size={20} className="s-icon" />
         </button>

@@ -3,11 +3,16 @@ import { useNavigate } from 'react-router-dom';
 import { PageTransitionContext, type TransitionOpts } from '@/lib/pageTransition';
 import { prefersReducedMotion } from '@/lib/ticker';
 import { WAVE, WAVE_V } from '@/lib/wave';
+import { THEMES } from '@/config/themes';
+import { ELEMENTS } from '@/config/elements';
+import { IconTile } from '@/components/portfolio/IconTile';
 
 // P3R-style page changes. 'sea': three layers of sea (cyan, blue, deep
 // blue) rise over the screen with drifting wave edges, the page switches
 // underneath, then they leave through the top in reverse order. 'slash':
 // three slanted bands cut in from the right and carry on off to the left.
+// 'element': the slash, faster, in the picked element's colours; the front
+// band stamps its icon tile and name. The scheme swaps while it covers.
 // 'blot': Persona 3 Reload's menu cut. Three blots (circles with a wavy,
 // slowly turning edge) grow one after the other from the clicked point and
 // cover the screen; the page switches; then a wavy hole grows from the
@@ -21,7 +26,8 @@ const TIMING = {
   sea: { cover: 260 + 2 * 45, hold: 40, reveal: 300 + 2 * 45 },
   slash: { cover: 280 + 2 * 60, hold: 320, reveal: 320 + 2 * 60 }, // hold: time to read the title
   blot: { cover: BLOT_GAP * 2 + BLOT_IN, hold: 120, reveal: BLOT_GAP * 2 + BLOT_OUT },
-  fade: { cover: 160, hold: 30, reveal: 220 }, // minimal quality: one plain fade (.pt-fade)
+  fade: { cover: 160, hold: 30, reveal: 220 },
+  element: { cover: 170 + 2 * 40, hold: 190, reveal: 220 + 2 * 40 }, // .pt-el: quick, a beat to see the icon // minimal quality: one plain fade (.pt-fade)
 };
 
 const LAYERS = ['var(--h-c1)', 'var(--h-top)', 'var(--h-deep)'];
@@ -151,6 +157,23 @@ export const PageTransition = ({ children }: { children: ReactNode }) => {
           ))}
         </div>
       )}
+      {opts.kind === 'element' && phase !== 'idle' && (() => {
+        const pal = THEMES[opts.element ?? ''] ?? THEMES.aqua, info = ELEMENTS.find(e => e.id === opts.element);
+        return (
+          <div className="pt pt-el" data-phase={phase} aria-hidden="true">
+            {[pal.c1, pal.top, pal.deep].map((color, i) => (
+              <div key={i} className="pts-band" style={{ background: color, ['--in' as string]: `${i * 40}ms`, ['--out' as string]: `${(2 - i) * 40}ms` }}>
+                {i === 2 && info && (
+                  <div className="pts-label pte-label">
+                    <IconTile id={info.id} shadow="8px" className="pte-icon" />
+                    <span className="h-display text-[clamp(3rem,10vw,8rem)]">{info.name}</span>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        );
+      })()}
       {opts.kind === 'fade' && phase !== 'idle' && <div className="pt pt-fade" data-phase={phase} aria-hidden="true" />}
       {opts.kind === 'blot' && phase !== 'idle' && (
         <div className="pt" data-phase={phase} aria-hidden="true">
@@ -160,7 +183,7 @@ export const PageTransition = ({ children }: { children: ReactNode }) => {
         </div>
       )}
       {/* sideways sea (dir left/right), same layers as the filter sweep */}
-      <div className="pt" data-phase={opts.kind !== 'slash' && opts.kind !== 'fade' && sideways ? phase : 'idle'} data-dir={opts.dir} aria-hidden="true">
+      <div className="pt" data-phase={opts.kind !== 'slash' && opts.kind !== 'fade' && opts.kind !== 'element' && sideways ? phase : 'idle'} data-dir={opts.dir} aria-hidden="true">
         {LAYERS.map((color, i) => (
           <div
             key={color}
@@ -173,7 +196,7 @@ export const PageTransition = ({ children }: { children: ReactNode }) => {
           </div>
         ))}
       </div>
-      <div className="pt" data-phase={opts.kind === 'slash' || opts.kind === 'fade' || sideways || opts.kind === 'blot' ? 'idle' : phase} data-dir={opts.dir ?? 'up'} aria-hidden="true">
+      <div className="pt" data-phase={opts.kind === 'slash' || opts.kind === 'fade' || sideways || opts.kind === 'blot' || opts.kind === 'element' ? 'idle' : phase} data-dir={opts.dir ?? 'up'} aria-hidden="true">
         {LAYERS.map((color, i) => (
           <div
             key={color}

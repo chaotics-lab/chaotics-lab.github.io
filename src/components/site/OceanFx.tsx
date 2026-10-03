@@ -15,7 +15,7 @@ import { OCEAN_FX, type Fx } from '@/lib/oceanFx';
 // pages (they keep the icons only).
 
 const OPACITY = 0.8; // every effect, times its gain
-const FADE_S = 0.7; // crossfade between elements, close to the colour blend
+const FADE_S = 0.4; // crossfade between elements (the switch itself happens under the element transition)
 const STEP = 1 / 30 - 0.004; // drawing interval while the page is still (a little early, so 60 Hz screens hit every other frame)
 const WARM_PER_FRAME = 10; // run-ahead steps per frame (OCEAN_FX[id].warm), so a switch never stalls
 const NOT_HERE = 'a, button, input, textarea, select, label, [role="button"], [data-no-fx]';

@@ -6,14 +6,17 @@ import { createContext, useContext } from 'react';
 // other way. Used between projects.
 // dir (sea only): 'up' (default) rises from the bottom, 'down' pours in from
 // the top, 'right' / 'left' sweep sideways in that direction.
+// 'element': a fast slash in `element`'s colours stamping its icon and name,
+// used when switching elements (the colours swap while it covers).
 // 'blot': wavy blots in `colors` (back to front) grow from `origin` (screen
 // px) over the screen, then open from the middle onto the new page.
 export type TransitionOpts = {
-  kind?: 'sea' | 'slash' | 'blot' | 'fade';
+  kind?: 'sea' | 'slash' | 'blot' | 'fade' | 'element';
   dir?: 'up' | 'down' | 'left' | 'right';
   colors?: [string, string, string];
   label?: string;
   origin?: { x: number; y: number };
+  element?: string;
 };
 
 type PageTransition = {

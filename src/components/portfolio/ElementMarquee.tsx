@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { ELEMENTS } from '@/config/elements';
 import { applyTheme, currentElement, onThemeChange } from '@/lib/theme';
+import { usePageTransition } from '@/lib/pageTransition';
 import { onTick, prefersReducedMotion } from '@/lib/ticker';
 import { IconTile } from './IconTile';
 
@@ -10,11 +11,12 @@ const DRAG_PX = 6; // movement that turns a press into a drag (no click)
 // Slanted black band with the elements scrolling past (P5-style ticker).
 // The list is rendered twice and wraps at half its width, so the loop is
 // seamless. It can be dragged (finger or mouse) and keeps a little momentum;
-// hovering eases it down to 20% speed. A tap or click picks an element and
-// slides the site into its colour scheme. The ocean layer is clipped to the
+// hovering eases it down to 20% speed. A tap or click picks an element: its
+// transition (PageTransition 'element') covers the switch of colour scheme. The ocean layer is clipped to the
 // band's bottom edge, found through data-ocean-top.
 export const ElementMarquee = () => {
   const [active, setActive] = useState(currentElement);
+  const { dive } = usePageTransition();
   useEffect(() => onThemeChange(() => setActive(currentElement())), []);
 
   const trackRef = useRef<HTMLDivElement>(null);
@@ -66,7 +68,7 @@ export const ElementMarquee = () => {
 
   const pick = (id: string) => {
     if (drag.current.moved > DRAG_PX) return; // that was a drag, not a click
-    if (id !== currentElement()) applyTheme(id, true);
+    if (id !== currentElement()) dive(() => applyTheme(id), { kind: 'element', element: id });
   };
 
   return (
