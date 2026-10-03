@@ -12,7 +12,8 @@ import { OCEAN_FX, type Fx } from '@/lib/oceanFx';
 // the sides. PC only, and not at the minimal quality level.
 
 const OPACITY = 0.8; // every effect, times its gain
-const SWAP_MS = 350;
+const FADE_S = 0.7; // crossfade between elements, close to the colour blend
+const WARM_PER_FRAME = 10; // run-ahead steps per frame (OCEAN_FX[id].warm), so a switch never stalls
 const NOT_HERE = 'a, button, input, textarea, select, label, [role="button"], [data-no-fx]';
 const SIDES = 'linear-gradient(to right, #000, rgba(0,0,0,0.55) 50%, #000)';
 
@@ -34,6 +35,13 @@ export const OceanFx = () => {
     };
 
     let vw = 0, vh = 0, pageH = 1, oceanTop = 0;
+    type Layer = { id: string; fx: Fx; c: HTMLCanvasElement; g: CanvasRenderingContext2D; warm: number; k: number; dir: 1 | -1 };
+    const layers: Layer[] = [];
+    function sizeLayer(l: Layer) {
+      l.c.width = canvas!.width;
+      l.c.height = canvas!.height;
+      l.g.setTransform(canvas!.width / vw, 0, 0, canvas!.height / vh, 0, 0);
+    }
     const layout = () => {
       pageH = Math.max(document.documentElement.scrollHeight, vh);
       const b = findBand();
@@ -53,6 +61,7 @@ export const OceanFx = () => {
       canvas.width = Math.round(vw * dpr);
       canvas.height = Math.round(vh * dpr);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      for (const l of layers) sizeLayer(l);
       layout();
     };
     fit();
@@ -61,31 +70,31 @@ export const OceanFx = () => {
     ro.observe(document.body);
     const floor = () => pageH - window.scrollY;
 
-    // The current element's effect, run ahead a few seconds so it starts
-    // grown in (frost, roots); on a change it fades out, swaps, fades in.
-    const make = (key: string) => {
-      const f = (OCEAN_FX[key] ?? OCEAN_FX.aqua).make(vw);
-      const fl = floor();
-      for (let i = 0; i < 80; i++) f.draw(ctx, vw, vh, 0.05, fl);
-      ctx.clearRect(0, 0, vw, vh);
-      return f;
+    // Each effect draws into its own layer; the layers are composited with
+    // their gain and fade. On a switch the old one keeps running while it
+    // fades out and the new one fades in (eased both ways); the new one is
+    // first run ahead if it has to grow in (frost), a few steps per frame.
+    const addLayer = (id: string) => {
+      const def = OCEAN_FX[id] ?? OCEAN_FX.aqua, c = document.createElement('canvas'), l: Layer = { id, fx: def.make(vw), c, g: c.getContext('2d')!, warm: def.warm ?? 0, k: 0, dir: 1 };
+      sizeLayer(l);
+      layers.push(l);
     };
+    const ease = (k: number) => k * k * (3 - 2 * k);
+    const scratchCanvas = document.createElement('canvas');
+    scratchCanvas.width = scratchCanvas.height = 1;
+    const scratch = scratchCanvas.getContext('2d')!;
     let id = currentElement();
-    let fx: Fx = make(id);
-    let swap = 0;
-    const show = () => { canvas.style.opacity = String(OPACITY * (OCEAN_FX[id]?.gain ?? 1)); };
-    show();
+    addLayer(id);
     const offTheme = onThemeChange(() => {
       const next = currentElement();
       if (next === id) return;
-      canvas.style.opacity = '0';
-      clearTimeout(swap);
-      swap = window.setTimeout(() => {
-        id = next;
-        fx = make(id);
-        show();
-      }, SWAP_MS);
+      id = next;
+      for (let i = layers.length - 1; i >= 0; i--) if (layers[i].warm > 0) layers.splice(i, 1); // never shown: drop it
+      for (const l of layers) l.dir = -1;
+      addLayer(id);
     });
+    const newest = () => layers[layers.length - 1];
+    canvas.style.opacity = String(OPACITY);
 
     const enabled = () => quality() >= 1 && fine.matches; // cheap enough for the lighter level too
     const sync = () => { canvas.style.display = enabled() ? '' : 'none'; };
@@ -95,7 +104,7 @@ export const OceanFx = () => {
 
     const onDown = (e: PointerEvent) => {
       if (!enabled() || e.clientY + window.scrollY < oceanTop || (e.target as Element | null)?.closest?.(NOT_HERE)) return;
-      fx.click?.(vw, vh, e.clientX, e.clientY);
+      newest()?.fx.click?.(vw, vh, e.clientX, e.clientY);
     };
     window.addEventListener('pointerdown', onDown, { passive: true });
 
@@ -124,9 +133,27 @@ export const OceanFx = () => {
       if (Math.max(document.documentElement.scrollHeight, vh) !== pageH) layout();
       canvas.style.maskPosition = canvas.style.webkitMaskPosition = `0 ${-y}px, 0 0`;
       if (oceanTop - y >= vh) return; // the ocean hasn't started on screen yet
-      fx.move?.(pointer.active ? pointer.x : null, pointer.y);
+      const fl = floor(), px = pointer.active ? pointer.x : null;
       ctx.clearRect(0, 0, vw, vh);
-      fx.draw(ctx, vw, vh, dt, floor());
+      for (let i = layers.length - 1; i >= 0; i--) {
+        const l = layers[i];
+        if (l.warm > 0) { // running ahead, not shown yet
+          for (let n = Math.min(WARM_PER_FRAME, l.warm); n > 0; n--) l.fx.draw(scratch, vw, vh, 0.05, fl); // simulate only: output to a 1 px target
+          l.warm -= WARM_PER_FRAME;
+          continue;
+        }
+        l.k = Math.max(0, Math.min(1, l.k + (l.dir * dt) / FADE_S));
+        if (l.dir < 0 && l.k === 0) { layers.splice(i, 1); continue; }
+      }
+      for (const l of layers) {
+        if (l.warm > 0) continue;
+        l.fx.move?.(px, pointer.y);
+        l.g.clearRect(0, 0, vw, vh);
+        l.fx.draw(l.g, vw, vh, dt, fl);
+        ctx.globalAlpha = ease(l.k) * (OCEAN_FX[l.id]?.gain ?? 1);
+        ctx.drawImage(l.c, 0, 0, vw, vh);
+      }
+      ctx.globalAlpha = 1;
       clearAboveBand();
     });
 
@@ -135,7 +162,6 @@ export const OceanFx = () => {
       offTheme();
       offQuality();
       ro.disconnect();
-      clearTimeout(swap);
       fine.removeEventListener('change', sync);
       window.removeEventListener('pointerdown', onDown);
       window.removeEventListener('resize', fit);

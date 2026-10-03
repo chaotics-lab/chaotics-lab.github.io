@@ -233,17 +233,22 @@ function cryo(): Fx {
     gb.addColorStop(1, 'rgba(255,255,255,0)');
     b.fillStyle = gb;
     b.fillRect(0, 0, w, band);
-    // fine speckle, denser toward each edge
-    s.fillStyle = b.fillStyle = '#fff';
-    for (let i = 0; i < (w * h) / 60; i++) {
-      const px = rnd(0, w), py = rnd(0, h);
-      if (Math.random() > Math.min(px, w - px) / e) { s.globalAlpha = rnd(0.1, 0.45); s.fillRect(px, py, 1, 1); }
-    }
-    for (let i = 0; i < (w * band) / 40; i++) {
-      const px = rnd(0, w), py = rnd(0, band);
-      if (Math.random() > (band - py) / e) { b.globalAlpha = rnd(0.1, 0.45); b.fillRect(px, py, 1, 1); }
-    }
+    // fine speckle, denser toward each edge, written straight into the pixels
+    const speckle = (x: CanvasRenderingContext2D, W: number, Hh: number, n: number, weight: (px: number, py: number) => number) => {
+      const img = x.getImageData(0, 0, W, Hh), d = img.data;
+      for (let i = 0; i < n; i++) {
+        const px = Math.floor(Math.random() * W), py = Math.floor(Math.random() * Hh);
+        if (Math.random() <= weight(px, py)) continue;
+        const o = (py * W + px) * 4, a = rnd(0.1, 0.45);
+        d[o] = d[o + 1] = d[o + 2] = 255;
+        d[o + 3] = Math.min(255, d[o + 3] + a * 255);
+      }
+      x.putImageData(img, 0, 0);
+    };
+    speckle(s, sides.width, sides.height, (w * h) / 60, px => Math.min(px, w - px) / e);
+    speckle(b, bottom.width, band, (w * band) / 40, (px, py) => (band - py) / e);
   };
+
 
   const grow = (x: number, y: number, ang: number, len: number, gen: number) => fronts.push({ x, y, ang, len, gen, d: 0, nextBranch: rnd(6, 12) });
   // from the seabed when it is in view, else from the sides of the screen
@@ -334,7 +339,7 @@ function aero(): Fx {
   const born = (w: number, h: number, anywhere: boolean): Icon => ({ x: anywhere ? rnd(0, w) : rnd(-80, -30), y: rnd(h * 0.1, h * 0.9), s: rnd(16, 34), a: 0, spin: rnd(-1, 1), ph: rnd(0, TAU), vx: 0, vy: 0, hx: [], hy: [] });
   const setup = (w: number, h: number) => {
     icons = Array.from({ length: Math.max(5, Math.round(w / 170)) }, () => born(w, h, true));
-    blades = [0, 1].map(layer => Array.from({ length: Math.round(w / (layer ? 3.2 : 4.5)) }, () => ({ x: rnd(-10, w + 10), len: rnd(h * 0.04, h * (layer ? 0.12 : 0.16)), wb: rnd(1.2, 2.6), ph: rnd(0, TAU) })));
+    blades = [0, 1].map(layer => Array.from({ length: Math.round(w / (layer ? 6 : 9)) }, () => ({ x: rnd(-10, w + 10), len: rnd(h * 0.04, h * (layer ? 0.12 : 0.16)), wb: rnd(1.2, 2.6), ph: rnd(0, TAU) })));
     const n = Math.max(3, Math.round(w / 300));
     plants = Array.from({ length: n }, (_, i) => ({ x: ((i + 0.5 + rnd(-0.3, 0.3)) / n) * w, len: h * rnd(0.22, 0.34), ph: rnd(0, TAU), fl: Array.from({ length: 7 }, () => rnd(0.24, 0.32)) }));
   };
@@ -557,7 +562,9 @@ type Ray = { x: number; w: number; ph: number; sp: number };
 type Flake = { x: number; y: number; s: number; ph: number; vx: number; vy: number };
 function aqua(): Fx {
   let rays: Ray[] = [], snow: Flake[] = [], rings: { x: number; y: number; age: number }[] = [], t = 0, W = 0, H = 0, ptr: Ptr = null;
-  let tile: HTMLCanvasElement | null = null, pats: CanvasPattern[] = [];
+  let tile: HTMLCanvasElement | null = null, pats: CanvasPattern[] = [], frame = 0;
+  // soft light at a quarter of the resolution; the seabed rendered every third frame and reused while scrolling
+  const rayBuf = canvas(), rg = rayBuf.getContext('2d')!, floorBuf = canvas(), fg = floorBuf.getContext('2d')!;
   const setup = (w: number, h: number) => {
     const n = Math.max(4, Math.round(w / 220));
     rays = Array.from({ length: n }, (_, i) => ({ x: ((i + 0.5 + rnd(-0.3, 0.3)) / n) * w * 1.1 - w * 0.05, w: rnd(30, 110), ph: rnd(0, TAU), sp: rnd(0.15, 0.3) }));
@@ -572,16 +579,21 @@ function aqua(): Fx {
     draw(g, w, h, dt, floor) {
       t += dt;
       if (W !== w || H !== h) { W = w; H = h; setup(w, h); }
-      // light shafts: slanted, widening downward, fading out with depth
-      const slant = 0.28;
+      // light shafts: slanted, widening downward, fading out with depth (soft, so a quarter of the resolution)
+      const RQ = 4, slant = 0.28;
+      if (rayBuf.width !== Math.ceil(w / RQ) || rayBuf.height !== Math.ceil(h / RQ)) { rayBuf.width = Math.ceil(w / RQ); rayBuf.height = Math.ceil(h / RQ); }
+      rg.setTransform(1 / RQ, 0, 0, 1 / RQ, 0, 0);
+      rg.clearRect(0, 0, w, h);
       for (const r of rays) {
         const sway = Math.sin(t * r.sp + r.ph) * 40, x = r.x + sway, a = 0.05 + 0.05 * (0.5 + 0.5 * Math.sin(t * r.sp * 1.7 + r.ph * 2));
-        const len = h * 1.15, bx = x + len * slant, gr = g.createLinearGradient(x, 0, bx, len);
+        const len = h * 1.15, bx = x + len * slant, gr = rg.createLinearGradient(x, 0, bx, len);
         gr.addColorStop(0, `rgba(255,255,255,${a})`);
         gr.addColorStop(1, 'rgba(255,255,255,0)');
-        g.fillStyle = gr;
-        g.beginPath(); g.moveTo(x - r.w / 2, -10); g.lineTo(x + r.w / 2, -10); g.lineTo(bx + r.w, len); g.lineTo(bx - r.w, len); g.closePath(); g.fill();
+        rg.fillStyle = gr;
+        rg.beginPath(); rg.moveTo(x - r.w / 2, -10); rg.lineTo(x + r.w / 2, -10); rg.lineTo(bx + r.w, len); rg.lineTo(bx - r.w, len); rg.closePath(); rg.fill();
       }
+      g.imageSmoothingEnabled = true;
+      g.drawImage(rayBuf, 0, 0, w, h);
       // marine snow: slow current that varies with depth, sinking a little, swirling from the pointer
       const bands = [new Path2D(), new Path2D(), new Path2D()];
       for (const f of snow) {
@@ -601,32 +613,37 @@ function aqua(): Fx {
       // around the centre, plane depth squeezes onto the strip's height)
       const band = Math.min(340, h * 0.42), horizon = floor - band;
       if (horizon < h) {
-        if (!tile) { tile = causticTile(); pats = [g.createPattern(tile, 'repeat')!, g.createPattern(tile, 'repeat')!]; }
-        const ZF = 5, D = 420, cx = w / 2, STRIPS = 120;
-        const yAt = (z: number) => floor - band * ((1 - 1 / z) / (1 - 1 / ZF)), planeY = (z: number) => (D * (z - 1)) / (ZF - 1);
-        const tint = g.createLinearGradient(0, floor, 0, horizon); // sand
-        tint.addColorStop(0, 'rgba(255,255,255,0.08)');
-        tint.addColorStop(1, 'rgba(255,255,255,0)');
-        g.fillStyle = tint;
-        g.fillRect(0, horizon, w, band);
-        // two layers drifting apart; the second is larger and mirrored, so the repeats never line up
-        const layers = [{ k: 2, u: t * 7, v: t * 5 }, { k: -2.7, u: -t * 6, v: t * 7 }];
-        g.save();
-        g.globalCompositeOperation = 'lighter';
-        for (let s = 0; s < STRIPS; s++) {
-          // strips are spaced evenly in 1/z, so they are evenly thin on screen
-          const z0 = 1 / (1 - (s / STRIPS) * (1 - 1 / ZF)), z1 = 1 / (1 - ((s + 1) / STRIPS) * (1 - 1 / ZF)), zm = (z0 + z1) / 2;
-          const y1 = yAt(z0), y0 = yAt(z1), Y0 = planeY(z0), sy = (y1 - y0) / (planeY(z1) - Y0);
-          if (y1 < 0 || y0 > h) continue;
-          g.globalAlpha = 0.42 * Math.min(1, (1 - s / STRIPS) * 1.6); // fades toward the horizon
-          layers.forEach((L, li) => {
-            const p = pats[li], kx = L.k / zm, ky = Math.abs(L.k) * sy;
-            p.setTransform(new DOMMatrix([kx, 0, 0, -ky, cx - (cx - L.u) * kx, y1 + (Y0 + L.v) * ky]));
-            g.fillStyle = p;
-            g.fillRect(0, y0, w, y1 - y0 + 0.5);
-          });
+        if (!tile) { tile = causticTile(); pats = [fg.createPattern(tile, 'repeat')!, fg.createPattern(tile, 'repeat')!]; }
+        const B = Math.round(band);
+        if (floorBuf.width !== Math.round(w) || floorBuf.height !== B) { floorBuf.width = Math.round(w); floorBuf.height = B; frame = 0; }
+        if (frame++ % 3 === 0) { // 20 fps is plenty for this slow light; drawn in the buffer's own space: horizon at 0, page end at B
+          const ZF = 5, D = 420, cx = w / 2, STRIPS = 90;
+          const yAt = (z: number) => B - B * ((1 - 1 / z) / (1 - 1 / ZF)), planeY = (z: number) => (D * (z - 1)) / (ZF - 1);
+          fg.globalCompositeOperation = 'source-over';
+          fg.globalAlpha = 1;
+          fg.clearRect(0, 0, w, B);
+          const tint = fg.createLinearGradient(0, B, 0, 0); // sand
+          tint.addColorStop(0, 'rgba(255,255,255,0.08)');
+          tint.addColorStop(1, 'rgba(255,255,255,0)');
+          fg.fillStyle = tint;
+          fg.fillRect(0, 0, w, B);
+          // two layers drifting apart; the second is larger and mirrored, so the repeats never line up
+          const layers = [{ k: 2, u: t * 7, v: t * 5 }, { k: -2.7, u: -t * 6, v: t * 7 }];
+          fg.globalCompositeOperation = 'lighter';
+          for (let s = 0; s < STRIPS; s++) {
+            // strips are spaced evenly in 1/z, so they are evenly thin on screen
+            const z0 = 1 / (1 - (s / STRIPS) * (1 - 1 / ZF)), z1 = 1 / (1 - ((s + 1) / STRIPS) * (1 - 1 / ZF)), zm = (z0 + z1) / 2;
+            const y1 = yAt(z0), y0 = yAt(z1), Y0 = planeY(z0), sy = (y1 - y0) / (planeY(z1) - Y0);
+            fg.globalAlpha = 0.42 * Math.min(1, (1 - s / STRIPS) * 1.6); // fades toward the horizon
+            layers.forEach((L, li) => {
+              const p = pats[li], kx = L.k / zm, ky = Math.abs(L.k) * sy;
+              p.setTransform(new DOMMatrix([kx, 0, 0, -ky, cx - (cx - L.u) * kx, y1 + (Y0 + L.v) * ky]));
+              fg.fillStyle = p;
+              fg.fillRect(0, y0, w, y1 - y0 + 0.5);
+            });
+          }
         }
-        g.restore();
+        g.drawImage(floorBuf, 0, horizon, w, B);
       }
       // click ripples
       rings = rings.filter(r => (r.age += dt) < 1.4);
@@ -685,12 +702,13 @@ function gaia(): Fx {
   };
 }
 
-// One factory per element, and how strongly each shows, so filled effects
-// (Pyra) and sparse line ones end up at about the same visual weight.
-export const OCEAN_FX: Record<string, { make: (w: number) => Fx; gain: number }> = {
+// One factory per element; how strongly each shows, so filled effects (Pyra)
+// and sparse line ones end up at about the same visual weight; and how many
+// 50 ms steps to run it ahead before it shows (only what has to grow in).
+export const OCEAN_FX: Record<string, { make: (w: number) => Fx; gain: number; warm?: number }> = {
   aqua: { make: aqua, gain: 1 },
   pyra: { make: pyra, gain: 0.55 },
-  cryo: { make: cryo, gain: 0.85 },
+  cryo: { make: cryo, gain: 0.85, warm: 80 },
   volta: { make: volta, gain: 1 },
   aero: { make: aero, gain: 1 },
   gaia: { make: gaia, gain: 1 },
