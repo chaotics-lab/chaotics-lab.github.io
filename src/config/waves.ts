@@ -1,8 +1,10 @@
 // How the hero water moves for each element. Aqua is the reference (all 1
 // or 0); the others scale it.
 //   amp, speed, freq: wave height, speed and how many crests fit across
-//   zig: electric water (Volta): triangle swell, crawling zigzag teeth,
-//        flickering crest, random shocks, drawn with straight segments
+//   zig: electric water: triangle swell, crawling zigzag teeth, flickering
+//        crest, drawn with straight segments (unused at the moment)
+//   volt: shocks (Volta): jagged bursts, mostly near the pointer, that send
+//         a shock wave running along the water, with sparks
 //   fluid: extra rolling harmonic on top (Pyra)
 //   lumps: small slow bumps riding on the swell (Cryo slush, Gaia mud)
 //   drift: each layer's depth wanders slowly on its own
@@ -23,6 +25,7 @@ export interface WaveStyle {
   speed: number;
   freq: number;
   zig: number;
+  volt: number;
   fluid: number;
   lumps: number;
   drift: number;
@@ -37,12 +40,12 @@ export interface WaveStyle {
   opacity: number;
 }
 
-const BASE: WaveStyle = { amp: 1, speed: 1, freq: 1, zig: 0, fluid: 0, lumps: 0, drift: 0, storm: 0, petals: 0, frost: 0, solar: 0, rain: 0, earth: 0, breathe: 0, stir: 1, opacity: 1 };
+const BASE: WaveStyle = { amp: 1, speed: 1, freq: 1, zig: 0, volt: 0, fluid: 0, lumps: 0, drift: 0, storm: 0, petals: 0, frost: 0, solar: 0, rain: 0, earth: 0, breathe: 0, stir: 1, opacity: 1 };
 
 export const WAVES: Record<string, WaveStyle> = {
   aqua: { ...BASE, rain: 1 },
-  volta: { ...BASE, amp: 0.85, speed: 1.4, freq: 1.3, zig: 1 },
-  pyra: { ...BASE, amp: 1.45, speed: 2.3, freq: 0.9, fluid: 1, solar: 1, stir: 1.3 },
+  volta: { ...BASE, volt: 1 },
+  pyra: { ...BASE, amp: 2.8, speed: 2.3, freq: 0.9, fluid: 1, solar: 1, stir: 1.3 },
   cryo: { ...BASE, amp: 0.6, speed: 0.4, lumps: 1, frost: 1, stir: 0.5 },
   gaia: { ...BASE, amp: 0.75, speed: 0.5, freq: 0.7, lumps: 0.45, earth: 1, stir: 0.35, opacity: 1.8 },
   flora: { ...BASE, amp: 0.4, speed: 0.4, freq: 0.7, petals: 1, breathe: 0.4, stir: 0.4 },
