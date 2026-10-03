@@ -15,6 +15,7 @@
   figcaption b { color: #fff; }
   /* element palettes from src/config/themes.ts */
   .el-pyra { --top:#C00223; --deep:#6A000E; --night:#430005; --c3:#FEE2DF; }
+  .el-gaia { --top:#9A4E23; --deep:#562609; --night:#341605; --c3:#FCE4D8; }
   .el-flora { --top:#AC0398; --deep:#5E0053; --night:#3B0033; --c3:#FFDEF6; }
   .el-aero { --top:#4C6F64; --deep:#243B34; --night:#15231E; --c3:#E2ECE8; }
 </style></head><body>
@@ -24,8 +25,11 @@
   <figure><canvas data-fx="voltaFlash"></canvas><figcaption><b>Volta B</b> · murk flash (ArvidW, 2D)</figcaption></figure>
   <figure><canvas data-fx="voltaFlashBolts"></canvas><figcaption><b>Volta C</b> · murk flash + bolt</figcaption></figure>
   <figure class="el-pyra"><canvas data-fx="pyraLava"></canvas><figcaption><b>Pyra B</b> · lava blobs (hover to heat)</figcaption></figure>
+  <figure class="el-pyra"><canvas data-fx="pyraLamp"></canvas><figcaption><b>Pyra C</b> · lava lamp (ge1doot)</figcaption></figure>
   <figure class="el-aero"><canvas data-fx="aeroFlock"></canvas><figcaption><b>Aero B</b> · flock, curved lines</figcaption></figure>
+  <figure class="el-gaia"><canvas data-fx="gaiaStars"></canvas><figcaption><b>Gaia B</b> · sea of stars (hover, click)</figcaption></figure>
   <figure class="el-flora"><canvas data-fx="floraCoral"></canvas><figcaption><b>Flora B</b> · flower coral (move to draw)</figcaption></figure>
+  <figure class="el-flora"><canvas data-fx="floraRoots"></canvas><figcaption><b>Flora C</b> · hanging roots (hover)</figcaption></figure>
   <figure><canvas data-fx="aquaZ2"></canvas><figcaption><b>Aqua C</b> · crumple water, zoom x2</figcaption></figure>
   <figure><canvas data-fx="aquaZ3"></canvas><figcaption><b>Aqua D</b> · crumple water, zoom x3</figcaption></figure>
   <figure><canvas data-fx="aquaZ5"></canvas><figcaption><b>Aqua E</b> · crumple water, zoom x5</figcaption></figure>
@@ -599,6 +603,180 @@ FX.floraCoral = () => {
       // stepped fade: 15% every 0.8 s (small steps would stall on 8-bit alpha)
       if ((fadeT += dt) > 0.8) { fadeT = 0; p.globalCompositeOperation = 'destination-out'; p.fillStyle = 'rgba(0,0,0,0.15)'; p.fillRect(0, 0, w, h); p.globalCompositeOperation = 'source-over'; }
       g.drawImage(paint, 0, 0, w, h);
+    },
+  };
+};
+
+// ---- GAIA B: sea of stars. Three depth layers like the CSS pen (many 1 px, fewer 2 px, few 3 px), each
+// drifting up at its own speed and shifted by the pointer for parallax; every star twinkles on its own
+// clock; now and then a shooting star. Near the pointer stars light up and swell, and stay lit a moment
+// after it passes (plankton). Drawn as one fill per layer and brightness band.
+FX.gaiaStars = () => {
+  const LAYERS = [{ n: 1500, s: 1, v: 6, par: 4 }, { n: 420, s: 1.8, v: 3, par: 10 }, { n: 160, s: 2.6, v: 2, par: 18 }]; // per 1000 x 1000 px
+  const BANDS = 5;
+  let stars = null, shoot = [], next = 2, t = 0, ptr = null, px = 0, py = 0;
+  const setup = (w, h) => {
+    const k = (w * h) / 1e6;
+    stars = LAYERS.map(L => [...Array(Math.round(L.n * k))].map(() => ({ x: rnd(0, w), y: rnd(0, h), ph: rnd(0, TAU), sp: rnd(0.6, 2.2), lit: 0 })));
+  };
+  return {
+    click: (w, h, x, y) => shoot.push({ x, y, ang: rnd(0.25, 0.6), v: rnd(380, 520), age: 0 }),
+    move: (x, y) => { ptr = x == null ? null : { x, y }; },
+    draw(g, w, h, dt) {
+      t += dt;
+      if (!stars) setup(w, h);
+      // parallax target: pointer offset from the centre, eased
+      const tx = ptr ? (ptr.x / w - 0.5) * 2 : 0, ty = ptr ? (ptr.y / h - 0.5) * 2 : 0;
+      px += (tx - px) * Math.min(1, dt * 3); py += (ty - py) * Math.min(1, dt * 3);
+      LAYERS.forEach((L, li) => {
+        const paths = [...Array(BANDS)].map(() => new Path2D()), ox = -px * L.par, oy = -py * L.par;
+        for (const s of stars[li]) {
+          s.y -= L.v * dt; if (s.y < 0) s.y += h;
+          const x = ((s.x + ox) % w + w) % w, y = ((s.y + oy) % h + h) % h;
+          if (ptr) { const d2 = (x - ptr.x) ** 2 + (y - ptr.y) ** 2; if (d2 < 3600) s.lit = Math.max(s.lit, 1 - d2 / 3600); }
+          s.lit *= Math.pow(0.25, dt);
+          const tw = 0.55 + 0.45 * Math.sin(t * s.sp + s.ph), b = Math.min(1, tw * (0.5 + 0.2 * li) + s.lit);
+          const size = L.s * (1 + s.lit * 1.5);
+          const pa = paths[Math.min(BANDS - 1, (b * BANDS) | 0)];
+          if (size < 1.5) pa.rect(x - size / 2, y - size / 2, size, size); else { pa.moveTo(x + size / 2, y); pa.arc(x, y, size / 2, 0, TAU); }
+        }
+        paths.forEach((pa, i) => { g.fillStyle = `rgba(252,228,216,${(i + 1) / BANDS})`; g.fill(pa); });
+      });
+      // shooting stars: a fading streak with a bright head
+      if ((next -= dt) <= 0) { next = rnd(2.5, 5); shoot.push({ x: rnd(-0.1, 0.7) * w, y: rnd(0, 0.4) * h, ang: rnd(0.25, 0.6), v: rnd(380, 520), age: 0 }); }
+      shoot = shoot.filter(s => (s.age += dt) < 0.9);
+      g.lineCap = 'round';
+      for (const s of shoot) {
+        const k = s.age / 0.9, d = s.v * s.age, hx = s.x + Math.cos(s.ang) * d, hy = s.y + Math.sin(s.ang) * d, L = 90 * (1 - k * 0.5);
+        const gr = g.createLinearGradient(hx, hy, hx - Math.cos(s.ang) * L, hy - Math.sin(s.ang) * L);
+        gr.addColorStop(0, `rgba(255,255,255,${1 - k})`); gr.addColorStop(1, 'rgba(255,255,255,0)');
+        g.strokeStyle = gr; g.lineWidth = 1.6; g.beginPath(); g.moveTo(hx, hy); g.lineTo(hx - Math.cos(s.ang) * L, hy - Math.sin(s.ang) * L); g.stroke();
+      }
+    },
+  };
+};
+
+// ---- FLORA C: the Kodama pen's hanging roots, without GSAP or SVG. Clusters of four strokes (thick,
+// thin, thick, thin) hang from the surface: a small hook, then a long drop with gentle bends. Each one
+// swings around its top to a new angle within ±5° every 3 to 5 s, eased in and out (as the pen's tweens).
+// The pointer nudges nearby roots aside. Two strokes per frame (one per width).
+FX.floraRoots = () => {
+  let roots = null, t = 0, ptr = null;
+  const DEG = Math.PI / 180, ease = k => k < 0.5 ? 2 * k * k : 1 - (-2 * k + 2) ** 2 / 2;
+  const setup = (w, h) => {
+    roots = [];
+    const n = Math.max(3, Math.round(w / 85));
+    for (let c = 0; c < n; c++) {
+      const cx = (c + 0.5 + rnd(-0.3, 0.3)) * (w / n), cy = rnd(-12, h * 0.08), L = h * rnd(0.4, 0.75);
+      for (let r = 0; r < 4; r++) {
+        const side = Math.random() < 0.5 ? -1 : 1, hook = side * rnd(6, 16), ph = rnd(0, TAU), len = L * rnd(0.75, 1);
+        const pts = [];
+        for (let y = 0; y <= len; y += 8) {
+          const k = Math.min(1, y / 22); // the hook: reach sideways over the first 22 px, then drop
+          pts.push([hook * Math.sin(k * Math.PI / 2) + Math.sin(y * 0.045 + ph) * 3 + noise(c * 7 + r, y * 0.02) * 6, y]);
+        }
+        const a = rnd(-5, 5) * DEG;
+        roots.push({ x: cx + rnd(-10, 10), y: cy + (r % 2) * rnd(4, 14), pts, w: r % 2 ? 0.6 : 1.6, a, from: a, to: rnd(-5, 5) * DEG, t0: 0, dur: rnd(3, 5), push: 0 });
+      }
+    }
+  };
+  return {
+    click: () => {},
+    move: (x, y) => { ptr = x == null ? null : { x, y }; },
+    draw(g, w, h, dt) {
+      t += dt;
+      if (!roots) setup(w, h);
+      const thick = new Path2D(), thin = new Path2D();
+      for (const r of roots) {
+        let k = (t - r.t0) / r.dur;
+        if (k >= 1) { r.from = r.to; r.to = rnd(-5, 5) * DEG; r.t0 = t; r.dur = rnd(3, 5); k = 0; }
+        // pointer push: swing away from it, more when it is close to the root's line
+        let target = 0;
+        if (ptr && ptr.y > r.y) { const dx = r.x - ptr.x, d = Math.abs(dx); if (d < 70) target = Math.sign(dx || 1) * (1 - d / 70) * 9 * DEG; }
+        r.push += (target - r.push) * Math.min(1, dt * 3);
+        r.a = r.from + (r.to - r.from) * ease(k) + r.push;
+        const cs = Math.cos(r.a), sn = Math.sin(r.a), pa = r.w > 1 ? thick : thin, P = r.pts.map(([x, y]) => [r.x + x * cs - y * sn, r.y + x * sn + y * cs]);
+        // smooth line through the points (curves between midpoints)
+        pa.moveTo(P[0][0], P[0][1]);
+        for (let i = 1; i < P.length - 1; i++) pa.quadraticCurveTo(P[i][0], P[i][1], (P[i][0] + P[i + 1][0]) / 2, (P[i][1] + P[i + 1][1]) / 2);
+        const e = P[P.length - 1]; pa.lineTo(e[0], e[1]);
+      }
+      g.lineCap = 'round'; g.lineJoin = 'round';
+      g.strokeStyle = 'rgba(255,255,255,0.75)'; g.lineWidth = 1.6; g.stroke(thick);
+      g.strokeStyle = 'rgba(255,255,255,0.5)'; g.lineWidth = 0.6; g.stroke(thin);
+    },
+  };
+};
+
+// ---- PYRA C: ge1doot's lava lamp, ported nearly as is. Six metaballs bounce slowly; marching squares
+// walks only along each blob's outline (5 px cells), so the field is computed on a thin band, not the
+// whole canvas; the sign flip each frame lets cached cell values be reused. The outline is filled with
+// a radial gradient (Pyra c1 -> ramp instead of the pen's pinks).
+FX.pyraLamp = () => {
+  let L = null, W = 0, H = 0;
+  const Pt = (x, y) => ({ x, y, magnitude: x * x + y * y, computed: 0, force: 0 });
+  const make = (g, width, height, numBalls, c0, c1) => {
+    const o = { step: 5, width, height, wh: Math.min(width, height), paint: false, iter: 0, sign: 1, grid: [], balls: [] };
+    o.sx = Math.floor(width / o.step); o.sy = Math.floor(height / o.step);
+    const gr = g.createRadialGradient(width, height, 0, width, height, width); gr.addColorStop(0, c0); gr.addColorStop(1, c1); o.metaFill = gr;
+    o.plx = [0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 0, 1, 0, 0, 0, 0];
+    o.ply = [0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 0, 1, 0, 1];
+    o.mscases = [0, 3, 0, 3, 1, 3, 0, 3, 2, 2, 0, 2, 1, 1, 0];
+    o.ix = [1, 0, -1, 0, 0, 1, 0, -1, -1, 0, 1, 0, 0, 1, 1, 0, 0, 0, 1, 1];
+    for (let i = 0; i < (o.sx + 2) * (o.sy + 2); i++) o.grid[i] = Pt((i % (o.sx + 2)) * o.step, Math.floor(i / (o.sx + 2)) * o.step);
+    for (let k = 0; k < numBalls; k++) o.balls[k] = {
+      vel: { x: (Math.random() > 0.5 ? 1 : -1) * (0.2 + Math.random() * 0.25), y: (Math.random() > 0.5 ? 1 : -1) * (0.2 + Math.random()) },
+      pos: Pt(width * 0.2 + Math.random() * width * 0.6, height * 0.2 + Math.random() * height * 0.6),
+      size: o.wh / 15 + rnd(0.1, 1.5) * (o.wh / 15),
+    };
+    return o;
+  };
+  const force = (o, x, y, idx) => {
+    const id = idx || x + y * (o.sx + 2); let f;
+    if (x === 0 || y === 0 || x === o.sx || y === o.sy) f = 0.6 * o.sign;
+    else {
+      f = 0; const c = o.grid[id];
+      for (const b of o.balls) f += b.size * b.size / (-2 * c.x * b.pos.x - 2 * c.y * b.pos.y + b.pos.magnitude + c.magnitude);
+      f *= o.sign;
+    }
+    o.grid[id].force = f; return f;
+  };
+  const march = (o, g, [x, y, pdir]) => {
+    const S = o.sx + 2, id = x + y * S;
+    if (o.grid[id].computed === o.iter) return false;
+    let dir, ms = 0;
+    for (let i = 0; i < 4; i++) {
+      const idn = (x + o.ix[i + 12]) + (y + o.ix[i + 16]) * S; let f = o.grid[idn].force;
+      if ((f > 0 && o.sign < 0) || (f < 0 && o.sign > 0) || !f) f = force(o, x + o.ix[i + 12], y + o.ix[i + 16], idn);
+      if (Math.abs(f) > 1) ms += Math.pow(2, i);
+    }
+    if (ms === 15) return [x, y - 1, false]; // inside: walk up to the edge
+    if (ms === 5) dir = pdir === 2 ? 3 : 1;
+    else if (ms === 10) dir = pdir === 3 ? 0 : 2;
+    else { dir = o.mscases[ms]; o.grid[id].computed = o.iter; }
+    const G = (a, b) => o.grid[(x + o.plx[4 * dir + a]) + (y + o.ply[4 * dir + b]) * S];
+    const t = o.step / (Math.abs(Math.abs(G(2, 2).force) - 1) / Math.abs(Math.abs(G(3, 3).force) - 1) + 1);
+    g.lineTo(G(0, 0).x + o.ix[dir] * t, G(1, 1).y + o.ix[dir + 4] * t);
+    o.paint = true;
+    return [x + o.ix[dir + 4], y + o.ix[dir + 8], dir];
+  };
+  return {
+    click: () => {},
+    draw(g, w, h, dt) {
+      if (!L || W !== w || H !== h) { W = w; H = h; L = make(g, w, h, 6, '#FF9C96', '#FE3E47'); }
+      const f = dt * 60;
+      for (const b of L.balls) {
+        if (b.pos.x >= w - b.size) { if (b.vel.x > 0) b.vel.x = -b.vel.x; b.pos.x = w - b.size; } else if (b.pos.x <= b.size) { if (b.vel.x < 0) b.vel.x = -b.vel.x; b.pos.x = b.size; }
+        if (b.pos.y >= h - b.size) { if (b.vel.y > 0) b.vel.y = -b.vel.y; b.pos.y = h - b.size; } else if (b.pos.y <= b.size) { if (b.vel.y < 0) b.vel.y = -b.vel.y; b.pos.y = b.size; }
+        b.pos = Pt(b.pos.x + b.vel.x * f, b.pos.y + b.vel.y * f);
+      }
+      L.iter++; L.sign = -L.sign; L.paint = false;
+      g.fillStyle = L.metaFill; g.beginPath();
+      for (const b of L.balls) {
+        let next = [Math.round(b.pos.x / L.step), Math.round(b.pos.y / L.step), false], guard = 0;
+        do { next = march(L, g, next); } while (next && ++guard < 20000);
+        if (L.paint) { g.fill(); g.closePath(); g.beginPath(); L.paint = false; }
+      }
     },
   };
 };
