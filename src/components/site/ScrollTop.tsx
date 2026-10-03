@@ -81,7 +81,7 @@ export const ScrollTop = () => {
           className="s-nav-item s-top-item"
           onClick={toTop}
           tabIndex={shown ? 0 : -1}
-          aria-label="Back to the surface"
+          aria-label="Back to top"
         >
           <ArrowUp size={18} weight="bold" className="s-icon" />
         </button>
