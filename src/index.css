@@ -687,7 +687,7 @@ All colors MUST be HSL.
    lands on the same line as the sans whatever the two fonts' metrics. */
 .h-swap { position: relative; display: inline-grid; align-items: baseline; overflow: hidden; vertical-align: bottom; }
 .h-swap > span { grid-area: 1 / 1; display: block; transition: transform 300ms cubic-bezier(.2,.8,.2,1); }
-.h-swap > span + span { transform: translateY(100%); }
+.h-swap > span + span { transform: translateY(150%); } /* the serif is shorter than the cell: park it further out */
 @media (hover: hover) { .h-swap-host:hover .h-swap > span:first-child,
 .h-swap-host:focus-visible .h-swap > span:first-child { transform: translateY(-100%); } }
 @media (hover: hover) { .h-swap-host:hover .h-swap > span + span,
@@ -695,7 +695,7 @@ All colors MUST be HSL.
 /* On outline buttons the fill rises from the bottom, so the text swaps the
    other way: the new word drops in from the top, on the fill's curve. */
 .h-btn-line .h-swap > span { transition: transform 480ms cubic-bezier(.76,0,.24,1); }
-.h-btn-line .h-swap > span + span { transform: translateY(-100%); }
+.h-btn-line .h-swap > span + span { transform: translateY(-150%); }
 @media (hover: hover) { .h-btn-line.h-swap-host:hover .h-swap > span:first-child,
 .h-btn-line.h-swap-host:focus-visible .h-swap > span:first-child { transform: translateY(100%); } }
 
