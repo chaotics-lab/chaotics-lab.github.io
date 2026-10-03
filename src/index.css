@@ -1057,6 +1057,7 @@ html[data-quality="0"] .ocean-layer { display: none; }
 /* Blot variant (card -> project): each layer's wavy clip path is set per
    frame from PageTransition.tsx. */
 .pt-blot { position: absolute; inset: 0; }
+.pte-shape { mask-repeat: no-repeat; -webkit-mask-repeat: no-repeat; }
 /* Slash variant: wide slanted bands cut in from the right, then carry on
    off to the left, front band first. The front band carries the label. */
 .pts-band {
