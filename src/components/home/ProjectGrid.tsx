@@ -210,6 +210,9 @@ function useWaveField(gridRef: React.RefObject<HTMLDivElement>, cursorRef: React
     if (!grid || !cursor) return;
     const ring = cursor.firstElementChild as HTMLElement;
     const reduced = prefersReducedMotion();
+    // Touch screens get flat cards too: no pointer to react to, and the
+    // per-frame bending is the heaviest thing on the page.
+    const coarse = window.matchMedia('(pointer: coarse)').matches;
 
     const cards: Card[] = [...grid.querySelectorAll<HTMLElement>('[data-wcard]')].map(el => {
       const canvas = el.querySelector('canvas')!;
@@ -273,7 +276,7 @@ function useWaveField(gridRef: React.RefObject<HTMLDivElement>, cursorRef: React
         img.onload = () => {
           c.img = img;
           c.el.dataset.ready = '';
-          if (reduced || quality() === 0) paint(c, flat(c));
+          if (reduced || coarse || quality() === 0) paint(c, flat(c));
         };
         img.onerror = () => {
           if (!img.src.endsWith('/1.png')) img.src = `${c.base}/1.png`;
@@ -317,8 +320,8 @@ function useWaveField(gridRef: React.RefObject<HTMLDivElement>, cursorRef: React
 
     let flatDone = false;
     const off = onTick((t, dt) => {
-      // Minimal quality: cards stay flat, painted once, no bending.
-      if (quality() === 0) {
+      // Minimal quality or touch: cards stay flat, painted once, no bending.
+      if (coarse || quality() === 0) {
         if (!flatDone) {
           for (const c of cards) {
             if (c.img) paint(c, flat(c));

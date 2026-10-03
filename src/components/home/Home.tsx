@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { prefersReducedMotion } from '@/lib/ticker';
+import { quality } from '@/lib/perf';
 import { WAVE_V } from '@/lib/wave';
 import { useLocation } from 'react-router-dom';
 import { CATEGORIES } from '@/config/categories';
@@ -166,7 +167,8 @@ export const Home = () => {
         </div>
       </section>
 
-      {sweep && (
+      {sweep && quality() === 0 && <div className="pt f-sweep pt-fade" data-phase={sweep} aria-hidden="true" />}
+      {sweep && quality() > 0 && (
         <div className="pt f-sweep" data-phase={sweep} data-dir={sweepDir} aria-hidden="true">
           {SWEEP_LAYERS.map((color, i) => (
             <div

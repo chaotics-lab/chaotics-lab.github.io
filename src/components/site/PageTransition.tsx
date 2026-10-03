@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import { useNavigate } from 'react-router-dom';
 import { PageTransitionContext, type TransitionOpts } from '@/lib/pageTransition';
 import { prefersReducedMotion } from '@/lib/ticker';
+import { quality } from '@/lib/perf';
 import { WAVE, WAVE_V } from '@/lib/wave';
 
 // P3R-style page changes. 'sea': three layers of sea (cyan, blue, deep
@@ -15,6 +16,7 @@ const TIMING = {
   sea: { cover: 260 + 2 * 45, hold: 40, reveal: 300 + 2 * 45 },
   slash: { cover: 280 + 2 * 60, hold: 320, reveal: 320 + 2 * 60 }, // hold: time to read the title
   zoom: { cover: 560, hold: 220, reveal: 300 + 2 * 45 }, // cover: .pt-zoom; hold: a beat on the full colour
+  fade: { cover: 160, hold: 30, reveal: 220 }, // minimal quality: one plain fade (.pt-fade)
 };
 
 const LAYERS = ['var(--h-c1)', 'var(--h-top)', 'var(--h-deep)'];
@@ -29,14 +31,17 @@ export const PageTransition = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => () => timers.current.forEach(clearTimeout), []);
 
-  const dive = useCallback((swap: () => void, o: TransitionOpts = {}) => {
+  const dive = useCallback((swap: () => void, given: TransitionOpts = {}) => {
     if (prefersReducedMotion()) { swap(); return; }
     if (busy.current) return;
     busy.current = true;
+    // On a struggling device (src/lib/perf.ts) every transition is a plain
+    // fade; one level up, the zoom keeps its colour wash but not the page zoom.
+    const o: TransitionOpts = quality() === 0 ? { kind: 'fade' } : given;
     const t = TIMING[o.kind ?? 'sea'];
     setOpts(o);
     setPhase('cover');
-    if (o.kind === 'zoom' && o.zoomEl && o.origin) {
+    if (o.kind === 'zoom' && o.zoomEl && o.origin && quality() === 2) {
       o.zoomEl.style.transformOrigin = `${o.origin.x}px ${o.origin.y}px`;
       o.zoomEl.animate(
         [{ transform: 'scale(1) rotate(0deg)' }, { transform: 'scale(2.4) rotate(-4deg)' }],
@@ -94,13 +99,14 @@ export const PageTransition = ({ children }: { children: ReactNode }) => {
           ))}
         </div>
       )}
+      {opts.kind === 'fade' && phase !== 'idle' && <div className="pt pt-fade" data-phase={phase} aria-hidden="true" />}
       {opts.kind === 'zoom' && phase === 'cover' && (
         <div className="pt pt-zoom-wrap" data-phase="cover" aria-hidden="true">
           <div className="pt-zoom" style={{ ['--tint' as string]: opts.tint ?? 'var(--h-deep)' }} />
         </div>
       )}
       {/* sideways sea (dir left/right), same layers as the filter sweep */}
-      <div className="pt" data-phase={opts.kind !== 'slash' && sideways ? phase : 'idle'} data-dir={opts.dir} aria-hidden="true">
+      <div className="pt" data-phase={opts.kind !== 'slash' && opts.kind !== 'fade' && sideways ? phase : 'idle'} data-dir={opts.dir} aria-hidden="true">
         {LAYERS.map((color, i) => (
           <div
             key={color}
@@ -113,7 +119,7 @@ export const PageTransition = ({ children }: { children: ReactNode }) => {
           </div>
         ))}
       </div>
-      <div className="pt" data-phase={opts.kind === 'slash' || sideways || (opts.kind === 'zoom' && phase === 'cover') ? 'idle' : phase} data-dir={opts.dir ?? 'up'} aria-hidden="true">
+      <div className="pt" data-phase={opts.kind === 'slash' || opts.kind === 'fade' || sideways || (opts.kind === 'zoom' && phase === 'cover') ? 'idle' : phase} data-dir={opts.dir ?? 'up'} aria-hidden="true">
         {LAYERS.map((color, i) => (
           <div
             key={color}

@@ -686,16 +686,16 @@ All colors MUST be HSL.
 .h-swap { position: relative; display: inline-block; overflow: hidden; vertical-align: bottom; }
 .h-swap > span { display: block; transition: transform 300ms cubic-bezier(.2,.8,.2,1); }
 .h-swap > span + span { position: absolute; inset: 0; transform: translateY(100%); }
-.h-swap-host:hover .h-swap > span:first-child,
-.h-swap-host:focus-visible .h-swap > span:first-child { transform: translateY(-100%); }
-.h-swap-host:hover .h-swap > span + span,
-.h-swap-host:focus-visible .h-swap > span + span { transform: none; }
+@media (hover: hover) { .h-swap-host:hover .h-swap > span:first-child,
+.h-swap-host:focus-visible .h-swap > span:first-child { transform: translateY(-100%); } }
+@media (hover: hover) { .h-swap-host:hover .h-swap > span + span,
+.h-swap-host:focus-visible .h-swap > span + span { transform: none; } }
 /* On outline buttons the fill rises from the bottom, so the text swaps the
    other way: the new word drops in from the top, on the fill's curve. */
 .h-btn-line .h-swap > span { transition: transform 480ms cubic-bezier(.76,0,.24,1); }
 .h-btn-line .h-swap > span + span { transform: translateY(-100%); }
-.h-btn-line.h-swap-host:hover .h-swap > span:first-child,
-.h-btn-line.h-swap-host:focus-visible .h-swap > span:first-child { transform: translateY(100%); }
+@media (hover: hover) { .h-btn-line.h-swap-host:hover .h-swap > span:first-child,
+.h-btn-line.h-swap-host:focus-visible .h-swap > span:first-child { transform: translateY(100%); } }
 
 /* ---- Pills (filters) ---- */
 .h-pill {
@@ -713,7 +713,7 @@ All colors MUST be HSL.
   transition: color 250ms ease, border-color 250ms ease;
 }
 .h-pill sup { font-size: 0.62rem; top: -0.1em; opacity: 0.8; }
-.h-pill:hover { border-color: var(--h-c2); color: #fff; }
+@media (hover: hover) { .h-pill:hover { border-color: var(--h-c2); color: #fff; } }
 .h-pill[aria-selected="true"] { border-color: transparent; color: var(--h-ink); }
 
 /* ---- Buttons ---- */
@@ -726,7 +726,7 @@ All colors MUST be HSL.
   font-weight: 700;
   transition: transform 160ms cubic-bezier(.34,1.56,.64,1), background-color 160ms ease, color 160ms ease;
 }
-.h-btn:hover { transform: translateY(-2px); }
+@media (hover: hover) { .h-btn:hover { transform: translateY(-2px); } }
 .h-btn-cream { background: var(--h-cream); color: var(--h-ink); }
 .h-btn-line { position: relative; isolation: isolate; border: 1.5px solid rgb(var(--h-c2-rgb) / 0.6); color: var(--h-c3); transition: color 480ms cubic-bezier(.76,0,.24,1), transform 160ms cubic-bezier(.34,1.56,.64,1); }
 /* cream fill rising from the bottom on hover (steep in-out: slow start,
@@ -736,18 +736,19 @@ All colors MUST be HSL.
   content: ""; position: absolute; inset: 3px; z-index: -1; border-radius: inherit; background: var(--h-cream);
   clip-path: inset(100% 0 0 0 round 9999px); transition: clip-path 480ms cubic-bezier(.76,0,.24,1);
 }
-.h-btn-line:hover, .h-btn-line:focus-visible { color: var(--h-ink); }
-.h-btn-line:hover::before, .h-btn-line:focus-visible::before { clip-path: inset(0 0 0 0 round 9999px); }
+@media (hover: hover) { .h-btn-line:hover, .h-btn-line:focus-visible { color: var(--h-ink); } }
+@media (hover: hover) { .h-btn-line:hover::before, .h-btn-line:focus-visible::before { clip-path: inset(0 0 0 0 round 9999px); } }
 
 /* ---- Ticker (element band) ---- */
 .h-marquee { display: flex; width: max-content; animation: h-marquee 38s linear infinite; }
 @keyframes h-marquee { to { transform: translateX(-50%); } }
+.e-track { display: flex; width: max-content; will-change: transform; } /* moved from ElementMarquee */
 /* Element picker in the band. ElementMarquee slows the scroll under the
    cursor; the hovered and the active element take their own colour. */
 .e-pick { color: var(--h-cream); cursor: pointer; transition: color 0.2s; }
 .e-pick .e-tile { transition: transform 0.25s cubic-bezier(0.3, 1.6, 0.5, 1); }
-.e-pick:hover, .e-pick[aria-pressed="true"] { color: var(--el); }
-.e-pick:hover .e-tile { transform: translateY(-3px) rotate(-6deg); }
+@media (hover: hover) { .e-pick:hover, .e-pick[aria-pressed="true"] { color: var(--el); } }
+@media (hover: hover) { .e-pick:hover .e-tile { transform: translateY(-3px) rotate(-6deg); } }
 .e-pick:focus-visible { outline: 2px solid var(--el); outline-offset: -4px; }
 .e-tile { position: relative; isolation: isolate; display: grid; place-items: center; }
 .e-tile > svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
@@ -771,12 +772,12 @@ All colors MUST be HSL.
   color: var(--h-c2);
   transition: transform 450ms cubic-bezier(.2,.8,.2,1), color 200ms ease;
 }
-.w-card:hover .w-arrow,
-.w-card:focus-visible .w-arrow { transform: rotate(-45deg); color: var(--h-cream); }
+@media (hover: hover) { .w-card:hover .w-arrow,
+.w-card:focus-visible .w-arrow { transform: rotate(-45deg); color: var(--h-cream); } }
 .w-rule { position: relative; display: block; height: 1.5px; margin-top: 1rem; overflow: hidden; background: rgb(var(--h-c2-rgb) / 0.25); }
 .w-rule > span { position: absolute; inset: 0; background: var(--h-cream); transform: scaleX(0); transform-origin: left; transition: transform 650ms cubic-bezier(.2,.8,.2,1); }
-.w-card:hover .w-rule > span,
-.w-card:focus-visible .w-rule > span { transform: none; }
+@media (hover: hover) { .w-card:hover .w-rule > span,
+.w-card:focus-visible .w-rule > span { transform: none; } }
 
 /* AI usage tag: five slanted bars that climb from deep blue to white.
    The tag takes the colour of its highest lit bar (--ai, set inline). */
@@ -845,7 +846,7 @@ html[data-quality="0"] .ocean-layer { display: none; }
 /* Element switch (footer): icon-only header items; hover and the active
    one lean towards the element's colour */
 .s-el { padding: 0.5rem; border-radius: 9999px; transition: color 220ms ease, background-color 220ms ease; }
-.s-el:hover, .s-el:focus-visible { color: color-mix(in oklab, var(--h-c3) 45%, var(--el)); background: color-mix(in oklab, var(--el) 18%, transparent); outline: none; }
+@media (hover: hover) { .s-el:hover, .s-el:focus-visible { color: color-mix(in oklab, var(--h-c3) 45%, var(--el)); background: color-mix(in oklab, var(--el) 18%, transparent); outline: none; } }
 .s-el[aria-pressed="true"] { color: color-mix(in oklab, var(--h-c3) 30%, var(--el)); background: color-mix(in oklab, var(--el) 26%, transparent); }
 /* Back-to-top pill: one header-style item; the cream fill appears on hover */
 .s-top {
@@ -856,7 +857,7 @@ html[data-quality="0"] .ocean-layer { display: none; }
 .s-top[data-shown="true"] { opacity: 1; transform: none; pointer-events: auto; }
 @media (min-width: 640px) { .s-top { right: 1.5rem; bottom: 1.5rem; } }
 .s-top-item { border-radius: 9999px; padding: 0.55rem; transition: color 220ms ease, background-color 220ms ease; }
-.s-top-item:hover, .s-top-item:focus-visible { background: var(--h-cream); color: var(--h-ink); outline: none; }
+@media (hover: hover) { .s-top-item:hover, .s-top-item:focus-visible { background: var(--h-cream); color: var(--h-ink); outline: none; } }
 .s-top-pill, #footer-top { transition: opacity 220ms ease; } /* hand-over between the two */
 .s-top-item.s-top-wide { padding-right: 1rem; } /* footer version: arrow + label, arrow where the floating one has it */
 .s-circle {
@@ -868,21 +869,21 @@ html[data-quality="0"] .ocean-layer { display: none; }
   color: var(--h-c3);
   transition: background-color 200ms ease, color 200ms ease, transform 350ms cubic-bezier(.34,1.56,.64,1), opacity 200ms ease;
 }
-.s-circle:hover:not(:disabled) { background: var(--h-cream); color: var(--h-ink); transform: rotate(-8deg) scale(1.06); }
+@media (hover: hover) { .s-circle:hover:not(:disabled) { background: var(--h-cream); color: var(--h-ink); transform: rotate(-8deg) scale(1.06); } }
 .s-circle:disabled { opacity: 0.35; cursor: default; }
 
 /* ---- "How I use AI": a title row between two rules that drops down ---- */
 .ai-drop { border-top: 1.5px solid var(--h-line); border-bottom: 1.5px solid var(--h-line); }
 .ai-drop-head { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; padding: 2.25rem 0; text-align: left; }
 .ai-drop-title { transition: color 200ms ease; }
-.ai-drop-head:hover .ai-drop-title,
-.ai-drop-head:focus-visible .ai-drop-title { color: var(--h-c1); }
+@media (hover: hover) { .ai-drop-head:hover .ai-drop-title,
+.ai-drop-head:focus-visible .ai-drop-title { color: var(--h-c1); } }
 .ai-drop-head:focus-visible { outline: none; }
 /* the toggle is an outline button lit by hovering the whole row */
 .ai-drop-toggle { flex: none; white-space: nowrap; }
-.ai-drop-head:hover .ai-drop-toggle, .ai-drop-head:focus-visible .ai-drop-toggle { color: var(--h-ink); }
-.ai-drop-head:hover .ai-drop-toggle::before, .ai-drop-head:focus-visible .ai-drop-toggle::before { clip-path: inset(0 0 0 0 round 9999px); }
-.ai-drop-head:hover .ai-drop-toggle .h-swap > span:first-child, .ai-drop-head:focus-visible .ai-drop-toggle .h-swap > span:first-child { transform: translateY(100%); }
+@media (hover: hover) { .ai-drop-head:hover .ai-drop-toggle, .ai-drop-head:focus-visible .ai-drop-toggle { color: var(--h-ink); } }
+@media (hover: hover) { .ai-drop-head:hover .ai-drop-toggle::before, .ai-drop-head:focus-visible .ai-drop-toggle::before { clip-path: inset(0 0 0 0 round 9999px); } }
+@media (hover: hover) { .ai-drop-head:hover .ai-drop-toggle .h-swap > span:first-child, .ai-drop-head:focus-visible .ai-drop-toggle .h-swap > span:first-child { transform: translateY(100%); } }
 .ai-drop-plus { transition: transform 450ms cubic-bezier(.34,1.56,.64,1); }
 .ai-drop[data-open="true"] .ai-drop-plus { transform: rotate(135deg); }
 .ai-drop-body { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 450ms cubic-bezier(.2,.8,.2,1); }
@@ -892,10 +893,10 @@ html[data-quality="0"] .ocean-layer { display: none; }
 
 /* Icons tilt and pop when their link is hovered */
 .s-icon { flex: none; transition: transform 380ms cubic-bezier(.34,1.56,.64,1); }
-.s-nav-item:hover .s-icon,
+@media (hover: hover) { .s-nav-item:hover .s-icon,
 .s-nav-item:focus-visible .s-icon,
 .h-btn:hover .s-icon,
-.h-btn:focus-visible .s-icon { transform: rotate(-12deg) scale(1.18); }
+.h-btn:focus-visible .s-icon { transform: rotate(-12deg) scale(1.18); } }
 
 /* ---- Project page ---- */
 /* Logo left of the title: as tall as the whole title (set inline from
@@ -937,8 +938,8 @@ html[data-quality="0"] .ocean-layer { display: none; }
   transform: translateY(-50%); opacity: 0; transition: opacity 200ms ease, background 200ms ease, color 200ms ease;
 }
 .g-arrow.g-full { top: auto; bottom: 0.75rem; right: 0.75rem; transform: none; }
-.g-stage:hover .g-arrow, .g-arrow:focus-visible { opacity: 1; }
-.g-arrow:hover { background: var(--h-cream); color: var(--h-ink); }
+@media (hover: hover) { .g-stage:hover .g-arrow, .g-arrow:focus-visible { opacity: 1; } }
+@media (hover: hover) { .g-arrow:hover { background: var(--h-cream); color: var(--h-ink); } }
 @media (hover: none) { .g-arrow { opacity: 1; } }
 /* Slanted progress bars + counter */
 .g-bar { display: flex; align-items: center; gap: 1rem; margin-top: 0.9rem; }
@@ -946,7 +947,7 @@ html[data-quality="0"] .ocean-layer { display: none; }
 .g-dot { position: relative; flex: 1; max-width: 3.5rem; height: 0.9rem; cursor: pointer; }
 .g-dot::before, .g-fill { content: ""; position: absolute; left: 0; top: 50%; height: 4px; margin-top: -2px; transform: skewX(-20deg); }
 .g-dot::before { right: 0; background: rgb(var(--h-c2-rgb) / 0.25); transition: background 200ms ease; }
-.g-dot:hover::before { background: rgb(var(--h-c2-rgb) / 0.5); }
+@media (hover: hover) { .g-dot:hover::before { background: rgb(var(--h-c2-rgb) / 0.5); } }
 .g-fill { width: 0; background: var(--h-cream); }
 .g-dot[aria-current="true"] .g-fill { width: 100%; }
 .g-fill[data-run] { animation: g-fill linear both; }
@@ -960,15 +961,15 @@ html[data-quality="0"] .ocean-layer { display: none; }
 .p-facts dt { font-size: 0.66rem; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--h-c2); }
 .p-facts dd { margin-top: 0.4rem; color: #fff; font-weight: 500; }
 .h-pill-static { padding: 0.3rem 0.75rem; font-size: 0.82rem; cursor: default; } /* filter-pill look, read-only */
-.h-pill-static:hover { border-color: rgb(var(--h-c2-rgb) / 0.45); color: var(--h-c3); }
-.h-pill-stat, .h-pill-stat:hover { align-items: center; gap: 0.4rem; color: #fff; border-color: rgb(var(--h-c2-rgb) / 0.6); background: rgb(var(--h-night-rgb) / 0.35); font-variant-numeric: tabular-nums; }
+@media (hover: hover) { .h-pill-static:hover { border-color: rgb(var(--h-c2-rgb) / 0.45); color: var(--h-c3); } }
+@media (hover: hover) { .h-pill-stat, .h-pill-stat:hover { align-items: center; gap: 0.4rem; color: #fff; border-color: rgb(var(--h-c2-rgb) / 0.6); background: rgb(var(--h-night-rgb) / 0.35); font-variant-numeric: tabular-nums; } }
 /* Bottom row: back link on the left, next project on the right */
 .p-next { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem 2rem; padding: 1.25rem 0; border-top: 1.5px solid var(--h-line); }
 .p-next-link { margin-left: auto; min-width: 0; max-width: 100%; } /* an outline button like the others */
 .p-next-title { min-width: 0; }
 .p-next-title > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .p-next-arrow { flex: none; transition: transform 350ms cubic-bezier(.2,.8,.2,1); }
-.p-next-link:hover .p-next-arrow { transform: translateX(0.25rem); }
+@media (hover: hover) { .p-next-link:hover .p-next-arrow { transform: translateX(0.25rem); } }
 .p-viewer { position: fixed; inset: 0; z-index: 70; display: grid; place-items: center; padding: 4.5rem 1rem; background: rgb(var(--h-night-rgb) / 0.96); }
 .p-viewer > img { max-width: 100%; max-height: 100%; object-fit: contain; }
 
@@ -1034,6 +1035,11 @@ html[data-quality="0"] .ocean-layer { display: none; }
 .pt[data-dir="down"][data-phase="reveal"] .pt-layer { animation-name: pt-reveal-down; }
 @keyframes pt-cover-down { from { transform: translateY(-110%); } to { transform: none; } }
 @keyframes pt-reveal-down { from { transform: none; } to { transform: translateY(110%); } }
+/* Fade variant (minimal quality): one plain layer, in and out */
+.pt-fade { background: var(--h-deep); }
+.pt-fade[data-phase="cover"] { animation: pt-fade-in 160ms ease-out both; }
+.pt-fade[data-phase="reveal"] { animation: pt-fade-in 220ms ease-in reverse both; }
+@keyframes pt-fade-in { from { opacity: 0; } to { opacity: 1; } }
 /* Zoom variant (card -> project): the page zooms into the card (from JS)
    while this wash of the sea's front colour takes over the screen; the sea
    layers then take over from it and leave upward. */

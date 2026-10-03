@@ -9,7 +9,7 @@ import { createContext, useContext } from 'react';
 // with a turn while `tint` washes over the screen; then the sea (already
 // covering) leaves upward.
 export type TransitionOpts = {
-  kind?: 'sea' | 'slash' | 'zoom';
+  kind?: 'sea' | 'slash' | 'zoom' | 'fade';
   dir?: 'up' | 'down' | 'left' | 'right';
   colors?: [string, string, string];
   label?: string;
