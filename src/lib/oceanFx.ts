@@ -558,13 +558,13 @@ function flora(): Fx {
   };
 }
 
-// The seabed's caustics: one seamless caustic texture (/caustic.jpg, light
-// lines on black), turned once into white lines on transparent. Shared by
-// every Aqua; null until it has loaded.
-let causticArt: HTMLCanvasElement | null = null, causticLoading = false;
-function caustic() {
-  if (causticArt || causticLoading) return causticArt;
-  causticLoading = true;
+// The seabed's caustics: two seamless textures, light lines on black, each
+// turned once into white on transparent: /caustic.jpg (sharp, in front) and
+// /caustic-deep.jpg (blurred, deeper). Shared by every Aqua; null until loaded.
+const causticArt = new Map<string, HTMLCanvasElement | null>();
+function caustic(src: string) {
+  if (causticArt.has(src)) return causticArt.get(src)!;
+  causticArt.set(src, null);
   const img = new Image();
   img.onload = () => {
     const c = canvas(), x = c.getContext('2d')!;
@@ -573,22 +573,25 @@ function caustic() {
     const d = x.getImageData(0, 0, c.width, c.height), px = d.data;
     for (let i = 0; i < px.length; i += 4) { px[i + 3] = Math.max(px[i], px[i + 1], px[i + 2]); px[i] = px[i + 1] = px[i + 2] = 255; }
     x.putImageData(d, 0, 0);
-    causticArt = c;
+    causticArt.set(src, c);
   };
-  img.src = '/caustic.jpg';
+  img.src = src;
   return null;
 }
+// [texture, scale, drift x and y in px/s, alpha]: the deep one first, larger and dimmer, drifting the other way
+const CAUSTIC_LAYERS = [['/caustic-deep.jpg', 1.5, -7, 5, 0.45], ['/caustic.jpg', 1.6, 9, 3, 0.55]] as const;
 
 // ---- Aqua: under water. Slanted light shafts from the surface sway and
 // breathe; marine snow drifts in a slow current and swirls away from the
-// pointer; on the seabed, caustics: the texture above, squashed a little so
-// it lies flat, two copies (one larger and mirrored) drifting apart and
-// adding up. A click sends a ripple ring and scatters the snow.
+// pointer; on the seabed, caustics: the two textures above, squashed a little
+// so they lie flat, the sharp one in front of the blurred one, drifting
+// different ways and adding up. A click sends a ripple ring and scatters the snow.
 type Ray = { x: number; w: number; ph: number; sp: number };
 type Flake = { x: number; y: number; s: number; ph: number; vx: number; vy: number };
 function aqua(): Fx {
   let rays: Ray[] = [], snow: Flake[] = [], rings: { x: number; y: number; age: number }[] = [], t = 0, W = 0, H = 0, ptr: Ptr = null;
-  let floorT = 0, pat: CanvasPattern | null = null;
+  let floorT = 0;
+  const pats: (CanvasPattern | null)[] = CAUSTIC_LAYERS.map(() => null);
   // soft light at a quarter of the resolution; the seabed rendered 15 times a second and reused in between
   const rays4 = sprite(false), rayBuf = rays4.c, rg = rays4.g, bed = sprite(), floorBuf = bed.c, fg = bed.g;
   rayBuf.style.width = rayBuf.style.height = '100%'; // a quarter of the resolution, stretched by the compositor
@@ -643,19 +646,18 @@ function aqua(): Fx {
           floorT = 1 / 15;
           fg.setTransform(1, 0, 0, 1, 0, 0);
           fg.clearRect(0, 0, w, B);
-          const art = caustic();
-          if (art && !pat) pat = fg.createPattern(art, 'repeat');
-          if (pat) {
-            fg.globalCompositeOperation = 'lighter';
-            // [scale, drift x, drift y in px/s]; negative scale mirrors it, so the repeats never line up
-            for (const [k, vx, vy] of [[1.6, 9, 4], [-2.2, -6, 7]]) {
-              pat.setTransform(new DOMMatrix([k, 0, 0, Math.abs(k) * 0.55, w / 2 + t * vx, B + t * vy])); // lies flat; anchored at the middle of the page end
-              fg.globalAlpha = 0.5;
-              fg.fillStyle = pat;
-              fg.fillRect(0, 0, w, B);
-            }
-            fg.globalCompositeOperation = 'source-over';
-          }
+          fg.globalCompositeOperation = 'lighter';
+          CAUSTIC_LAYERS.forEach(([src, k, vx, vy, al], i) => {
+            const art = caustic(src);
+            if (art && !pats[i]) pats[i] = fg.createPattern(art, 'repeat');
+            const pat = pats[i];
+            if (!pat) return;
+            pat.setTransform(new DOMMatrix([k, 0, 0, k * 0.55, w / 2 + t * vx, B + t * vy])); // lies flat; anchored at the middle of the page end
+            fg.globalAlpha = al;
+            fg.fillStyle = pat;
+            fg.fillRect(0, 0, w, B);
+          });
+          fg.globalCompositeOperation = 'source-over';
           fg.globalAlpha = 1;
         }
         bed.at(0, horizon);
