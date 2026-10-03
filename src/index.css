@@ -1017,6 +1017,7 @@ All colors MUST be HSL.
 .pt[data-phase="cover"] .pts-label { animation: pts-label 380ms cubic-bezier(.2,.8,.2,1) 120ms both; }
 @keyframes pts-label { from { opacity: 0; translate: 6rem 0; } to { opacity: 1; translate: 0 0; } }
 .pts-label > .h-caps { color: var(--h-cream); }
+.f-sweep { z-index: 40; } /* filter sweep: .pt clipped to the card area (top set inline), under the header */
 .pt-page { animation: pt-fade 380ms ease-out both; }
 @keyframes pt-fade { from { opacity: 0; } to { opacity: 1; } }
 
@@ -1047,25 +1048,6 @@ All colors MUST be HSL.
 /* Cards rise in when the grid mounts or the filter changes */
 .w-card { animation: w-in 560ms cubic-bezier(.2,.8,.2,1) calc(var(--i, 0) * 60ms) backwards; }
 @keyframes w-in { from { opacity: 0; transform: translateY(36px); } to { opacity: 1; transform: none; } }
-
-/* Filter change: the old grid sits on top of the new one and is cut away
-   by one slanted edge sweeping left to right, with a cream slash riding
-   the edge, and the new grid is clipped to the other side of it. --e is
-   the edge's x at the top; it leans back by --lean for every --h + 240px
-   down (--h is the old grid's height; Home sets both so the slant stays
-   near 18 degrees). The --far-* point carries the edge on below --h. After
-   the first switch, cards no longer play w-in. */
-@property --e { syntax: "<length-percentage>"; inherits: false; initial-value: 0px; }
-.g-swap { position: relative; transition: min-height 450ms cubic-bezier(.65,0,.35,1); --lean: 300px; }
-.g-swap[data-switched] .w-card { animation: none; }
-.g-old, .g-edge { position: absolute; inset: 0; pointer-events: none; }
-.g-swap { --far-y: calc(var(--h, 100%) * 10 + 2280px); }
-.g-swap > * { --far-x: calc(var(--e) - var(--lean) * 10); } /* here, where --e animates */
-.g-old { z-index: 2; clip-path: polygon(var(--e) -120px, calc(100% + 400px) -120px, calc(100% + 400px) var(--far-y), var(--far-x) var(--far-y)); }
-.g-edge { z-index: 3; background: var(--h-cream); clip-path: polygon(calc(var(--e) - 22px) -120px, var(--e) -120px, var(--far-x) var(--far-y), calc(var(--far-x) - 22px) var(--far-y)); }
-.g-swap[data-wiping] > .g-layer:not(.g-old) { clip-path: polygon(-400px -120px, var(--e) -120px, var(--far-x) var(--far-y), -99999px var(--far-y)); }
-.g-old, .g-edge, .g-swap[data-wiping] > .g-layer { animation: g-wipe 620ms cubic-bezier(.65,0,.35,1) both; }
-@keyframes g-wipe { from { --e: 0px; } to { --e: calc(100% + var(--lean) + 30px); } }
 
 /* Filter pills: the selected look rides on a sliding blob */
 .h-pill-blob {

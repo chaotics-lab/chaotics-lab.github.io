@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { prefersReducedMotion } from '@/lib/ticker';
+import { WAVE } from '@/lib/wave';
 import { useLocation } from 'react-router-dom';
 import { CATEGORIES } from '@/config/categories';
 import { PROJECTS } from '@/lib/projects';
@@ -8,32 +9,33 @@ import { ElementMarquee } from '@/components/portfolio/ElementMarquee';
 import { HomeHero } from './HomeHero';
 import { ProjectGrid } from './ProjectGrid';
 
-// Length of the grid wipe (keep in sync with .g-old in index.css).
-const WIPE_MS = 620;
+// Filter change: two sea layers rise from the bottom of the screen to the
+// top of the cards, the grid swaps underneath (the page shrinks or grows
+// out of sight), then they carry on up and out. Same layers and timings as
+// the page transition (.pt-layer in index.css), clipped to the card area.
+const SWEEP_COVER_MS = 260 + 45;
+const SWEEP_REVEAL_MS = 300 + 45;
+const SWEEP_LAYERS = ['var(--h-c1)', 'var(--h-mid)'];
 
 export const Home = () => {
   const projects = PROJECTS;
-  // `category` follows the pills at once. On a change, the grid it had
-  // (`prev`) stays on top of the new one and is wiped away by a slanted
-  // edge, then the wrapper eases to the new height.
+  // `category` follows the pills at once, `shown` is what the grid holds.
   const [category, setCategory] = useState('all');
-  const [prev, setPrev] = useState<string | null>(null);
-  const [minH, setMinH] = useState<number | undefined>(undefined);
-  const [switched, setSwitched] = useState(false);
-  const swapRef = useRef<HTMLDivElement>(null);
+  const [shown, setShown] = useState('all');
+  const [sweep, setSweep] = useState<{ top: number; phase: 'cover' | 'reveal' } | null>(null);
+  const gridRef = useRef<HTMLDivElement>(null);
   const timers = useRef<number[]>([]);
   useEffect(() => () => timers.current.forEach(clearTimeout), []);
   const pick = (id: string) => {
     if (id === category) return;
     setCategory(id);
-    if (prefersReducedMotion()) return;
     timers.current.forEach(clearTimeout);
-    setSwitched(true);
-    setPrev(category);
-    setMinH(swapRef.current?.offsetHeight);
+    if (prefersReducedMotion()) { setShown(id); return; }
+    const top = Math.max(0, (gridRef.current?.getBoundingClientRect().top ?? 0) - 32);
+    setSweep({ top, phase: 'cover' });
     timers.current = [
-      window.setTimeout(() => { setPrev(null); setMinH(0); }, WIPE_MS),
-      window.setTimeout(() => setMinH(undefined), WIPE_MS + 500),
+      window.setTimeout(() => { setShown(id); setSweep({ top, phase: 'reveal' }); }, SWEEP_COVER_MS + 30),
+      window.setTimeout(() => setSweep(null), SWEEP_COVER_MS + 30 + SWEEP_REVEAL_MS),
     ];
   };
 
@@ -66,13 +68,10 @@ export const Home = () => {
 
   const available = useMemo(() => new Set(projects.flatMap(p => p.category ?? [])), [projects]);
   const count = (id: string) => (id === 'all' ? projects.length : projects.filter(p => p.category?.includes(id)).length);
-  const inCategory = useCallback(
-    (id: string) => (id === 'all' ? projects : projects.filter(p => p.category?.includes(id))),
-    [projects],
+  const filtered = useMemo(
+    () => (shown === 'all' ? projects : projects.filter(p => p.category?.includes(shown))),
+    [projects, shown],
   );
-  // Both grids keep their keys, so the old one is not remounted when it
-  // moves on top.
-  const layers = useMemo(() => (prev && prev !== category ? [category, prev] : [category]), [category, prev]);
   const tabs = CATEGORIES.filter(c => c.id === 'all' || available.has(c.id));
   const active = CATEGORIES.find(c => c.id === category) ?? CATEGORIES[0];
 
@@ -116,16 +115,26 @@ export const Home = () => {
         </div>
 
         <div className="mt-16">
-          <div ref={swapRef} className="g-swap" data-switched={switched || undefined} data-wiping={prev ? 'true' : undefined} style={{ minHeight: minH, ['--h' as string]: minH ? `${minH}px` : undefined, ['--lean' as string]: minH ? `${Math.round(minH * 0.32)}px` : undefined }}>
-            {layers.map(id => (
-              <div key={id} className={id === prev ? 'g-layer g-old' : 'g-layer'} aria-hidden={id === prev || undefined}>
-                <ProjectGrid projects={inCategory(id)} />
-              </div>
-            ))}
-            {prev && <span className="g-edge" aria-hidden="true" />}
+          <div ref={gridRef}>
+            <ProjectGrid key={shown} projects={filtered} />
           </div>
         </div>
       </section>
+
+      {sweep && (
+        <div className="pt f-sweep" data-phase={sweep.phase} style={{ top: sweep.top }} aria-hidden="true">
+          {SWEEP_LAYERS.map((color, i) => (
+            <div
+              key={color}
+              className="pt-layer"
+              style={{ color, ['--in' as string]: `${i * 45}ms`, ['--out' as string]: `${(SWEEP_LAYERS.length - 1 - i) * 45}ms`, ['--drift' as string]: `${-i * 0.4}s` }}
+            >
+              <svg className="pt-wave" viewBox="0 0 2880 60" preserveAspectRatio="none"><path d={WAVE} fill="currentColor" /></svg>
+              <div className="pt-body" />
+            </div>
+          ))}
+        </div>
+      )}
     </main>
   );
 };

@@ -1,15 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { ELEMENTS } from '@/config/elements';
 import { applyTheme, currentElement, onThemeChange } from '@/lib/theme';
-import { usePageTransition } from '@/lib/pageTransition';
 import { IconTile } from './IconTile';
 
 // Slanted black band with the elements scrolling past (P5-style ticker).
 // The list is rendered twice so the -50% loop is seamless. Clicking an
-// element dives into its colour scheme. The ocean layer is clipped to the
+// element slides the site into its colour scheme. The ocean layer is clipped to the
 // band's bottom edge, found through data-ocean-top.
 export const ElementMarquee = () => {
-  const { dive } = usePageTransition();
   const [active, setActive] = useState(currentElement);
   useEffect(() => onThemeChange(() => setActive(currentElement())), []);
 
@@ -33,7 +31,7 @@ export const ElementMarquee = () => {
   };
 
   const pick = (id: string) => {
-    if (id !== currentElement()) dive(() => applyTheme(id));
+    if (id !== currentElement()) applyTheme(id, true);
   };
 
   return (

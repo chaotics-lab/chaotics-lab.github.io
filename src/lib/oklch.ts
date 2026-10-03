@@ -40,3 +40,15 @@ export function lchToHex(lch: Lch): string {
   }
   return '#' + rgb.map(v => Math.round(Math.min(1, Math.max(0, toGamma(Math.max(0, v)))) * 255).toString(16).padStart(2, '0')).join('').toUpperCase();
 }
+
+// Mix two hex colours in OKLCH, turning the hue the short way round so the
+// in-between colours stay as saturated as the ends (k = 0 gives a, 1 b).
+export function mixHex(a: string, b: string, k: number): string {
+  const p = hexToLch(a);
+  const q = hexToLch(b);
+  // A grey has no real hue: borrow the other colour's.
+  const ph = p.c < 0.02 ? q.h : p.h;
+  const qh = q.c < 0.02 ? p.h : q.h;
+  const dh = ((qh - ph + 540) % 360) - 180;
+  return lchToHex({ l: p.l + (q.l - p.l) * k, c: p.c + (q.c - p.c) * k, h: (ph + dh * k + 360) % 360 });
+}

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import { useNavigate } from 'react-router-dom';
 import { PageTransitionContext, type TransitionOpts } from '@/lib/pageTransition';
 import { prefersReducedMotion } from '@/lib/ticker';
+import { WAVE } from '@/lib/wave';
 
 // P3R-style page changes. 'sea': three layers of sea (cyan, blue, deep
 // blue) rise over the screen with drifting wave edges, the page switches
@@ -12,13 +13,6 @@ const TIMING = {
   sea: { cover: 260 + 2 * 45, hold: 40, reveal: 300 + 2 * 45 },
   slash: { cover: 280 + 2 * 60, hold: 320, reveal: 320 + 2 * 60 }, // hold: time to read the title
 };
-
-// Two periods of a smooth wave, so the edge can drift by half its width.
-const WAVE = (() => {
-  let d = 'M0 30';
-  for (let x = 0; x < 2880; x += 360) d += ` Q${x + 90} ${x % 720 ? 52 : 8} ${x + 180} 30 T${x + 360} 30`;
-  return `${d} V60 H0 Z`;
-})();
 
 const LAYERS = ['var(--h-c1)', 'var(--h-top)', 'var(--h-deep)'];
 const SLASH: [string, string, string] = ['var(--h-c1)', 'var(--h-top)', 'var(--h-deep)'];

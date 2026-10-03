@@ -88,15 +88,20 @@ export const OceanLayer = () => {
       nx: 0,
     }));
     const slots = [...icons];
+    let assigned = currentElement();
     function assign() {
       const main = currentElement();
+      assigned = main;
       const others = ELEMENTS.filter(e => e.id !== main);
       slots.forEach((ic, k) => {
         const id = k % 3 === 2 ? others[Math.floor(k / 3) % others.length].id : main;
         ic.img = art.get(id) ?? null;
       });
     }
-    const offTheme = onThemeChange(assign);
+    // On an element change the icons fade out, swap, and fade back in.
+    let iconAlpha = 1;
+    let swapPending = false;
+    const offTheme = onThemeChange(() => { if (currentElement() !== assigned) swapPending = true; });
     icons.sort((a, b) => a.z - b.z); // far ones first
 
     const shards: Shard[] = Array.from({ length: 110 }, () => ({
@@ -137,6 +142,10 @@ export const OceanLayer = () => {
 
     const off = onTick((t, dt) => {
       ctx.clearRect(0, 0, vw, vh);
+      if (swapPending) {
+        iconAlpha -= dt / 0.3;
+        if (iconAlpha <= 0) { iconAlpha = 0; swapPending = false; assign(); }
+      } else iconAlpha = Math.min(1, iconAlpha + dt / 0.4);
       ctx.save();
       clipBelowBand();
 
@@ -159,7 +168,7 @@ export const OceanLayer = () => {
         const fade = Math.max(0, Math.min(1, (ic.u - TOP) / 0.04, (1.02 - ic.u) / 0.04));
         const size = 18 + ic.z * 46;
         ctx.save();
-        ctx.globalAlpha = fade * (ic.z < 0.5 ? 0.22 : 0.3 + ic.z * 0.45);
+        ctx.globalAlpha = iconAlpha * fade * (ic.z < 0.5 ? 0.22 : 0.3 + ic.z * 0.45);
         ctx.translate(base + ic.nx, y);
         // Two slow swings mixed together, so the tumble never repeats
         // exactly but always stays within +-120 degrees.

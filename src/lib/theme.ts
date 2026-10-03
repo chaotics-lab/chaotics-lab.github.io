@@ -1,5 +1,5 @@
 import { THEMES, type Palette } from '@/config/themes';
-import { hexToLch, lchToHex } from './oklch';
+import { hexToLch, lchToHex, mixHex } from './oklch';
 
 // The active element colour scheme. It is applied as CSS variables on
 // <html> (--h-top, --h-c1, ... and --h-<key>-rgb triplets for alpha), and
@@ -9,6 +9,7 @@ const KEY = 'lox-element';
 type Rgb = Record<keyof Palette, string>; // "r, g, b"
 
 let element = 'aqua';
+let painted: Palette = THEMES.aqua;
 let rgb: Rgb = toRgb(THEMES.aqua);
 const listeners = new Set<() => void>();
 
@@ -22,6 +23,7 @@ function toRgb(p: Palette): Rgb {
 }
 
 function paint(palette: Palette) {
+  painted = palette;
   rgb = toRgb(palette);
   const root = document.documentElement;
   (Object.keys(palette) as (keyof Palette)[]).forEach(k => {
@@ -30,23 +32,46 @@ function paint(palette: Palette) {
   });
   root.dataset.element = element;
   document.querySelector('meta[name="theme-color"]')?.setAttribute('content', palette.top);
-  listeners.forEach(fn => fn());
 }
 
-// Switch element (remembered for the next visit). A project palette shown
-// at the time keeps showing until the project page clears it.
+// Slides every colour from what is shown to `target` in OKLab (sine in-out).
+let tween = 0;
+function blendTo(target: Palette, ms: number) {
+  cancelAnimationFrame(tween);
+  const from = painted;
+  const keys = Object.keys(target) as (keyof Palette)[];
+  const start = performance.now();
+  const frame = (now: number) => {
+    const t = Math.min(1, (now - start) / ms);
+    const k = 0.5 - 0.5 * Math.cos(Math.PI * t);
+    const mix = {} as Palette;
+    keys.forEach(key => { mix[key] = t < 1 ? mixHex(from[key], target[key], k) : target[key]; });
+    paint(mix);
+    if (t < 1) tween = requestAnimationFrame(frame);
+  };
+  tween = requestAnimationFrame(frame);
+}
+
+// Switch element (remembered for the next visit); `blend` slides the
+// colours over instead of swapping them. A project palette shown at the
+// time keeps showing until the project page clears it.
 let override: Palette | null = null;
-export function applyTheme(id: string) {
+export function applyTheme(id: string, blend = false) {
   element = THEMES[id] ? id : 'aqua';
   try { localStorage.setItem(KEY, element); } catch { /* storage unavailable */ }
-  paint(override ?? THEMES[element]);
+  const target = override ?? THEMES[element];
+  if (blend && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) blendTo(target, 800);
+  else { cancelAnimationFrame(tween); paint(target); }
+  listeners.forEach(fn => fn());
 }
 
 // A project page paints the site in the project's colours; null goes back
 // to the element.
 export function setProjectPalette(p: Palette | null) {
   override = p;
+  cancelAnimationFrame(tween);
   paint(p ?? THEMES[element]);
+  listeners.forEach(fn => fn());
 }
 
 // Project palette from its two theme colours, built like the element ones:
