@@ -15,6 +15,7 @@
   figcaption b { color: #fff; }
   /* element palettes from src/config/themes.ts */
   .el-pyra { --top:#C00223; --deep:#6A000E; --night:#430005; --c3:#FEE2DF; }
+  .el-cryo { --top:#017480; --deep:#003D45; --night:#00252A; --c3:#C8F2F9; }
   .el-gaia { --top:#9A4E23; --deep:#562609; --night:#341605; --c3:#FCE4D8; }
   .el-flora { --top:#AC0398; --deep:#5E0053; --night:#3B0033; --c3:#FFDEF6; }
   .el-aero { --top:#4C6F64; --deep:#243B34; --night:#15231E; --c3:#E2ECE8; }
@@ -28,6 +29,7 @@
   <figure class="el-pyra"><canvas data-fx="pyraLamp"></canvas><figcaption><b>Pyra C</b> · lava lamp (ge1doot)</figcaption></figure>
   <figure class="el-pyra"><canvas data-fx="pyraHeat"></canvas><figcaption><b>Pyra D</b> · lamp with heat (hover)</figcaption></figure>
   <figure class="el-aero"><canvas data-fx="aeroFlock"></canvas><figcaption><b>Aero B</b> · flock, curved lines</figcaption></figure>
+  <figure class="el-cryo"><canvas data-fx="cryoFrost"></canvas><figcaption><b>Cryo B</b> · frost (hover melts, click)</figcaption></figure>
   <figure class="el-gaia"><canvas data-fx="gaiaStars"></canvas><figcaption><b>Gaia B</b> · sea of stars (hover, click)</figcaption></figure>
   <figure class="el-flora"><canvas data-fx="floraCoral"></canvas><figcaption><b>Flora B</b> · flower coral (move to draw)</figcaption></figure>
   <figure class="el-flora"><canvas data-fx="floraRoots"></canvas><figcaption><b>Flora C</b> · roots and vines (hover)</figcaption></figure>
@@ -803,6 +805,63 @@ const lavaLamp = heat => () => {
         do { next = march(L, g, next); } while (next && ++guard < 20000);
         if (L.paint) { g.fill(); g.closePath(); g.beginPath(); L.paint = false; }
       }
+    },
+  };
+};
+
+// ---- CRYO B: frost creeping in from the edges, like on a window. Fronts start on the edges (mostly
+// the bottom) and grow inward in straight segments, branching at ±60° (ice's 6-fold angle) and leaving
+// short needles along the way (the fern look). Painted into a kept layer that fades in steps, so a frame
+// only draws the new bits; a frosted haze toward the edges is baked once. The pointer's warmth melts a
+// clear patch (it grows back); a click starts a frost star there.
+FX.cryoFrost = () => {
+  const paint = document.createElement('canvas'), p = paint.getContext('2d'), haze = document.createElement('canvas'), D = Math.min(2, devicePixelRatio || 1);
+  let fronts = [], t = 0, fadeT = 0, next = 0, ptr = null, W = 0, H = 0;
+  const bakeHaze = (w, h) => {
+    haze.width = Math.round(w); haze.height = Math.round(h);
+    const x = haze.getContext('2d'), e = Math.min(w, h) * 0.35;
+    // soft white from each edge, then fine speckle weighted the same way
+    for (const [x0, y0, x1, y1] of [[0, h, 0, h - e], [0, 0, e, 0], [w, 0, w - e, 0]]) { const gr = x.createLinearGradient(x0, y0, x1, y1); gr.addColorStop(0, 'rgba(255,255,255,0.22)'); gr.addColorStop(1, 'rgba(255,255,255,0)'); x.fillStyle = gr; x.fillRect(0, 0, w, h); }
+    x.fillStyle = '#fff';
+    for (let i = 0; i < w * h / 25; i++) { const px = rnd(0, w), py = rnd(0, h), edge = Math.min(px, w - px, h - py) / e; if (Math.random() > edge) { x.globalAlpha = rnd(0.1, 0.45); x.fillRect(px, py, 1, 1); } }
+  };
+  const grow = (x, y, ang, len, gen) => fronts.push({ x, y, ang, len, gen, d: 0, nextBranch: rnd(6, 12) });
+  const spawn = (w, h) => {
+    const s = Math.random();
+    if (s < 0.6) grow(rnd(0, w), h + 1, -Math.PI / 2 + rnd(-0.6, 0.6), h * rnd(0.15, 0.4), 0);
+    else if (s < 0.8) grow(-1, rnd(h * 0.3, h), rnd(-0.6, 0.4), w * rnd(0.12, 0.3), 0);
+    else grow(w + 1, rnd(h * 0.3, h), Math.PI + rnd(-0.4, 0.6), w * rnd(0.12, 0.3), 0);
+  };
+  return {
+    click: (w, h, x, y) => { for (let i = 0; i < 6; i++) grow(x, y, (i / 6) * TAU + rnd(-0.1, 0.1), rnd(25, 45), 1); },
+    move: (x, y) => { ptr = x == null ? null : { x, y }; },
+    draw(g, w, h, dt) {
+      t += dt;
+      if (W !== w || H !== h) { W = w; H = h; paint.width = Math.round(w * D); paint.height = Math.round(h * D); bakeHaze(w, h); }
+      p.setTransform(D, 0, 0, D, 0, 0); p.lineCap = 'round';
+      if ((next -= dt) <= 0 && fronts.length < 90) { next = rnd(0.12, 0.3); spawn(w, h); }
+      p.strokeStyle = 'rgba(255,255,255,0.8)';
+      p.beginPath();
+      for (const f of [...fronts]) {
+        const v = (38 - f.gen * 6) * dt, x = f.x + Math.cos(f.ang) * v, y = f.y + Math.sin(f.ang) * v;
+        p.moveTo(f.x, f.y); p.lineTo(x, y); f.x = x; f.y = y; f.d += v;
+        if (f.d >= f.nextBranch) {
+          f.nextBranch += rnd(5, 10);
+          const side = Math.random() < 0.5 ? -1 : 1;
+          if (f.gen < 3 && Math.random() < 0.35) grow(x, y, f.ang + side * Math.PI / 3, (f.len - f.d) * rnd(0.35, 0.6), f.gen + 1);
+          else { const n = rnd(2, 5) * (1 - f.d / f.len) + 1; for (const s of [-1, 1]) { const a = f.ang + s * Math.PI / 3; p.moveTo(x, y); p.lineTo(x + Math.cos(a) * n, y + Math.sin(a) * n); } } // needles
+        }
+        if (f.d >= f.len) fronts.splice(fronts.indexOf(f), 1);
+      }
+      p.lineWidth = 0.8; p.stroke();
+      // warmth: melt a soft patch under the pointer
+      p.globalCompositeOperation = 'destination-out';
+      if (ptr) { const gr = p.createRadialGradient(ptr.x, ptr.y, 0, ptr.x, ptr.y, 45); gr.addColorStop(0, 'rgba(0,0,0,0.35)'); gr.addColorStop(1, 'rgba(0,0,0,0)'); p.fillStyle = gr; p.fillRect(ptr.x - 45, ptr.y - 45, 90, 90); }
+      // stepped fade: 12% every second (small steps stall on 8-bit alpha)
+      if ((fadeT += dt) > 1) { fadeT = 0; p.fillStyle = 'rgba(0,0,0,0.12)'; p.fillRect(0, 0, w, h); }
+      p.globalCompositeOperation = 'source-over';
+      g.drawImage(haze, 0, 0, w, h);
+      g.drawImage(paint, 0, 0, w, h);
     },
   };
 };
