@@ -943,6 +943,7 @@ html[data-quality="0"] .ocean-layer { display: none; }
 @media (hover: none) { .g-arrow { opacity: 1; } }
 /* Slanted progress bars + counter */
 .g-bar { display: flex; align-items: center; gap: 1rem; margin-top: 0.9rem; }
+.g-ctrl { flex: none; margin-left: auto; } /* prev / next / full screen, header-style pill */
 .g-dots { display: flex; flex: 1; gap: 0.35rem; }
 .g-dot { position: relative; flex: 1; max-width: 3.5rem; height: 0.9rem; cursor: pointer; }
 .g-dot::before, .g-fill { content: ""; position: absolute; left: 0; top: 50%; height: 4px; margin-top: -2px; transform: skewX(-20deg); }

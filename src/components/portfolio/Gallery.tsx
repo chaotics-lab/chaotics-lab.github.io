@@ -75,17 +75,11 @@ export const Gallery = ({ frames, title }: { frames: string[]; title: string }) 
             </div>
           ))}
         </div>
-        {count > 1 && (
-          <>
-            <button type="button" className="g-arrow left-3" onClick={() => go(-1)} aria-label="Previous image"><CaretLeft size={18} weight="bold" /></button>
-            <button type="button" className="g-arrow right-3" onClick={() => go(1)} aria-label="Next image"><CaretRight size={18} weight="bold" /></button>
-          </>
-        )}
-        <button type="button" className="g-arrow g-full" onClick={() => setViewer(true)} aria-label="View full screen"><ArrowsOut size={16} weight="bold" /></button>
       </div>
 
-      {count > 1 && (
-        <div className="g-bar">
+      {/* progress bars, counter, then the controls as a header-style pill */}
+      <div className="g-bar">
+        {count > 1 && (
           <div className="g-dots">
             {frames.map((src, i) => (
               <button
@@ -105,9 +99,18 @@ export const Gallery = ({ frames, title }: { frames: string[]; title: string }) 
               </button>
             ))}
           </div>
-          <span className="g-count" aria-live="polite">{pad(current + 1)} <span>/ {pad(count)}</span></span>
+        )}
+        {count > 1 && <span className="g-count" aria-live="polite">{pad(current + 1)} <span>/ {pad(count)}</span></span>}
+        <div className="s-nav flex g-ctrl">
+          {count > 1 && (
+            <>
+              <button type="button" className="s-nav-item s-top-item" onClick={() => go(-1)} aria-label="Previous image"><CaretLeft size={16} weight="bold" className="s-icon" /></button>
+              <button type="button" className="s-nav-item s-top-item" onClick={() => go(1)} aria-label="Next image"><CaretRight size={16} weight="bold" className="s-icon" /></button>
+            </>
+          )}
+          <button type="button" className="s-nav-item s-top-item" onClick={() => setViewer(true)} aria-label="View full screen"><ArrowsOut size={16} weight="bold" className="s-icon" /></button>
         </div>
-      )}
+      </div>
 
       {viewer && (
         <div className="p-viewer" role="dialog" aria-modal="true" aria-label="Image viewer" onClick={() => setViewer(false)} {...swipe}>
