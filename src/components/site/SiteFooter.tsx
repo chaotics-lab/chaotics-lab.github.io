@@ -15,7 +15,7 @@ export const SiteFooter = () => {
   return (
   <footer className="relative mt-28">
     <div className="container mx-auto px-5 sm:px-8">
-      <div className="py-8 border-t-[1.5px] border-[var(--h-c2)]/20 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+      <div className="py-8 border-t-[1.5px] border-[rgb(var(--h-c2-rgb)/0.25)] flex flex-col lg:flex-row lg:items-center justify-between gap-6">
         <div className="flex flex-wrap items-center gap-3">
         <nav className="flex flex-wrap gap-3" aria-label="Contact">
           {SOCIALS.map(({ name, url, icon: Icon }) => (

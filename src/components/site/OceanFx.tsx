@@ -4,12 +4,13 @@ import { onQuality, quality } from '@/lib/perf';
 import { currentElement, onThemeChange } from '@/lib/theme';
 import { OCEAN_FX, type Fx } from '@/lib/oceanFx';
 
-// The picked element's effect, rising from the bottom of the screen behind
-// the content (src/lib/oceanFx.ts). Full width, reaching higher on the
-// sides than in the middle, where the text is, and fading into the page
-// through a mask baked once per size. PC at full quality only.
+// The picked element's effect at the end of the page, rising from its
+// bottom edge behind the footer (src/lib/oceanFx.ts). Full width, reaching
+// higher on the sides than in the middle, and fading into the page through
+// a mask baked once per size. Drawn only while on screen; PC at full
+// quality only.
 
-const HEIGHT = 0.7; // of the viewport
+const HEIGHT = 0.75; // of the viewport
 const OPACITY = 0.8; // every effect, times its gain
 const SWAP_MS = 350;
 const NOT_HERE = 'a, button, input, textarea, select, label, [role="button"], [data-no-fx]';
@@ -81,14 +82,14 @@ export const OceanFx = () => {
       }, SWAP_MS);
     });
 
-    const enabled = () => quality() === 2 && fine.matches;
+    const enabled = () => quality() >= 1 && fine.matches; // cheap enough for the lighter level too
     const sync = () => { canvas.style.display = enabled() ? '' : 'none'; };
     sync();
     const offQuality = onQuality(sync);
     fine.addEventListener('change', sync);
 
     const onDown = (e: PointerEvent) => {
-      const top = vh - h;
+      const top = canvas.getBoundingClientRect().top;
       if (!enabled() || e.clientY < top || (e.target as Element | null)?.closest?.(NOT_HERE)) return;
       fx.click?.(vw, h, e.clientX, e.clientY - top);
     };
@@ -115,7 +116,8 @@ export const OceanFx = () => {
 
     const off = onTick((_, dt) => {
       if (!enabled()) return;
-      const top = vh - h;
+      const top = canvas.getBoundingClientRect().top;
+      if (top >= vh || top + h <= 0) return; // off screen: nothing to draw
       fx.move?.(pointer.active ? pointer.x : null, pointer.y - top);
       ctx.clearRect(0, 0, vw, h);
       fx.draw(ctx, vw, h, dt);
