@@ -447,9 +447,11 @@ export const HeroWaves = () => {
       if (pointer.active) {
         m.x += (px - m.x) * mk;
         m.y += (py - m.y) * mk;
-        m.high += (Math.max(0, Math.min(1, 1 - pointer.y / window.innerHeight)) - m.high) * mk;
+        // full effect from 25% of the screen height up, none from 75% down
+        m.high += (Math.max(0, Math.min(1, (0.75 - pointer.y / window.innerHeight) / 0.5)) - m.high) * mk;
       }
-      const side = Math.max(-1, Math.min(1, (m.x / (box.w || 1)) * 2 - 1)); // -1 left .. 1 right
+      // -1 .. 1, already at full strength 25% in from either side
+      const side = Math.max(-1, Math.min(1, (m.x / (box.w || 1) - 0.5) / 0.25));
       rainDir += (m.on * side - rainDir) * Math.min(1, dt * 2);
       windDir += ((m.on > 0.5 ? Math.sign(side) * Math.max(0.5, Math.abs(side)) : 1) - windDir) * Math.min(1, dt * 1.5);
       heat += ((m.on > 0.5 ? 0.55 + 1.4 * m.high : 1) - heat) * Math.min(1, dt * 2);
