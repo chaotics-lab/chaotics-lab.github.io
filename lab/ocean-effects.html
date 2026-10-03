@@ -26,10 +26,11 @@
   <figure><canvas data-fx="voltaFlashBolts"></canvas><figcaption><b>Volta C</b> · murk flash + bolt</figcaption></figure>
   <figure class="el-pyra"><canvas data-fx="pyraLava"></canvas><figcaption><b>Pyra B</b> · lava blobs (hover to heat)</figcaption></figure>
   <figure class="el-pyra"><canvas data-fx="pyraLamp"></canvas><figcaption><b>Pyra C</b> · lava lamp (ge1doot)</figcaption></figure>
+  <figure class="el-pyra"><canvas data-fx="pyraHeat"></canvas><figcaption><b>Pyra D</b> · lamp with heat (hover)</figcaption></figure>
   <figure class="el-aero"><canvas data-fx="aeroFlock"></canvas><figcaption><b>Aero B</b> · flock, curved lines</figcaption></figure>
   <figure class="el-gaia"><canvas data-fx="gaiaStars"></canvas><figcaption><b>Gaia B</b> · sea of stars (hover, click)</figcaption></figure>
   <figure class="el-flora"><canvas data-fx="floraCoral"></canvas><figcaption><b>Flora B</b> · flower coral (move to draw)</figcaption></figure>
-  <figure class="el-flora"><canvas data-fx="floraRoots"></canvas><figcaption><b>Flora C</b> · hanging roots (hover)</figcaption></figure>
+  <figure class="el-flora"><canvas data-fx="floraRoots"></canvas><figcaption><b>Flora C</b> · roots and vines (hover)</figcaption></figure>
   <figure><canvas data-fx="aquaZ2"></canvas><figcaption><b>Aqua C</b> · crumple water, zoom x2</figcaption></figure>
   <figure><canvas data-fx="aquaZ3"></canvas><figcaption><b>Aqua D</b> · crumple water, zoom x3</figcaption></figure>
   <figure><canvas data-fx="aquaZ5"></canvas><figcaption><b>Aqua E</b> · crumple water, zoom x5</figcaption></figure>
@@ -494,7 +495,7 @@ FX.pyraLava = () => {
 // drawn as thin lines along each particle's real recent path (so they bend when it turns) instead of
 // the pen's arrow shapes, in three strokes per frame (one per depth band). Click: pushes the flock away.
 FX.aeroFlock = () => {
-  const N = 350, hen = 0.1, nen = 0.2;
+  const N = 140, hen = 0.16, nen = 0.2; // the pen: 350 and 0.1 (same neighbour count, 6x fewer pairs)
   const bol = [...Array(N)].map((_, a) => ({ typ: a % 4, x: rnd(-1, 1), y: rnd(-1, 1), z: rnd(-1, 1), rx: 0, ry: 0, rz: 0, sx: null, sy: 0, fx: 0, fy: 0, lx: 0, ly: 0 }));
   let acc = 0, push = null;
   const step = (size) => {
@@ -534,7 +535,7 @@ FX.aeroFlock = () => {
       for (acc += dt; acc >= 1 / 60; acc -= 1 / 60) {
         step(size);
         for (const b of bol) {
-          const z = Math.pow(2, b.z), x = cx + b.x * z * size * 0.7, y = cy + b.y * z * size * 0.7;
+          const z = Math.pow(2, b.z), x = cx + b.x * z * w * 0.42, y = cy + b.y * z * h * 0.42; // stretched to fill the tile
           // screen velocity, smoothed twice: fast (a few frames) and slow (about ten)
           if (b.sx !== null) { const dx = x - b.sx, dy = y - b.sy; b.fx += (dx - b.fx) * 0.35; b.fy += (dy - b.fy) * 0.35; b.lx += (dx - b.lx) * 0.1; b.ly += (dy - b.ly) * 0.1; }
           b.zz = z; b.sx = x; b.sy = y;
@@ -656,27 +657,35 @@ FX.gaiaStars = () => {
   };
 };
 
-// ---- FLORA C: the Kodama pen's hanging roots, without GSAP or SVG. Clusters of four strokes (thick,
-// thin, thick, thin) hang from the surface: a small hook, then a long drop with gentle bends. Each one
-// swings around its top to a new angle within ±5° every 3 to 5 s, eased in and out (as the pen's tweens).
-// The pointer nudges nearby roots aside. Two strokes per frame (one per width).
+// ---- FLORA C: the Kodama pen's roots and vines, without GSAP or SVG, growing up from the seabed.
+// Roots: clusters of four strokes (thick, thin, thick, thin), a small hook then a bendy rise; each swings
+// around its base to a new angle within ±5° every 3 to 5 s, eased in and out (the pen's tweens).
+// Vines: the pen's tall pair (a 3 px stroke and a 1 px twin beside it) with an S-hook at the base,
+// swaying slower and less. The pointer nudges nearby ones aside. One stroke per width per frame.
 FX.floraRoots = () => {
-  let roots = null, t = 0, ptr = null;
+  let items = null, t = 0, ptr = null;
   const DEG = Math.PI / 180, ease = k => k < 0.5 ? 2 * k * k : 1 - (-2 * k + 2) ** 2 / 2;
+  const add = (x, y, pts, w, amp, slow) => { const a = rnd(-amp, amp) * DEG; items.push({ x, y, pts, w, amp, slow, a, from: a, to: rnd(-amp, amp) * DEG, t0: 0, dur: rnd(3, 5) * slow, push: 0, len: pts[pts.length - 1][1] }); };
   const setup = (w, h) => {
-    roots = [];
+    items = [];
+    // roots, in clusters
     const n = Math.max(3, Math.round(w / 85));
     for (let c = 0; c < n; c++) {
-      const cx = (c + 0.5 + rnd(-0.3, 0.3)) * (w / n), cy = rnd(-12, h * 0.08), L = h * rnd(0.4, 0.75);
+      const cx = (c + 0.5 + rnd(-0.3, 0.3)) * (w / n), base = h + rnd(-h * 0.04, 12), L = h * rnd(0.3, 0.55);
       for (let r = 0; r < 4; r++) {
-        const side = Math.random() < 0.5 ? -1 : 1, hook = side * rnd(6, 16), ph = rnd(0, TAU), len = L * rnd(0.75, 1);
+        const side = Math.random() < 0.5 ? -1 : 1, hook = side * rnd(6, 16), ph = rnd(0, TAU), len = L * rnd(0.75, 1), pts = [];
+        for (let y = 0; y <= len; y += 8) { const k = Math.min(1, y / 22); pts.push([hook * Math.sin(k * Math.PI / 2) + Math.sin(y * 0.045 + ph) * 3 + noise(c * 7 + r, y * 0.02) * 6, y]); }
+        add(cx + rnd(-10, 10), base - (r % 2) * rnd(4, 14), pts, r % 2 ? 0.6 : 1.6, 5, 1);
+      }
+    }
+    // vines: tall pairs, S-hook over the first 50 px (the pen's "M35 0 S4 28 4 54"), then long gentle bends
+    const m = Math.max(2, Math.round(w / 160));
+    for (let v = 0; v < m; v++) {
+      const vx = (v + 0.5 + rnd(-0.35, 0.35)) * (w / m), side = Math.random() < 0.5 ? -1 : 1, len = h * rnd(0.7, 0.95), ph = rnd(0, TAU);
+      for (const [wd, off] of [[2.4, 0], [0.9, rnd(1.5, 3)]]) {
         const pts = [];
-        for (let y = 0; y <= len; y += 8) {
-          const k = Math.min(1, y / 22); // the hook: reach sideways over the first 22 px, then drop
-          pts.push([hook * Math.sin(k * Math.PI / 2) + Math.sin(y * 0.045 + ph) * 3 + noise(c * 7 + r, y * 0.02) * 6, y]);
-        }
-        const a = rnd(-5, 5) * DEG;
-        roots.push({ x: cx + rnd(-10, 10), y: cy + (r % 2) * rnd(4, 14), pts, w: r % 2 ? 0.6 : 1.6, a, from: a, to: rnd(-5, 5) * DEG, t0: 0, dur: rnd(3, 5), push: 0 });
+        for (let y = 0; y <= len; y += 10) { const k = Math.min(1, y / 50); pts.push([side * 30 * (1 - Math.sin(k * Math.PI / 2)) + off + Math.sin(y * 0.012 + ph) * 5 + noise(v * 13 + off, y * 0.01) * 8, y]); }
+        add(vx, h + 6, pts, wd, 2.5, 1.6);
       }
     }
   };
@@ -685,25 +694,24 @@ FX.floraRoots = () => {
     move: (x, y) => { ptr = x == null ? null : { x, y }; },
     draw(g, w, h, dt) {
       t += dt;
-      if (!roots) setup(w, h);
-      const thick = new Path2D(), thin = new Path2D();
-      for (const r of roots) {
+      if (!items) setup(w, h);
+      const P2 = { 2.4: new Path2D(), 1.6: new Path2D(), 0.9: new Path2D(), 0.6: new Path2D() };
+      for (const r of items) {
         let k = (t - r.t0) / r.dur;
-        if (k >= 1) { r.from = r.to; r.to = rnd(-5, 5) * DEG; r.t0 = t; r.dur = rnd(3, 5); k = 0; }
-        // pointer push: swing away from it, more when it is close to the root's line
+        if (k >= 1) { r.from = r.to; r.to = rnd(-r.amp, r.amp) * DEG; r.t0 = t; r.dur = rnd(3, 5) * r.slow; k = 0; }
+        // pointer push: swing away from it while it is within the stroke's height
         let target = 0;
-        if (ptr && ptr.y > r.y) { const dx = r.x - ptr.x, d = Math.abs(dx); if (d < 70) target = Math.sign(dx || 1) * (1 - d / 70) * 9 * DEG; }
+        if (ptr && ptr.y < r.y && ptr.y > r.y - r.len) { const dx = r.x - ptr.x, d = Math.abs(dx); if (d < 70) target = Math.sign(dx || 1) * (1 - d / 70) * 9 * DEG; }
         r.push += (target - r.push) * Math.min(1, dt * 3);
-        r.a = r.from + (r.to - r.from) * ease(k) + r.push;
-        const cs = Math.cos(r.a), sn = Math.sin(r.a), pa = r.w > 1 ? thick : thin, P = r.pts.map(([x, y]) => [r.x + x * cs - y * sn, r.y + x * sn + y * cs]);
-        // smooth line through the points (curves between midpoints)
+        r.a = r.from + (r.to - r.from) * ease(k) - r.push;
+        // rotate around the base; local y grows upward from the seabed
+        const cs = Math.cos(r.a), sn = Math.sin(r.a), pa = P2[r.w], P = r.pts.map(([x, y]) => [r.x + x * cs + y * sn, r.y + x * sn - y * cs]);
         pa.moveTo(P[0][0], P[0][1]);
         for (let i = 1; i < P.length - 1; i++) pa.quadraticCurveTo(P[i][0], P[i][1], (P[i][0] + P[i + 1][0]) / 2, (P[i][1] + P[i + 1][1]) / 2);
         const e = P[P.length - 1]; pa.lineTo(e[0], e[1]);
       }
       g.lineCap = 'round'; g.lineJoin = 'round';
-      g.strokeStyle = 'rgba(255,255,255,0.75)'; g.lineWidth = 1.6; g.stroke(thick);
-      g.strokeStyle = 'rgba(255,255,255,0.5)'; g.lineWidth = 0.6; g.stroke(thin);
+      for (const [wd, al] of [[2.4, 0.8], [1.6, 0.75], [0.9, 0.55], [0.6, 0.5]]) { g.strokeStyle = `rgba(255,255,255,${al})`; g.lineWidth = wd; g.stroke(P2[wd]); }
     },
   };
 };
@@ -712,8 +720,8 @@ FX.floraRoots = () => {
 // walks only along each blob's outline (5 px cells), so the field is computed on a thin band, not the
 // whole canvas; the sign flip each frame lets cached cell values be reused. The outline is filled with
 // a radial gradient (Pyra c1 -> ramp instead of the pen's pinks).
-FX.pyraLamp = () => {
-  let L = null, W = 0, H = 0;
+const lavaLamp = heat => () => {
+  let L = null, W = 0, H = 0, t = 0, ptr = null;
   const Pt = (x, y) => ({ x, y, magnitude: x * x + y * y, computed: 0, force: 0 });
   const make = (g, width, height, numBalls, c0, c1) => {
     const o = { step: 5, width, height, wh: Math.min(width, height), paint: false, iter: 0, sign: 1, grid: [], balls: [] };
@@ -729,6 +737,7 @@ FX.pyraLamp = () => {
       pos: Pt(width * 0.2 + Math.random() * width * 0.6, height * 0.2 + Math.random() * height * 0.6),
       size: o.wh / 15 + rnd(0.1, 1.5) * (o.wh / 15),
     };
+    if (heat) for (const b of o.balls) { b.base = b.size = (o.wh / 22) * rnd(0.8, 1.4); b.vel.y *= 0.4; }
     return o;
   };
   const force = (o, x, y, idx) => {
@@ -761,10 +770,27 @@ FX.pyraLamp = () => {
     return [x + o.ix[dir + 4], y + o.ix[dir + 8], dir];
   };
   return {
-    click: () => {},
+    click: (w, h, x, y) => { ptr = { x, y }; },
+    move: (x, y) => { ptr = x == null ? null : { x, y }; },
     draw(g, w, h, dt) {
-      if (!L || W !== w || H !== h) { W = w; H = h; L = make(g, w, h, 6, '#FF9C96', '#FE3E47'); }
+      if (!L || W !== w || H !== h) { W = w; H = h; L = make(g, w, h, heat ? 10 : 6, '#FF9C96', '#FE3E47'); }
       const f = dt * 60;
+      t += dt;
+      if (heat) {
+        // the heat sits low and wanders (a lamp's bulb), or follows the pointer. Blobs near it swell and
+        // rise, the others shrink back and sink; the fill is a temperature gradient around the heat
+        const hx = ptr ? ptr.x : w * (0.5 + 0.8 * noise(t * 0.07, 2.2)), hy = ptr ? ptr.y : h * (0.85 + 0.1 * noise(5.1, t * 0.1));
+        const R = Math.min(w, h) * 0.45;
+        for (const b of L.balls) {
+          const d = Math.hypot(b.pos.x - hx, b.pos.y - hy), k = Math.max(0, 1 - d / R);
+          b.size += ((b.base * (1 + 0.7 * k)) - b.size) * Math.min(1, dt * 1.5);
+          b.vel.y += (k > 0.15 ? -0.02 * k : 0.008) * f; b.vel.y = Math.max(-0.7, Math.min(0.7, b.vel.y));
+          b.vel.x += noise(b.base, t * 0.3) * 0.01 * f; b.vel.x = Math.max(-0.4, Math.min(0.4, b.vel.x));
+        }
+        const gr = g.createRadialGradient(hx, hy, 0, hx, hy, Math.max(w, h) * 0.9);
+        [[0, 3600], [0.3, 2400], [0.65, 1500], [1, 1000]].forEach(([o, K]) => { const c = kelvin(K); gr.addColorStop(o, `rgb(${c[0] | 0},${c[1] | 0},${c[2] | 0})`); });
+        L.metaFill = gr;
+      }
       for (const b of L.balls) {
         if (b.pos.x >= w - b.size) { if (b.vel.x > 0) b.vel.x = -b.vel.x; b.pos.x = w - b.size; } else if (b.pos.x <= b.size) { if (b.vel.x < 0) b.vel.x = -b.vel.x; b.pos.x = b.size; }
         if (b.pos.y >= h - b.size) { if (b.vel.y > 0) b.vel.y = -b.vel.y; b.pos.y = h - b.size; } else if (b.pos.y <= b.size) { if (b.vel.y < 0) b.vel.y = -b.vel.y; b.pos.y = b.size; }
@@ -780,6 +806,9 @@ FX.pyraLamp = () => {
     },
   };
 };
+
+FX.pyraLamp = lavaLamp(false);
+FX.pyraHeat = lavaLamp(true);
 
 FX.aquaZ2 = aquaBlobs(2);
 FX.aquaZ3 = aquaBlobs(3);
