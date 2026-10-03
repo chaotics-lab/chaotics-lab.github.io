@@ -44,7 +44,7 @@ export const HomeHero = () => {
           >
             <span className="h-swap">
               <span>Projects</span>
-              <span className="h-serif text-[1.1rem] leading-[1.05]" aria-hidden="true">Projects</span>
+              <span className="h-serif text-[1.1rem] leading-[1.05]" aria-hidden="true">Dive in</span>
             </span>
             <ArrowDown size={16} weight="bold" className="h-bob" />
           </a>

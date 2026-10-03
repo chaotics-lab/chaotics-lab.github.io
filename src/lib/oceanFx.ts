@@ -1,14 +1,16 @@
-// The background effect for each element, drawn on the canvas at the
-// bottom of the screen (OceanFx.tsx). Ported from lab/ocean-effects.html,
-// where each one was tried out on its own; the comments there say which
-// reference pen each one comes from. Every effect draws in its own box
-// (w x h, origin top left, the seabed at the bottom) and takes the pointer
-// in the same coordinates.
+// The background effect for each element, drawn on the screen-sized canvas
+// behind the ocean (OceanFx.tsx). Ported from lab/ocean-effects.html, where
+// each one was tried out on its own; the comments there say which reference
+// pen each one comes from. Every effect draws in the screen box (w x h,
+// origin top left) and takes the pointer in the same coordinates. `floor`
+// is where the seabed (the end of the page) is in that box: below the
+// screen until you scroll down to it. Things that grow on the seabed hang
+// off it; the rest fills the screen.
 
 import { themeRgb } from './theme';
 
 export interface Fx {
-  draw(g: CanvasRenderingContext2D, w: number, h: number, dt: number): void;
+  draw(g: CanvasRenderingContext2D, w: number, h: number, dt: number, floor: number): void;
   move?(x: number | null, y: number): void;
   click?(w: number, h: number, x: number, y: number): void;
 }
@@ -170,12 +172,12 @@ function pyra(): Fx {
   return {
     move: (x, y) => { ptr = x === null ? null : { x, y }; },
     click: (w, h, x, y) => { ptr = { x, y }; },
-    draw(g, w, h, dt) {
+    draw(g, w, h, dt, floor) {
       if (W !== w || H !== h) setup(w, h);
       t += dt;
       const f = dt * 60;
       const inside = ptr && ptr.y > 0;
-      const hx = inside ? ptr!.x : w * (0.5 + 0.8 * noise(t * 0.05, 2.2)), hy = inside ? ptr!.y : h * (0.9 + 0.08 * noise(5.1, t * 0.1));
+      const hx = inside ? ptr!.x : w * (0.5 + 0.8 * noise(t * 0.05, 2.2)), hy = inside ? ptr!.y : Math.min(floor, h) - h * (0.1 - 0.08 * noise(5.1, t * 0.1));
       const R = Math.min(w, h) * 0.5;
       for (const b of balls) {
         const k = Math.max(0, 1 - Math.hypot(b.pos.x - hx, b.pos.y - hy) / R);
@@ -209,7 +211,7 @@ function pyra(): Fx {
 function cryo(): Fx {
   const paint = canvas(), p = paint.getContext('2d')!, haze = canvas(), D = Math.min(2, window.devicePixelRatio || 1);
   type Front = { x: number; y: number; ang: number; len: number; gen: number; d: number; nextBranch: number };
-  let fronts: Front[] = [], fadeT = 0, next = 0, ptr: Ptr = null, W = 0, H = 0;
+  let fronts: Front[] = [], fadeT = 0, next = 0, ptr: Ptr = null, W = 0, H = 0, last: number | null = null;
   const bakeHaze = (w: number, h: number) => {
     haze.width = Math.round(w); haze.height = Math.round(h);
     const x = haze.getContext('2d')!, e = Math.min(w, h) * 0.35;
@@ -227,21 +229,33 @@ function cryo(): Fx {
     }
   };
   const grow = (x: number, y: number, ang: number, len: number, gen: number) => fronts.push({ x, y, ang, len, gen, d: 0, nextBranch: rnd(6, 12) });
-  const spawn = (w: number, h: number) => {
-    const s = Math.random();
-    if (s < 0.7) grow(rnd(0, w), h + 1, -Math.PI / 2 + rnd(-0.6, 0.6), h * rnd(0.15, 0.4), 0);
-    else if (s < 0.85) grow(-1, rnd(h * 0.4, h), rnd(-0.6, 0.4), h * rnd(0.2, 0.45), 0);
-    else grow(w + 1, rnd(h * 0.4, h), Math.PI + rnd(-0.4, 0.6), h * rnd(0.2, 0.45), 0);
+  // from the seabed when it is in view, else from the sides of the screen
+  const spawn = (w: number, h: number, floor: number) => {
+    const s = Math.random(), low = Math.min(floor, h);
+    if (s < 0.7 && floor < h + 40) grow(rnd(0, w), floor + 1, -Math.PI / 2 + rnd(-0.6, 0.6), h * rnd(0.15, 0.4), 0);
+    else if (s < 0.85) grow(-1, rnd(low * 0.2, low), rnd(-0.6, 0.4), h * rnd(0.2, 0.45), 0);
+    else grow(w + 1, rnd(low * 0.2, low), Math.PI + rnd(-0.4, 0.6), h * rnd(0.2, 0.45), 0);
   };
   return {
     move: (x, y) => { ptr = x === null ? null : { x, y }; },
     click: (w, h, x, y) => { for (let i = 0; i < 6; i++) grow(x, y, (i / 6) * TAU + rnd(-0.1, 0.1), rnd(25, 45), 1); },
-    draw(g, w, h, dt) {
-      if (W !== w || H !== h) { W = w; H = h; paint.width = Math.round(w * D); paint.height = Math.round(h * D); fronts = []; bakeHaze(w, h); }
+    draw(g, w, h, dt, floor) {
+      if (W !== w || H !== h) { W = w; H = h; paint.width = Math.round(w * D); paint.height = Math.round(h * D); fronts = []; last = null; bakeHaze(w, h); }
+      // the frost belongs to the page: when it scrolls, move what is painted with it
+      if (last !== null && floor !== last) {
+        const dy = floor - last;
+        p.save();
+        p.setTransform(1, 0, 0, 1, 0, 0);
+        p.globalCompositeOperation = 'copy';
+        p.drawImage(paint, 0, Math.round(dy * D));
+        p.restore();
+        for (const f of fronts) f.y += dy;
+      }
+      last = floor;
       p.setTransform(D, 0, 0, D, 0, 0);
       p.lineCap = 'round';
       const cap = Math.round(w / 12);
-      if ((next -= dt) <= 0 && fronts.length < cap) { next = rnd(0.12, 0.3) * (1200 / Math.max(600, w)); spawn(w, h); }
+      if ((next -= dt) <= 0 && fronts.length < cap) { next = rnd(0.12, 0.3) * (1200 / Math.max(600, w)); spawn(w, h, floor); }
       p.strokeStyle = 'rgba(255,255,255,0.8)';
       p.beginPath();
       for (let i = fronts.length - 1; i >= 0; i--) {
@@ -271,47 +285,81 @@ function cryo(): Fx {
       }
       if ((fadeT += dt) > 1) { fadeT = 0; p.fillStyle = 'rgba(0,0,0,0.12)'; p.fillRect(0, 0, w, h); } // steps: small ones stall on 8-bit alpha
       p.globalCompositeOperation = 'source-over';
-      g.drawImage(haze, 0, 0, w, h);
+      g.drawImage(haze, 0, floor - h, w, h); // haze hugs the seabed
       g.drawImage(paint, 0, 0, w, h);
     },
   };
 }
 
-// ---- Aero: the eye of a storm seen from above. Streaks orbit a calm eye
-// (faster near the eye wall) and spiral slowly inward; brightness follows
-// two turning spiral arms and peaks on the eye wall. The eye wanders and
-// leans toward the pointer; a click sends a gust.
-function aero(): Fx {
-  const BANDS = 4;
-  type P = { r: number; th: number; L: number; sp: number };
-  let ps: P[] = [], t = 0, cx = 0, cy = 0, ptr: Ptr = null, gust = 0, W = 0, H = 0;
-  const born = (R: number, r0: number, far: boolean): P => ({ r: far ? R * rnd(0.75, 1) : rnd(r0 * 1.1, R), th: rnd(0, TAU), L: rnd(14, 40), sp: rnd(0.8, 1.2) });
+// ---- Air: a wind map. Thin streamlines blow across the screen along a
+// smooth field: mostly to the right, curling a little, with gusts rolling
+// from left to right (a scrolled noise sets how hard it blows at each x).
+// The flow parts around the pointer. On the seabed, grass bends with the
+// same gusts. A click sends a strong gust across. Trails are short position
+// histories drawn in three strokes (head, middle, tail).
+const TRAIL = 14;
+function aero(w0: number): Fx {
+  type P = { x: number; y: number; hx: Float32Array; hy: Float32Array; n: number; life: number };
+  type Blade = { x: number; len: number; wb: number; ph: number };
+  let ps: P[] = [], blades: Blade[][] = [], t = 0, W = 0, H = 0, ptr: Ptr = null, burst = 0, bt = -9;
+  const N = Math.round(clamp(w0 / 4.5, 160, 340));
+  const gust = (x: number, y: number) => Math.max(0, 0.35 + 0.75 * noise(x * 0.003 - t * 0.5, y * 0.002 + t * 0.05) + burst * Math.exp(-(((x - (t - bt) * 650 + 100) / 160) ** 2)));
+  const spawn = (p: P, w: number, h: number, anywhere: boolean) => {
+    p.x = anywhere ? rnd(-20, w) : rnd(-40, -5); p.y = rnd(0, h); p.n = 0; p.life = rnd(2.5, 6);
+  };
+  const setup = (w: number, h: number) => {
+    ps = Array.from({ length: N }, () => { const p = { x: 0, y: 0, hx: new Float32Array(TRAIL), hy: new Float32Array(TRAIL), n: 0, life: 0 }; spawn(p, w, h, true); return p; });
+    blades = [0, 1].map(layer => Array.from({ length: Math.round(w / (layer ? 3.2 : 4.5)) }, () => ({ x: rnd(-10, w + 10), len: rnd(h * 0.04, h * (layer ? 0.12 : 0.16)), wb: rnd(1.2, 2.6), ph: rnd(0, TAU) })));
+  };
   return {
     move: (x, y) => { ptr = x === null ? null : { x, y }; },
-    click: () => { gust = 1; },
-    draw(g, w, h, dt) {
+    click: () => { burst = 1.3; bt = t; },
+    draw(g, w, h, dt, floor) {
       t += dt;
-      const r0 = Math.min(w, h) * 0.09, R = Math.hypot(w, h) * 0.55;
-      if (W !== w || H !== h) { W = w; H = h; cx = w / 2; cy = h * 0.65; ps = Array.from({ length: Math.round(w / 3.2) }, () => born(R, r0, false)); }
-      const inside = ptr && ptr.y > 0;
-      const tx = inside ? ptr!.x : w * (0.5 + 0.3 * noise(t * 0.05, 1.7)), ty = inside ? ptr!.y : h * (0.65 + 0.15 * noise(3.3, t * 0.05));
-      cx += (tx - cx) * Math.min(1, dt * 0.8);
-      cy += (ty - cy) * Math.min(1, dt * 0.8);
-      gust *= Math.pow(0.3, dt);
-      const paths = Array.from({ length: BANDS }, () => new Path2D());
+      if (W !== w || H !== h) { W = w; H = h; setup(w, h); }
+      burst *= Math.pow(0.5, dt);
+      const heads = new Path2D(), mids = new Path2D(), tails = new Path2D();
       for (const p of ps) {
-        const v = 90 * p.sp * Math.sqrt(r0 / p.r) * (1 + 2.5 * gust) + 25;
-        p.th += (v / p.r) * dt;
-        p.r -= (6 + 40 * (r0 / p.r)) * dt;
-        if (p.r < r0 * 1.15) Object.assign(p, born(R, r0, true));
-        const arms = 0.5 + 0.5 * Math.cos(2 * p.th - 2.2 * Math.log(p.r / r0) - t * 0.4), wall = Math.exp(-(((p.r - r0 * 1.5) / (r0 * 0.5)) ** 2));
-        const b = Math.min(1, 0.04 + 0.9 * arms ** 3 + 0.8 * wall), a1 = p.th, a0 = p.th - p.L / p.r;
-        const pa = paths[Math.min(BANDS - 1, (b * BANDS) | 0)];
-        pa.moveTo(cx + Math.cos(a0) * p.r, cy + Math.sin(a0) * p.r);
-        pa.arc(cx, cy, p.r, a0, a1);
+        const k = gust(p.x, p.y), a = 0.35 * noise(p.x * 0.002, p.y * 0.003 + t * 0.08) + 0.15 * Math.sin(t * 0.3 + p.y * 0.01);
+        let vx = Math.cos(a) * (60 + 260 * k), vy = Math.sin(a) * (60 + 260 * k);
+        if (ptr) { // flow around the pointer: pushed out and swirled past
+          const dx = p.x - ptr.x, dy = p.y - ptr.y, d = Math.hypot(dx, dy);
+          if (d < 130 && d > 1) { const f = (1 - d / 130) ** 2 * 260; vx += (dx / d) * f - (dy / d) * f * 0.6; vy += (dy / d) * f + (dx / d) * f * 0.6; }
+        }
+        p.x += vx * dt; p.y += vy * dt; p.life -= dt;
+        if (p.x > w + 30 || p.y < -30 || p.y > h + 30 || p.life <= 0) { spawn(p, w, h, p.life <= 0); continue; }
+        p.hx.copyWithin(1, 0); p.hy.copyWithin(1, 0); p.hx[0] = p.x; p.hy[0] = p.y; p.n = Math.min(TRAIL, p.n + 1);
+        if (p.n < 4) continue;
+        // three pieces of the trail, each continuing the last
+        const pieces: [Path2D, number, number][] = [[heads, 0, 4], [mids, 4, 9], [tails, 9, TRAIL - 1]];
+        for (const [pa, i0, i1] of pieces) {
+          const e = Math.min(i1, p.n - 1);
+          if (e <= i0) break;
+          pa.moveTo(p.hx[i0], p.hy[i0]);
+          for (let i = i0 + 1; i <= e; i++) pa.lineTo(p.hx[i], p.hy[i]);
+        }
       }
       g.lineCap = 'round';
-      paths.forEach((pa, i) => { g.strokeStyle = `rgba(255,255,255,${0.3 + (0.7 * (i + 1)) / BANDS})`; g.lineWidth = 0.8 + i * 0.45; g.stroke(pa); });
+      g.lineWidth = 1;
+      g.strokeStyle = 'rgba(255,255,255,0.12)'; g.stroke(tails);
+      g.strokeStyle = 'rgba(255,255,255,0.35)'; g.stroke(mids);
+      g.lineWidth = 1.3;
+      g.strokeStyle = 'rgba(255,255,255,0.7)'; g.stroke(heads);
+      // grass on the seabed, leaning with the gust where it stands
+      if (floor < h + 20) {
+        blades.forEach((layer, li) => {
+          const pa = new Path2D();
+          for (const b of layer) {
+            const k = gust(b.x, floor);
+            let lean = 0.15 + 0.55 * k + 0.05 * Math.sin(t * 7 + b.ph) * k;
+            if (ptr && Math.abs(ptr.x - b.x) < 60 && ptr.y > floor - b.len * 1.5) lean += Math.sign(b.x - ptr.x || 1) * (1 - Math.abs(ptr.x - b.x) / 60) * 0.6;
+            const a = lean * 1.25, tx = b.x + Math.sin(a) * b.len, ty = floor + 2 - Math.cos(a) * b.len, cx = b.x + Math.sin(a * 0.45) * b.len * 0.55, cy = floor + 2 - b.len * 0.6;
+            pa.moveTo(b.x - b.wb, floor + 2); pa.quadraticCurveTo(cx - b.wb * 0.5, cy, tx, ty); pa.quadraticCurveTo(cx + b.wb * 0.5, cy, b.x + b.wb, floor + 2); pa.closePath();
+          }
+          g.fillStyle = `rgba(255,255,255,${li ? 0.4 : 0.18})`;
+          g.fill(pa);
+        });
+      }
     },
   };
 }
@@ -378,9 +426,11 @@ function flora(): Fx {
   };
   return {
     move: (x, y) => { ptr = x === null ? null : { x, y }; },
-    draw(g, w, h, dt) {
+    draw(g, w, h, dt, floor) {
       t += dt;
       if (W !== w || H !== h) { W = w; H = h; setup(w, h); }
+      const off = floor - h; // everything here grows from the seabed
+      if (off > h * 1.2) return;
       // parallax target from the pointer's place on screen, eased
       const tx = ptr ? ptr.x / w - 0.5 : 0, ty = ptr ? clamp(ptr.y / h, 0, 1) - 0.5 : 0;
       px += (tx - px) * Math.min(1, dt * 2);
@@ -388,7 +438,7 @@ function flora(): Fx {
       for (const r of thick) {
         const par = 8 + r.depth * 14;
         g.save();
-        g.translate(-px * par, -py * par * 0.5);
+        g.translate(-px * par, -py * par * 0.5 + off);
         g.fillStyle = `rgba(255,255,255,${0.07 + r.depth * 0.05})`;
         g.fill(r.path);
         g.restore();
@@ -398,10 +448,11 @@ function flora(): Fx {
         let k = (t - r.t0) / r.dur;
         if (k >= 1) { r.from = r.to; r.to = rnd(-r.amp, r.amp) * DEG; r.t0 = t; r.dur = rnd(3, 5) * r.slow; k = 0; }
         let target = 0;
-        if (ptr && ptr.y < r.y && ptr.y > r.y - r.len) { const dx = r.x - ptr.x, d = Math.abs(dx); if (d < 70) target = Math.sign(dx || 1) * (1 - d / 70) * 9 * DEG; }
+        const ry = r.y + off;
+        if (ptr && ptr.y < ry && ptr.y > ry - r.len) { const dx = r.x - ptr.x, d = Math.abs(dx); if (d < 70) target = Math.sign(dx || 1) * (1 - d / 70) * 9 * DEG; }
         r.push += (target - r.push) * Math.min(1, dt * 3);
         r.a = r.from + (r.to - r.from) * easeInOut(k) - r.push;
-        const cs = Math.cos(r.a), sn = Math.sin(r.a), pa = P2[r.w], P = r.pts.map(([x, y]) => [r.x + x * cs + y * sn, r.y + x * sn - y * cs]);
+        const cs = Math.cos(r.a), sn = Math.sin(r.a), pa = P2[r.w], P = r.pts.map(([x, y]) => [r.x + x * cs + y * sn, ry + x * sn - y * cs]);
         pa.moveTo(P[0][0], P[0][1]);
         for (let i = 1; i < P.length - 1; i++) pa.quadraticCurveTo(P[i][0], P[i][1], (P[i][0] + P[i + 1][0]) / 2, (P[i][1] + P[i + 1][1]) / 2);
         const e = P[P.length - 1];
@@ -414,73 +465,124 @@ function flora(): Fx {
   };
 }
 
-// ---- Aqua: currents. A flock in 3D (particles of four kinds push apart,
-// match the velocity of close neighbours of their own kind, and stay in a
-// soft ball; now and then one kind twists), drawn as short lines bent
-// along their turn, stretched over the whole box.
-function aqua(w0: number): Fx {
-  const N = Math.round(Math.min(240, Math.max(140, w0 / 6))), hen = 0.16, nen = 0.2;
-  type B = { typ: number; x: number; y: number; z: number; rx: number; ry: number; rz: number; rrx: number; rry: number; rrz: number; sx: number | null; sy: number; fx: number; fy: number; lx: number; ly: number; zz: number };
-  const bol: B[] = Array.from({ length: N }, (_, a) => ({ typ: a % 4, x: rnd(-1, 1), y: rnd(-1, 1), z: rnd(-1, 1), rx: 0, ry: 0, rz: 0, rrx: 0, rry: 0, rrz: 0, sx: null, sy: 0, fx: 0, fy: 0, lx: 0, ly: 0, zz: 1 }));
-  let acc = 0, push: Ptr = null;
-  const step = (size: number) => {
-    const ban = Math.random() < 0.005 ? (Math.random() * 5) | 0 : -1;
-    for (const b of bol) b.rrx = b.rry = b.rrz = 0;
-    for (let a = 0; a < N; a++) {
-      const b = bol[a];
-      for (let c = a + 1; c < N; c++) {
-        const d = bol[c];
-        let x = b.x - d.x, y = b.y - d.y, z = b.z - d.z;
-        const f = b.typ !== d.typ ? hen * 2 : hen;
-        if (Math.abs(x) > f || Math.abs(y) > f || Math.abs(z) > f) continue;
-        let e = Math.sqrt(x * x + y * y + z * z);
-        if (e >= f) continue;
-        e = (f - e) / f; x *= e; y *= e; z *= e;
-        b.rx += x; b.ry += y; b.rz += z; d.rx -= x; d.ry -= y; d.rz -= z;
-        if (b.typ !== d.typ) continue;
-        const k = e * nen;
-        b.rrx += d.rx * k; b.rry += d.ry * k; b.rrz += d.ry * k; d.rrx += b.rx * k; d.rry += b.ry * k; d.rrz += b.ry * k;
-      }
+// Caustic tile, adapted from water-caustics (github.com/ethanfox/water-caustics,
+// src/caustic-field.ts), MIT License, Copyright (c) 2026 water-caustics
+// contributors. Same build: each octave warps the plane with a few sines,
+// then takes the product of two crossing sine waves, bright where it is near
+// zero. Here every frequency is a whole number of turns over the tile, so the
+// tile repeats without seams. Drawn once, white on transparent.
+const TILE = 256;
+function causticTile() {
+  const c = canvas();
+  c.width = c.height = TILE;
+  const x = c.getContext('2d')!, img = x.createImageData(TILE, TILE), K = TAU / TILE;
+  // per octave: two warps [nx, ny, phase] and two crossing waves [ax, ay, phase]
+  const OCT = [
+    { warp: [[1, 1, 0.3], [1, -1, 1.7]], waves: [[2, 1, 0.2], [-1, 2, 1.1]], amp: 26, gain: 1.12 },
+    { warp: [[1, 2, 2.1], [-2, 1, 0.6]], waves: [[3, -1, 0.9], [1, 3, 2.4]], amp: 18, gain: 0.78 },
+  ];
+
+  for (let j = 0; j < TILE; j++) for (let i = 0; i < TILE; i++) {
+    let best = 0;
+    for (const o of OCT) {
+      let px = i, py = j;
+      for (const [wx, wy, ph] of o.warp) { const s = Math.sin(K * (wx * px + wy * py) + ph); px += s * o.amp; py += Math.cos(K * (wy * px - wx * py) + ph) * o.amp; }
+      const ridge = Math.sin(K * (o.waves[0][0] * px + o.waves[0][1] * py) + o.waves[0][2]) * Math.sin(K * (o.waves[1][0] * px + o.waves[1][1] * py) + o.waves[1][2]);
+      const v = (0.165 / (Math.abs(ridge) * 5.6 + 0.22)) * o.gain;
+      best = Math.max(best, v);
     }
-    for (const b of bol) {
-      b.rx += b.rrx; b.ry += b.rry; b.rz += b.rrz;
-      if (push && b.sx !== null) { const x = b.sx - push.x, y = b.sy - push.y; if (x * x + y * y < (size * 0.48) ** 2) { b.rx += (x / size) * 0.175; b.ry += (y / size) * 0.175; } }
-      let c = Math.sqrt(b.x * b.x + b.y * b.y + b.z * b.z);
-      const d = 7 / (c + 6);
-      b.x *= d; b.y *= d; b.z *= d;
-      c = (c * c * c * c) / 1000;
-      b.rx -= b.x * c; b.ry -= b.y * c; b.rz -= b.z * c;
-      c = Math.sqrt(b.rx * b.rx + b.ry * b.ry + b.rz * b.rz);
-      if (c > 0.3) { const m = Math.pow(0.5, (c - 0.3) / 0.3); b.rx *= m; b.ry *= m; b.rz *= m; }
-      b.x += b.rx; b.y += b.ry; b.z += b.rz;
-      if (b.typ === ban - 1) { const s = b.rx; b.rx = b.ry; b.ry = b.rz; b.rz = s; }
-    }
-    push = null;
+    const cv = clamp(best, 0, 1.95) ** 1.45;
+    const veins = clamp((cv - 0.15) / 0.93, 0, 1), haze = clamp((cv - 0.03) / 0.75, 0, 1) * 0.3, o = (j * TILE + i) * 4;
+    img.data[o] = img.data[o + 1] = img.data[o + 2] = 255;
+    img.data[o + 3] = 255 * clamp(veins * veins * (3 - 2 * veins) * 0.9 + haze, 0, 1);
+  }
+  x.putImageData(img, 0, 0);
+  return c;
+}
+
+// ---- Aqua: under water. Slanted light shafts from the surface sway and
+// breathe; marine snow drifts in a slow current and swirls away from the
+// pointer; the seabed is a sandy floor in perspective with caustics dancing
+// on it: the tile above, laid in thin strips scaled for their depth, two
+// layers drifting apart and adding up. A click sends a ripple ring and scatters the snow.
+type Ray = { x: number; w: number; ph: number; sp: number };
+type Flake = { x: number; y: number; s: number; ph: number; vx: number; vy: number };
+function aqua(): Fx {
+  let rays: Ray[] = [], snow: Flake[] = [], rings: { x: number; y: number; age: number }[] = [], t = 0, W = 0, H = 0, ptr: Ptr = null;
+  let tile: HTMLCanvasElement | null = null, pats: CanvasPattern[] = [];
+  const setup = (w: number, h: number) => {
+    const n = Math.max(4, Math.round(w / 220));
+    rays = Array.from({ length: n }, (_, i) => ({ x: ((i + 0.5 + rnd(-0.3, 0.3)) / n) * w * 1.1 - w * 0.05, w: rnd(30, 110), ph: rnd(0, TAU), sp: rnd(0.15, 0.3) }));
+    snow = Array.from({ length: Math.round((w * h) / 5000) }, () => ({ x: rnd(0, w), y: rnd(0, h), s: rnd(0.8, 2.4), ph: rnd(0, TAU), vx: 0, vy: 0 }));
   };
   return {
-    click: (w, h, x, y) => { push = { x, y }; },
-    draw(g, w, h, dt) {
-      const size = Math.max(w, h) / 2, cx = w / 2, cy = h * 0.6;
-      for (acc += dt; acc >= 1 / 60; acc -= 1 / 60) {
-        step(size);
-        for (const b of bol) {
-          const z = Math.pow(2, b.z), x = cx + b.x * z * w * 0.42, y = cy + b.y * z * h * 0.42;
-          if (b.sx !== null) { const dx = x - b.sx, dy = y - b.sy; b.fx += (dx - b.fx) * 0.35; b.fy += (dy - b.fy) * 0.35; b.lx += (dx - b.lx) * 0.1; b.ly += (dy - b.ly) * 0.1; }
-          b.zz = z; b.sx = x; b.sy = y;
-        }
+    move: (x, y) => { ptr = x === null ? null : { x, y }; },
+    click: (w, h, x, y) => {
+      rings.push({ x, y, age: 0 });
+      for (const f of snow) { const dx = f.x - x, dy = f.y - y, d = Math.hypot(dx, dy); if (d < 160 && d > 1) { f.vx += (dx / d) * (160 - d) * 1.2; f.vy += (dy / d) * (160 - d) * 1.2; } }
+    },
+    draw(g, w, h, dt, floor) {
+      t += dt;
+      if (W !== w || H !== h) { W = w; H = h; setup(w, h); }
+      // light shafts: slanted, widening downward, fading out with depth
+      const slant = 0.28;
+      for (const r of rays) {
+        const sway = Math.sin(t * r.sp + r.ph) * 40, x = r.x + sway, a = 0.05 + 0.05 * (0.5 + 0.5 * Math.sin(t * r.sp * 1.7 + r.ph * 2));
+        const len = h * 1.15, bx = x + len * slant, gr = g.createLinearGradient(x, 0, bx, len);
+        gr.addColorStop(0, `rgba(255,255,255,${a})`);
+        gr.addColorStop(1, 'rgba(255,255,255,0)');
+        g.fillStyle = gr;
+        g.beginPath(); g.moveTo(x - r.w / 2, -10); g.lineTo(x + r.w / 2, -10); g.lineTo(bx + r.w, len); g.lineTo(bx - r.w, len); g.closePath(); g.fill();
       }
-      g.lineCap = 'round';
-      for (const [lo, hi, lw, al] of [[0, 0.8, 0.6, 0.3], [0.8, 1.3, 1, 0.55], [1.3, 9, 1.5, 0.85]]) {
-        g.beginPath();
-        for (const b of bol) {
-          if (b.zz < lo || b.zz >= hi || b.sx === null) continue;
-          g.moveTo(b.sx, b.sy);
-          g.quadraticCurveTo(b.sx - 1.75 * (b.fx + b.lx), b.sy - 1.75 * (b.fy + b.ly), b.sx - 7 * b.lx, b.sy - 7 * b.ly);
-        }
-        g.lineWidth = lw;
-        g.strokeStyle = `rgba(255,255,255,${al})`;
-        g.stroke();
+      // marine snow: slow current that varies with depth, sinking a little, swirling from the pointer
+      const bands = [new Path2D(), new Path2D(), new Path2D()];
+      for (const f of snow) {
+        let vx = 10 + 16 * noise(f.y * 0.004, t * 0.1), vy = 5 + Math.sin(t * 0.8 + f.ph) * 6;
+        if (ptr) { const dx = f.x - ptr.x, dy = f.y - ptr.y, d = Math.hypot(dx, dy); if (d < 110 && d > 1) { const k = (1 - d / 110) * 70; vx += (dx / d) * k - (dy / d) * k; vy += (dy / d) * k + (dx / d) * k; } }
+        f.vx *= Math.pow(0.15, dt); f.vy *= Math.pow(0.15, dt);
+        f.x += (vx + f.vx) * dt; f.y += (vy + f.vy) * dt;
+        if (f.x > w + 5) f.x -= w + 10; else if (f.x < -5) f.x += w + 10;
+        if (f.y > h + 5) f.y -= h + 10; else if (f.y < -5) f.y += h + 10;
+        const tw = 0.5 + 0.5 * Math.sin(t * 1.3 + f.ph), b = bands[f.s > 1.9 ? 2 : tw > 0.6 ? 1 : 0];
+        b.moveTo(f.x + f.s / 2, f.y); b.arc(f.x, f.y, f.s / 2, 0, TAU);
       }
+      bands.forEach((pa, i) => { g.fillStyle = `rgba(255,255,255,${0.3 + i * 0.25})`; g.fill(pa); });
+      // the seabed: a floor in perspective from a soft horizon down to the end of the page. Depth z
+      // runs from 1 (the page end) to ZF (the horizon); plane units are pixels at z = 1. The tile is
+      // laid in strips: each one maps the plane to the screen at its own depth (x shrinks by 1/z
+      // around the centre, plane depth squeezes onto the strip's height)
+      const band = Math.min(340, h * 0.42), horizon = floor - band;
+      if (horizon < h) {
+        if (!tile) { tile = causticTile(); pats = [g.createPattern(tile, 'repeat')!, g.createPattern(tile, 'repeat')!]; }
+        const ZF = 5, D = 420, cx = w / 2, STRIPS = 120;
+        const yAt = (z: number) => floor - band * ((1 - 1 / z) / (1 - 1 / ZF)), planeY = (z: number) => (D * (z - 1)) / (ZF - 1);
+        const tint = g.createLinearGradient(0, floor, 0, horizon); // sand
+        tint.addColorStop(0, 'rgba(255,255,255,0.08)');
+        tint.addColorStop(1, 'rgba(255,255,255,0)');
+        g.fillStyle = tint;
+        g.fillRect(0, horizon, w, band);
+        // two layers drifting apart; the second is larger and mirrored, so the repeats never line up
+        const layers = [{ k: 2, u: t * 7, v: t * 5 }, { k: -2.7, u: -t * 6, v: t * 7 }];
+        g.save();
+        g.globalCompositeOperation = 'lighter';
+        for (let s = 0; s < STRIPS; s++) {
+          // strips are spaced evenly in 1/z, so they are evenly thin on screen
+          const z0 = 1 / (1 - (s / STRIPS) * (1 - 1 / ZF)), z1 = 1 / (1 - ((s + 1) / STRIPS) * (1 - 1 / ZF)), zm = (z0 + z1) / 2;
+          const y1 = yAt(z0), y0 = yAt(z1), Y0 = planeY(z0), sy = (y1 - y0) / (planeY(z1) - Y0);
+          if (y1 < 0 || y0 > h) continue;
+          g.globalAlpha = 0.42 * Math.min(1, (1 - s / STRIPS) * 1.6); // fades toward the horizon
+          layers.forEach((L, li) => {
+            const p = pats[li], kx = L.k / zm, ky = Math.abs(L.k) * sy;
+            p.setTransform(new DOMMatrix([kx, 0, 0, -ky, cx - (cx - L.u) * kx, y1 + (Y0 + L.v) * ky]));
+            g.fillStyle = p;
+            g.fillRect(0, y0, w, y1 - y0 + 0.5);
+          });
+        }
+        g.restore();
+      }
+      // click ripples
+      rings = rings.filter(r => (r.age += dt) < 1.4);
+      for (const r of rings) { const k = r.age / 1.4; g.strokeStyle = `rgba(255,255,255,${0.6 * (1 - k)})`; g.lineWidth = 1.4; g.beginPath(); g.ellipse(r.x, r.y, 20 + k * 140, (20 + k * 140) * 0.35, 0, 0, TAU); g.stroke(); }
     },
   };
 }
@@ -497,7 +599,7 @@ function gaia(): Fx {
   return {
     move: (x, y) => { ptr = x === null ? null : { x, y }; },
     click: (w, h, x, y) => { shoot.push({ x, y, ang: rnd(0.25, 0.6), v: rnd(380, 520), age: 0 }); },
-    draw(g, w, h, dt) {
+    draw(g, w, h, dt, floor) {
       t += dt;
       if (W !== w || H !== h) { W = w; H = h; const k = (w * h) / 1e6; stars = LAYERS.map(L => Array.from({ length: Math.round(L.n * k) }, () => ({ x: rnd(0, w), y: rnd(0, h), ph: rnd(0, TAU), sp: rnd(0.6, 2.2), lit: 0 }))); }
       const tx = ptr ? (ptr.x / w - 0.5) * 2 : 0, ty = ptr ? (clamp(ptr.y / h, 0, 1) - 0.5) * 2 : 0;
@@ -505,7 +607,7 @@ function gaia(): Fx {
       py += (ty - py) * Math.min(1, dt * 3);
       const c3 = themeRgb().c3;
       LAYERS.forEach((L, li) => {
-        const paths = Array.from({ length: BANDS }, () => new Path2D()), ox = -px * L.par, oy = -py * L.par;
+        const paths = Array.from({ length: BANDS }, () => new Path2D()), ox = -px * L.par, oy = -py * L.par + (floor - h) * 0.04 * (li + 1); // deeper layers scroll more
         for (const s of stars[li]) {
           s.y -= L.v * dt;
           if (s.y < 0) s.y += h;

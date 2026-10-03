@@ -48,8 +48,8 @@ export const SiteFooter = () => {
             >
               <ArrowUp size={18} weight="bold" className="s-icon" />
               <span className="h-swap">
-                <span>Back to top</span>
-                <span className="h-serif text-[1.1rem] leading-[1.05]" aria-hidden="true">Back to top</span>
+                <span>Back to surface</span>
+                <span className="h-serif text-[1.1rem] leading-[1.05]" aria-hidden="true">Back to surface</span>
               </span>
             </button>
           </div>

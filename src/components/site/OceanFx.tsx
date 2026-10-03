@@ -4,33 +4,17 @@ import { onQuality, quality } from '@/lib/perf';
 import { currentElement, onThemeChange } from '@/lib/theme';
 import { OCEAN_FX, type Fx } from '@/lib/oceanFx';
 
-// The picked element's effect at the end of the page, rising from its
-// bottom edge behind the footer (src/lib/oceanFx.ts). Full width, reaching
-// higher on the sides than in the middle, and fading into the page through
-// a mask baked once per size. Drawn only while on screen; PC at full
-// quality only.
+// The picked element's effect behind the whole ocean (src/lib/oceanFx.ts).
+// A screen-sized canvas; what grows on the seabed hangs off the end of the
+// page, the rest fills the screen. A mask tied to the page fades it in with
+// depth: nothing at the top of the ocean, a trace behind the cards, full at
+// the end; the middle of the screen, where the text is, stays dimmer than
+// the sides. PC only, and not at the minimal quality level.
 
-const HEIGHT = 0.75; // of the viewport
 const OPACITY = 0.8; // every effect, times its gain
 const SWAP_MS = 350;
 const NOT_HERE = 'a, button, input, textarea, select, label, [role="button"], [data-no-fx]';
-
-// Alpha mask: opaque at the bottom, fading out above a curve that sits at
-// 95% of the height on the sides and 45% in the middle.
-function bakeMask(w: number, h: number) {
-  const W = Math.max(2, Math.round(w / 8)), H = Math.max(2, Math.round(h / 8)), c = document.createElement('canvas');
-  c.width = W; c.height = H;
-  const g = c.getContext('2d')!, img = g.createImageData(W, H), FADE = 0.4;
-  for (let i = 0; i < W; i++) {
-    const reach = 0.45 + 0.5 * Math.abs((2 * i) / (W - 1) - 1) ** 1.6;
-    for (let j = 0; j < H; j++) {
-      const up = 1 - j / (H - 1), k = Math.min(1, Math.max(0, (reach - up) / FADE)), o = (j * W + i) * 4;
-      img.data[o + 3] = k * k * (3 - 2 * k) * 255;
-    }
-  }
-  g.putImageData(img, 0, 0);
-  return c.toDataURL();
-}
+const SIDES = 'linear-gradient(to right, #000, rgba(0,0,0,0.55) 50%, #000)';
 
 export const OceanFx = () => {
   const ref = useRef<HTMLCanvasElement>(null);
@@ -41,28 +25,48 @@ export const OceanFx = () => {
     if (!canvas || !ctx || prefersReducedMotion()) return;
     const fine = window.matchMedia('(pointer: fine)');
 
-    let vw = 0, vh = 0, h = 0;
+    // Where the ocean starts on the page: under the black element band, or
+    // half a screen down on pages without it.
+    let band: HTMLElement | null = null;
+    const findBand = () => {
+      if (!band?.isConnected) band = document.querySelector<HTMLElement>('[data-ocean-top]');
+      return band;
+    };
+
+    let vw = 0, vh = 0, pageH = 1, oceanTop = 0;
+    const layout = () => {
+      pageH = Math.max(document.documentElement.scrollHeight, vh);
+      const b = findBand();
+      oceanTop = b ? b.getBoundingClientRect().bottom + window.scrollY : vh * 0.5;
+      // depth fade over the page: 0 at the top of the ocean, a trace behind
+      // the cards, full over the last screen
+      const end = Math.max(oceanTop + vh, pageH - vh * 0.6), mid = (oceanTop + end) / 2;
+      const depth = `linear-gradient(to bottom, transparent ${oceanTop}px, rgba(0,0,0,0.18) ${oceanTop + vh * 0.35}px, rgba(0,0,0,0.4) ${mid}px, #000 ${end}px)`;
+      canvas.style.maskImage = canvas.style.webkitMaskImage = `${depth}, ${SIDES}`;
+      canvas.style.maskSize = canvas.style.webkitMaskSize = `100% ${pageH}px, 100% 100%`;
+    };
     const fit = () => {
       const dpr = Math.min(1.5, window.devicePixelRatio || 1);
       vw = window.innerWidth;
       vh = window.innerHeight;
-      h = Math.round(vh * HEIGHT);
       canvas.width = Math.round(vw * dpr);
-      canvas.height = Math.round(h * dpr);
+      canvas.height = Math.round(vh * dpr);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      const url = `url(${bakeMask(vw, h)})`;
-      canvas.style.maskImage = url;
-      canvas.style.webkitMaskImage = url;
+      layout();
     };
     fit();
     window.addEventListener('resize', fit);
+    const ro = new ResizeObserver(layout); // the page grows and shrinks (filters, images)
+    ro.observe(document.body);
+    const floor = () => pageH - window.scrollY;
 
     // The current element's effect, run ahead a few seconds so it starts
     // grown in (frost, roots); on a change it fades out, swaps, fades in.
     const make = (key: string) => {
       const f = (OCEAN_FX[key] ?? OCEAN_FX.aqua).make(vw);
-      for (let i = 0; i < 80; i++) f.draw(ctx, vw, h, 0.05);
-      ctx.clearRect(0, 0, vw, h);
+      const fl = floor();
+      for (let i = 0; i < 80; i++) f.draw(ctx, vw, vh, 0.05, fl);
+      ctx.clearRect(0, 0, vw, vh);
       return f;
     };
     let id = currentElement();
@@ -89,21 +93,19 @@ export const OceanFx = () => {
     fine.addEventListener('change', sync);
 
     const onDown = (e: PointerEvent) => {
-      const top = canvas.getBoundingClientRect().top;
-      if (!enabled() || e.clientY < top || (e.target as Element | null)?.closest?.(NOT_HERE)) return;
-      fx.click?.(vw, h, e.clientX, e.clientY - top);
+      if (!enabled() || e.clientY + window.scrollY < oceanTop || (e.target as Element | null)?.closest?.(NOT_HERE)) return;
+      fx.click?.(vw, vh, e.clientX, e.clientY);
     };
     window.addEventListener('pointerdown', onDown, { passive: true });
 
     // Nothing above the black element band (same rule as the ocean layer).
-    let band: HTMLElement | null = null;
-    const clearAboveBand = (top: number) => {
-      if (!band?.isConnected) band = document.querySelector<HTMLElement>('[data-ocean-top]');
-      if (!band) return;
-      const r = band.getBoundingClientRect();
-      if (r.bottom + 40 < top) return; // band is above the box
-      const a = (-2 * Math.PI) / 180, half = band.offsetHeight / 2;
-      const mx = r.left + r.width / 2 - half * Math.sin(a), my = r.top + r.height / 2 + half * Math.cos(a) - top;
+    const clearAboveBand = () => {
+      const b = findBand();
+      if (!b) return;
+      const r = b.getBoundingClientRect();
+      if (r.bottom + 40 < 0) return; // band scrolled away
+      const a = (-2 * Math.PI) / 180, half = b.offsetHeight / 2;
+      const mx = r.left + r.width / 2 - half * Math.sin(a), my = r.top + r.height / 2 + half * Math.cos(a);
       const yAt = (x: number) => my + (x - mx) * Math.tan(a);
       ctx.save();
       ctx.globalCompositeOperation = 'destination-out';
@@ -116,18 +118,20 @@ export const OceanFx = () => {
 
     const off = onTick((_, dt) => {
       if (!enabled()) return;
-      const top = canvas.getBoundingClientRect().top;
-      if (top >= vh || top + h <= 0) return; // off screen: nothing to draw
-      fx.move?.(pointer.active ? pointer.x : null, pointer.y - top);
-      ctx.clearRect(0, 0, vw, h);
-      fx.draw(ctx, vw, h, dt);
-      clearAboveBand(top);
+      const y = window.scrollY;
+      canvas.style.maskPosition = canvas.style.webkitMaskPosition = `0 ${-y}px, 0 0`;
+      if (oceanTop - y >= vh) return; // the ocean hasn't started on screen yet
+      fx.move?.(pointer.active ? pointer.x : null, pointer.y);
+      ctx.clearRect(0, 0, vw, vh);
+      fx.draw(ctx, vw, vh, dt, floor());
+      clearAboveBand();
     });
 
     return () => {
       off();
       offTheme();
       offQuality();
+      ro.disconnect();
       clearTimeout(swap);
       fine.removeEventListener('change', sync);
       window.removeEventListener('pointerdown', onDown);
