@@ -12,6 +12,7 @@ const TAIL = 200;
 const COVER = 260 + 2 * 45 + 40; // .pt-layer cover + hold, as in PageTransition
 const REVEAL = 300 + 2 * 45;
 const RUN = 240; // px moved on each side of the cut, at most
+const EASE_OUT = 4; // the end slows down hard (ease-out quart)
 
 const jump = (y: number) => window.scrollTo({ top: y, behavior: 'instant' as ScrollBehavior });
 
@@ -32,7 +33,9 @@ export function useDiveScroll() {
     const lead = more.lead ?? LEAD;
     const tA = lead + COVER;
     const tB = Math.max(REVEAL, more.end ?? REVEAL + TAIL);
-    const runA = Math.min(RUN, run * (tA / tB)); // same speed at the cut
+    // ease-in (quad) before, ease-out (EASE_OUT power) after: same speed at
+    // the cut when runA = EASE_OUT/2 * run * tA/tB
+    const runA = Math.min(RUN, (EASE_OUT / 2) * run * (tA / tB));
     let raf = 0;
 
     // speeding up (ease-in) until the swap
@@ -56,7 +59,7 @@ export function useDiveScroll() {
         const startB = performance.now();
         const stepB = (now: number) => {
           const k = Math.min(1, (now - startB) / tB);
-          jump(from + sign * runB * (1 - (1 - k) * (1 - k)));
+          jump(from + sign * runB * (1 - (1 - k) ** EASE_OUT));
           if (k < 1) raf = requestAnimationFrame(stepB);
         };
         raf = requestAnimationFrame(stepB);
@@ -65,5 +68,5 @@ export function useDiveScroll() {
   }, [dive]);
 }
 
-// Back to the top: half a second of motion on each side of the sea.
-export const TOP_RUN: RunOpts = { lead: 500, end: 500 };
+// Back to the top: half a second before the sea, a long soft landing after.
+export const TOP_RUN: RunOpts = { lead: 500, end: 900 };

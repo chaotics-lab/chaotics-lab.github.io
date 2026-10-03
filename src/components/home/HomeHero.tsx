@@ -38,7 +38,7 @@ export const HomeHero = () => {
                 return el ? el.getBoundingClientRect().top + window.scrollY : window.scrollY;
               };
               const projects = () => top('projects') - parseFloat(getComputedStyle(document.getElementById('projects')!).scrollMarginTop || '0');
-              scrollTo(projects, undefined, { lead: 350, end: 1000, after: () => projects() - top('ai-usage') + 260 });
+              scrollTo(projects, undefined, { lead: 350, end: 1600, after: () => projects() - top('ai-usage') + 260 });
             }}
             className="h-btn h-btn-line h-swap-host self-start md:self-auto"
           >
