@@ -24,6 +24,7 @@ import rehypeRaw from "rehype-raw";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 import type { Components } from "react-markdown";
+import { SmartImage } from "@/components/SmartImage";
 
 // ----------------- CodeBlock -----------------
 function CodeBlock({
@@ -158,7 +159,7 @@ const BlogPostPage = () => {
                 overflow: "hidden",
               }}
             >
-              <img
+              <SmartImage
                 src={src}
                 alt={alt}
                 style={{ width: "100%", display: "block" }}
@@ -179,7 +180,7 @@ const BlogPostPage = () => {
         );
       }
       return (
-        <img
+        <SmartImage
           src={src}
           alt=""
           style={{ width: "100%", display: "block", margin: "2rem 0" }}
@@ -237,7 +238,7 @@ const BlogPostPage = () => {
         <header className="mb-10">
           {post.coverImage && (
             <div className="relative w-full h-64 md:h-80 rounded-2xl overflow-hidden mb-8 border border-white/10">
-              <img
+              <SmartImage
                 src={post.coverImage}
                 alt={post.title}
                 className="w-full h-full object-cover"
