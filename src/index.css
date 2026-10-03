@@ -665,6 +665,7 @@ All colors MUST be HSL.
 .h-page {
   position: relative;
   isolation: isolate; /* so the ocean layer (z-index -1) sits on the page background, behind the content */
+  clip-path: inset(0); /* clips the fixed ocean canvases to the page too, so an overscroll bounce shows only black past it */
   color: #fff;
   font-family: "Archivo", system-ui, sans-serif;
   background: linear-gradient(180deg, var(--h-top) 0%, var(--h-mid) 18%, var(--h-deep) 45%, var(--h-night) 80%);
