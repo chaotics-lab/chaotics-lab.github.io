@@ -754,10 +754,33 @@ All colors MUST be HSL.
 .e-track { display: flex; width: max-content; will-change: transform; } /* moved from ElementMarquee */
 /* Element picker in the band. ElementMarquee slows the scroll under the
    cursor; the hovered and the active element take their own colour. */
-.e-pick { color: var(--h-cream); cursor: pointer; transition: color 0.2s; }
+.e-pick { color: var(--h-cream); cursor: pointer; }
 .e-pick .e-tile { transition: transform 0.25s cubic-bezier(0.3, 1.6, 0.5, 1); }
-@media (hover: hover) { .e-pick:hover, .e-pick[aria-pressed="true"] { color: var(--el); } }
+/* Reads as a picker without saying so: the chosen element is lit (its
+   colour, its tile raised and turned, a bar under it) on every device; the
+   others sit a little back. Hovering one previews it (colour, tile lift,
+   the band's edge glowing in its colour); pressing pushes the tile in. */
+.e-pick { position: relative; opacity: 0.78; transition: color 0.2s, opacity 0.2s; }
+.e-pick[aria-pressed="true"] { color: var(--el); opacity: 1; }
+.e-pick[aria-pressed="true"] .e-tile { transform: translateY(-3px) rotate(-6deg); }
+.e-pick::after { content: ""; position: absolute; left: 22%; right: 22%; bottom: -0.35rem; height: 4px; background: var(--el); transform: skewX(-20deg) scaleX(0); transition: transform 0.3s cubic-bezier(.2,.8,.2,1); }
+.e-pick[aria-pressed="true"]::after { transform: skewX(-20deg) scaleX(1); }
+@media (hover: hover) { .e-pick:hover { color: var(--el); opacity: 1; } }
 @media (hover: hover) { .e-pick:hover .e-tile { transform: translateY(-3px) rotate(-6deg); } }
+.e-pick:active .e-tile { transform: scale(0.88) rotate(-4deg); transition-duration: 0.08s; }
+.e-band { transition: border-color 0.25s, box-shadow 0.25s; }
+.e-band[data-preview] { border-color: var(--preview); box-shadow: 0 0 32px -4px var(--preview); }
+/* Switching (src/lib/elementSwitch.ts): the tile flips where it is and rings
+   in the new colours ripple out over the screen */
+.e-flip { animation: e-flip 520ms cubic-bezier(.3,1.4,.5,1); }
+@keyframes e-flip { from { transform: perspective(300px) rotateY(0) scale(1); } 45% { transform: perspective(300px) rotateY(200deg) scale(1.25); } to { transform: perspective(300px) rotateY(360deg) translateY(-3px) rotate(-6deg); } }
+.e-ring { position: fixed; z-index: 90; width: 0; height: 0; pointer-events: none; }
+.e-ring::before { content: ""; position: absolute; left: 0; top: 0; width: 300vmax; height: 300vmax; border: 3px solid currentColor; border-radius: 50%; transform: translate(-50%, -50%) scale(0); animation: e-ring 800ms cubic-bezier(.2,.7,.3,1) var(--d, 0ms) both; }
+@keyframes e-ring { from { transform: translate(-50%, -50%) scale(0); opacity: 0.9; border-width: 6px; } to { transform: translate(-50%, -50%) scale(1); opacity: 0; border-width: 1px; } }
+/* The nudge, once per visit if the band is ignored: two tiles in turn hop and turn, a small ring pulsing out of each */
+.e-nudge { animation: e-nudge 700ms cubic-bezier(.3,1.5,.5,1); }
+@keyframes e-nudge { 0% { transform: none; } 25% { transform: translateY(-10px) rotate(-18deg) scale(1.35); } 50% { transform: translateY(0) rotate(8deg) scale(1.05); } 72% { transform: translateY(-4px) rotate(-8deg) scale(1.12); } 100% { transform: none; } }
+.e-ring-small::before { width: 9rem; height: 9rem; border-width: 3px; }
 .e-pick:focus-visible { outline: 2px solid var(--el); outline-offset: -4px; }
 .e-tile { position: relative; isolation: isolate; display: grid; place-items: center; }
 .e-tile > svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
@@ -1057,7 +1080,6 @@ html[data-quality="0"] .ocean-layer { display: none; }
 /* Blot variant (card -> project): each layer's wavy clip path is set per
    frame from PageTransition.tsx. */
 .pt-blot { position: absolute; inset: 0; }
-.pte-shape { mask-repeat: no-repeat; -webkit-mask-repeat: no-repeat; }
 /* Slash variant: wide slanted bands cut in from the right, then carry on
    off to the left, front band first. The front band carries the label. */
 .pts-band {
@@ -1080,24 +1102,6 @@ html[data-quality="0"] .ocean-layer { display: none; }
 .pt[data-phase="cover"] .pts-label { animation: pts-label 380ms cubic-bezier(.2,.8,.2,1) 120ms both; }
 @keyframes pts-label { from { opacity: 0; translate: 6rem 0; } to { opacity: 1; translate: 0 0; } }
 .pts-label > .h-caps { color: var(--h-cream); }
-/* Element variant: blots (above) plus the element's card. The card starts
-   at the clicked icon (--dx, --dy from the middle), small and turned, and
-   lands in the middle after a flip and a half; it spins away on the reveal. */
-.pte-stage { position: absolute; left: 50%; top: 50%; display: flex; flex-direction: column; align-items: center; gap: 1rem; transform: translate(-50%, -50%); perspective: 900px; }
-.pte-card { position: relative; width: clamp(9rem, 32vmin, 18rem); aspect-ratio: 1; transform-style: preserve-3d; }
-.pte-face { position: absolute !important; inset: 0; width: 100%; backface-visibility: hidden; }
-.pte-back { transform: rotateY(180deg); }
-.pte-name { font-size: clamp(2rem, 6vmin, 4rem); color: #fff; }
-.pt[data-phase="cover"] .pte-card { animation: pte-fly 420ms cubic-bezier(.2,.9,.25,1.15) both; }
-.pt[data-phase="cover"] .pte-name { animation: pts-label 260ms cubic-bezier(.2,.8,.2,1) 260ms both; }
-.pt[data-phase="reveal"] .pte-card { animation: pte-away 260ms cubic-bezier(.5,0,.75,0) both; }
-.pt[data-phase="reveal"] .pte-name { animation: pte-name-out 200ms ease-in both; }
-@keyframes pte-fly {
-  from { transform: translate(var(--dx), var(--dy)) scale(0.18) rotateY(-540deg) rotate(-25deg); }
-  to { transform: rotate(-6deg); }
-}
-@keyframes pte-away { from { transform: rotate(-6deg); } to { transform: scale(0) rotate(160deg); opacity: 0; } }
-@keyframes pte-name-out { to { opacity: 0; translate: 0 1rem; } }
 /* Sideways sea (filter change, back to the projects): layers with wavy
    left/right edges cross the screen left to right; data-dir="left"
    mirrors the whole thing. */
@@ -1173,7 +1177,7 @@ html[data-quality="0"] .ocean-layer { display: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .g-fill[data-run], .h-line > span, .h-marquee, .h-swap-in, .p-logo, .pt-page, .h-bob, .h-bob-up, .w-card { animation: none !important; }
+  .e-flip, .e-nudge, .e-ring::before, .g-fill[data-run], .h-line > span, .h-marquee, .h-swap-in, .p-logo, .pt-page, .h-bob, .h-bob-up, .w-card { animation: none !important; }
   .pt { display: none; }
   .w-arrow, .w-rule > span, .h-swap > span, .h-btn, .h-pill, .s-nav-blob, .h-pill-blob, .s-top, .h-btn-line::before, .s-circle, .g-track, .g-arrow, .p-next-arrow, .ai-drop-body, .ai-drop-item, .ai-drop-plus, .ai-drop-title, .s-icon { transition: none; }
   .w-cursor { display: none; }

@@ -3,20 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { PageTransitionContext, type TransitionOpts } from '@/lib/pageTransition';
 import { prefersReducedMotion } from '@/lib/ticker';
 import { WAVE, WAVE_V } from '@/lib/wave';
-import { THEMES } from '@/config/themes';
-import { ELEMENTS } from '@/config/elements';
-import { IconTile, Tile } from '@/components/portfolio/IconTile';
-import { coverSize, elementShape } from '@/lib/elementShape';
 
 // P3R-style page changes. 'sea': three layers of sea (cyan, blue, deep
 // blue) rise over the screen with drifting wave edges, the page switches
 // underneath, then they leave through the top in reverse order. 'slash':
 // three slanted bands cut in from the right and carry on off to the left.
-// 'element': the element's card (its icon on the cream tile) flies out of
-// the clicked icon to the middle, flipping over as it grows, while the
-// element's own silhouette, in three of its colours, grows from the same
-// point over the screen; the scheme swaps while it covers; then the card
-// spins away and the silhouette opens from the middle.
 // 'blot': Persona 3 Reload's menu cut. Three blots (circles with a wavy,
 // slowly turning edge) grow one after the other from the clicked point and
 // cover the screen; the page switches; then a wavy hole grows from the
@@ -26,13 +17,11 @@ import { coverSize, elementShape } from '@/lib/elementShape';
 // sin(lobes * (angle - progress * turn))), with R reaching the far corner.
 // Keep the timings in sync with .pt-layer / .pts-band in index.css.
 const BLOT = { in: 320, out: 380, gap: 75 }; // ms per blot, and between them
-const EL_BLOT = { in: 260, out: 300, gap: 50 }; // the element switch's, quicker
 const TIMING = {
   sea: { cover: 260 + 2 * 45, hold: 40, reveal: 300 + 2 * 45 },
   slash: { cover: 280 + 2 * 60, hold: 320, reveal: 320 + 2 * 60 }, // hold: time to read the title
   blot: { cover: BLOT.gap * 2 + BLOT.in, hold: 120, reveal: BLOT.gap * 2 + BLOT.out },
   fade: { cover: 160, hold: 30, reveal: 220 }, // minimal quality: one plain fade (.pt-fade)
-  element: { cover: EL_BLOT.gap * 2 + EL_BLOT.in, hold: 170, reveal: EL_BLOT.gap * 2 + EL_BLOT.out }, // hold: a beat on the card
 };
 
 const LAYERS = ['var(--h-c1)', 'var(--h-top)', 'var(--h-deep)'];
@@ -77,12 +66,10 @@ export const PageTransition = ({ children }: { children: ReactNode }) => {
     setOpts(o);
     setPhase('cover');
     if (o.kind === 'blot') runBlots('cover', BLOT, o.origin);
-    if (o.kind === 'element') runShapes('cover', o.element ?? 'aqua', o.origin);
     timers.current.push(window.setTimeout(() => {
       swap();
       setPhase('reveal');
       if (o.kind === 'blot') runBlots('reveal', BLOT);
-      if (o.kind === 'element') runShapes('reveal', o.element ?? 'aqua');
       timers.current.push(window.setTimeout(() => {
         setPhase('idle');
         busy.current = false;
@@ -119,47 +106,6 @@ export const PageTransition = ({ children }: { children: ReactNode }) => {
     blotRaf.current = requestAnimationFrame(frame);
   };
   useEffect(() => () => cancelAnimationFrame(blotRaf.current), []);
-
-  // Element switch: the same three layers, each masked by the element's
-  // filled silhouette (src/lib/elementShape.ts) growing from the clicked
-  // icon, from about its size until it covers the screen (scaled
-  // geometrically, so it reads as one smooth zoom); on the reveal the
-  // silhouette is a hole growing from the middle.
-  const runShapes = (step: 'cover' | 'reveal', id: string, at?: { x: number; y: number }) => {
-    cancelAnimationFrame(blotRaf.current);
-    const w = window.innerWidth, h = window.innerHeight, shape = elementShape(id), B = 512;
-    const ox = step === 'reveal' ? w / 2 : at?.x ?? w / 2, oy = step === 'reveal' ? h / 2 : at?.y ?? h / 2;
-    const S1 = coverSize(shape, ox, oy, w, h) * 1.04, S0 = step === 'cover' ? 40 : 12;
-    let start = -1;
-    const frame = () => {
-      if (!blots.current[2]?.isConnected) { blotRaf.current = requestAnimationFrame(frame); return; }
-      if (start < 0) start = performance.now();
-      const ms = performance.now() - start;
-      let running = false;
-      blots.current.forEach((el, i) => {
-        if (!el) return;
-        const delay = (step === 'cover' ? i : 2 - i) * EL_BLOT.gap, dur = step === 'cover' ? EL_BLOT.in : EL_BLOT.out;
-        const k = Math.min(1, Math.max(0, (ms - delay) / dur)), st = el.style;
-        if (k < 1) running = true;
-        const size = S0 * (S1 / S0) ** (step === 'cover' ? easeOut(k) : easeInOut(k)), at = `${(ox - (shape.core.x * size) / B).toFixed(1)}px ${(oy - (shape.core.y * size) / B).toFixed(1)}px`;
-        if (k > 0) st.visibility = 'visible';
-        if (step === 'cover') {
-          st.maskImage = st.webkitMaskImage = k < 1 ? shape.url : 'none'; // done: simply filled
-          st.maskSize = st.webkitMaskSize = `${size}px ${size}px`;
-          st.maskPosition = st.webkitMaskPosition = at;
-        } else {
-          st.maskImage = st.webkitMaskImage = `linear-gradient(#000, #000), ${shape.url}`;
-          st.maskSize = st.webkitMaskSize = `100% 100%, ${size}px ${size}px`;
-          st.maskPosition = st.webkitMaskPosition = `0 0, ${at}`;
-          st.maskComposite = 'exclude';
-          st.setProperty('-webkit-mask-composite', 'xor');
-          if (k === 1) st.visibility = 'hidden';
-        }
-      });
-      if (running) blotRaf.current = requestAnimationFrame(frame);
-    };
-    blotRaf.current = requestAnimationFrame(frame);
-  };
 
   const diveRef = useRef(dive);
   diveRef.current = dive;
@@ -205,27 +151,6 @@ export const PageTransition = ({ children }: { children: ReactNode }) => {
           ))}
         </div>
       )}
-      {opts.kind === 'element' && phase !== 'idle' && (() => {
-        const pal = THEMES[opts.element ?? ''] ?? THEMES.aqua, info = ELEMENTS.find(e => e.id === opts.element);
-        const w = window.innerWidth, h = window.innerHeight, o = opts.origin ?? { x: w / 2, y: h / 2 };
-        return (
-          <div className="pt" data-phase={phase} aria-hidden="true">
-            {['var(--h-cream)', pal.c1, pal.deep].map((color, i) => (
-              <div key={i} ref={el => { blots.current[i] = el; }} className="pt-blot pte-shape" style={{ background: color, visibility: 'hidden' }} />
-            ))}
-            {/* the element's card flies out of the clicked icon, flipping over */}
-            {info && (
-              <div className="pte-stage" style={{ ['--dx' as string]: `${o.x - w / 2}px`, ['--dy' as string]: `${o.y - h / 2}px` }}>
-                <div className="pte-card">
-                  <IconTile id={info.id} shadow="10px" className="pte-face" />
-                  <Tile shadow="10px" className="pte-face pte-back" />
-                </div>
-                <span className="pte-name h-display">{info.name}</span>
-              </div>
-            )}
-          </div>
-        );
-      })()}
       {opts.kind === 'fade' && phase !== 'idle' && <div className="pt pt-fade" data-phase={phase} aria-hidden="true" />}
       {opts.kind === 'blot' && phase !== 'idle' && (
         <div className="pt" data-phase={phase} aria-hidden="true">
@@ -235,7 +160,7 @@ export const PageTransition = ({ children }: { children: ReactNode }) => {
         </div>
       )}
       {/* sideways sea (dir left/right), same layers as the filter sweep */}
-      <div className="pt" data-phase={opts.kind !== 'slash' && opts.kind !== 'fade' && opts.kind !== 'element' && sideways ? phase : 'idle'} data-dir={opts.dir} aria-hidden="true">
+      <div className="pt" data-phase={opts.kind !== 'slash' && opts.kind !== 'fade' && sideways ? phase : 'idle'} data-dir={opts.dir} aria-hidden="true">
         {LAYERS.map((color, i) => (
           <div
             key={color}
@@ -248,7 +173,7 @@ export const PageTransition = ({ children }: { children: ReactNode }) => {
           </div>
         ))}
       </div>
-      <div className="pt" data-phase={opts.kind === 'slash' || opts.kind === 'fade' || sideways || opts.kind === 'blot' || opts.kind === 'element' ? 'idle' : phase} data-dir={opts.dir ?? 'up'} aria-hidden="true">
+      <div className="pt" data-phase={opts.kind === 'slash' || opts.kind === 'fade' || sideways || opts.kind === 'blot' ? 'idle' : phase} data-dir={opts.dir ?? 'up'} aria-hidden="true">
         {LAYERS.map((color, i) => (
           <div
             key={color}

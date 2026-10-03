@@ -39,15 +39,18 @@ export const ProjectGrid = ({ projects }: { projects: ProjectData[] }) => {
   );
 };
 
-// Clicking a card: blots in the project's colours grow from its picture
-// (PageTransition 'blot').
+// Clicking a card: blots in the project's colours grow from where it was
+// clicked (from its picture when opened with the keyboard) (PageTransition 'blot').
+let press = { x: 0, y: 0, t: -1e9 };
+if (typeof window !== 'undefined') window.addEventListener('pointerdown', e => { press = { x: e.clientX, y: e.clientY, t: performance.now() }; }, { passive: true, capture: true });
 const blotFrom = (p: ProjectData): TransitionOpts => {
   const frame = document.querySelector<HTMLElement>(`[data-wcard][href="/project/${p.id}"] [data-frame]`);
   const r = frame?.getBoundingClientRect();
   const pal = projectPalette((p as { themeColors?: string[] }).themeColors);
+  const clicked = performance.now() - press.t < 1500;
   return {
     kind: 'blot',
-    origin: r ? { x: r.left + r.width / 2, y: r.top + r.height / 2 } : undefined,
+    origin: clicked ? { x: press.x, y: press.y } : r ? { x: r.left + r.width / 2, y: r.top + r.height / 2 } : undefined,
     colors: pal ? ['var(--h-cream)', pal.c1, pal.deep] : undefined,
   };
 };

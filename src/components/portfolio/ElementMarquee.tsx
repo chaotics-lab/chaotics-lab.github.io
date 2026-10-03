@@ -1,25 +1,70 @@
 import { useEffect, useRef, useState } from 'react';
 import { ELEMENTS } from '@/config/elements';
-import { applyTheme, currentElement, onThemeChange } from '@/lib/theme';
-import { usePageTransition } from '@/lib/pageTransition';
+import { currentElement, onThemeChange } from '@/lib/theme';
+import { ring, switchElement } from '@/lib/elementSwitch';
 import { onTick, prefersReducedMotion } from '@/lib/ticker';
 import { IconTile } from './IconTile';
 
 const LOOP_S = 38; // seconds for one full loop at normal speed
 const DRAG_PX = 6; // movement that turns a press into a drag (no click)
+const NUDGE_KEY = 'lox-el-nudged', NUDGE_AFTER_MS = 3500;
 
 // Slanted black band with the elements scrolling past (P5-style ticker).
 // The list is rendered twice and wraps at half its width, so the loop is
 // seamless. It can be dragged (finger or mouse) and keeps a little momentum;
-// hovering eases it down to 20% speed. A tap or click picks an element: its
-// transition (PageTransition 'element') covers the switch of colour scheme. The ocean layer is clipped to the
+// hovering eases it down to 20% speed. A tap or click picks an element and
+// switches the colour scheme (src/lib/elementSwitch.ts). The ocean layer is clipped to the
 // band's bottom edge, found through data-ocean-top.
 export const ElementMarquee = () => {
   const [active, setActive] = useState(currentElement);
-  const { dive } = usePageTransition();
   useEffect(() => onThemeChange(() => setActive(currentElement())), []);
 
   const trackRef = useRef<HTMLDivElement>(null);
+  const bandRef = useRef<HTMLDivElement>(null);
+  const touched = useRef(false);
+
+  // Once per visit, if the band has been in view for a few seconds and
+  // nobody has touched it: two elements near the middle hop in turn, each
+  // with a small ring in its colour, the hint that these do something.
+  useEffect(() => {
+    const band = bandRef.current;
+    if (!band || prefersReducedMotion()) return;
+    try { if (sessionStorage.getItem(NUDGE_KEY)) return; } catch { /* storage unavailable */ }
+    let timer = 0;
+    const nudge = () => {
+      if (touched.current) return;
+      const w = window.innerWidth, picks = [...band.querySelectorAll<HTMLElement>('.e-pick')].filter(el => {
+        const r = el.getBoundingClientRect();
+        return el.getAttribute('aria-pressed') !== 'true' && r.left > w * 0.2 && r.right < w * 0.8;
+      });
+      const mid = Math.floor(picks.length / 2), two = picks.slice(Math.max(0, mid - 1), mid + 1);
+      if (!two.length) return;
+      try { sessionStorage.setItem(NUDGE_KEY, '1'); } catch { /* storage unavailable */ }
+      two.forEach((el, i) => window.setTimeout(() => {
+        const tile = el.querySelector('.e-tile');
+        if (!tile || touched.current) return;
+        tile.classList.add('e-nudge');
+        window.setTimeout(() => tile.classList.remove('e-nudge'), 800);
+        const r = tile.getBoundingClientRect();
+        ring(r.left + r.width / 2, r.top + r.height / 2, getComputedStyle(el).getPropertyValue('--el'), 120, true);
+      }, i * 450));
+      io.disconnect();
+    };
+    const io = new IntersectionObserver(([e]) => {
+      clearTimeout(timer);
+      if (e.isIntersecting) timer = window.setTimeout(nudge, NUDGE_AFTER_MS);
+    }, { threshold: 0.9 });
+    io.observe(band);
+    return () => { clearTimeout(timer); io.disconnect(); };
+  }, []);
+
+  // Hovering an element (mouse) previews it: the band's edge glows in its colour.
+  const preview = (e: React.PointerEvent) => {
+    const band = bandRef.current, el = (e.target as Element).closest<HTMLElement>('.e-pick');
+    if (!band || e.pointerType !== 'mouse') return;
+    if (el) { band.dataset.preview = ''; band.style.setProperty('--preview', el.style.getPropertyValue('--el')); }
+    else delete band.dataset.preview;
+  };
   const drag = useRef({ on: false, id: -1, x: 0, moved: 0, vel: 0, last: 0 });
   const motion = useRef({ x: 0, rate: 1, target: 1, fling: 0 });
 
@@ -68,17 +113,17 @@ export const ElementMarquee = () => {
 
   const pick = (id: string, from: HTMLElement) => {
     if (drag.current.moved > DRAG_PX) return; // that was a drag, not a click
-    if (id === currentElement()) return;
-    const r = (from.querySelector('.e-tile') ?? from).getBoundingClientRect(); // the card flies out of this icon
-    dive(() => applyTheme(id), { kind: 'element', element: id, origin: { x: r.left + r.width / 2, y: r.top + r.height / 2 } });
+    switchElement(id, from);
   };
 
   return (
     <div
+      ref={bandRef}
       data-ocean-top
       onPointerEnter={e => { if (e.pointerType === 'mouse') motion.current.target = 0.2; }}
-      onPointerLeave={() => { motion.current.target = 1; }}
-      onPointerDown={onDown}
+      onPointerLeave={() => { motion.current.target = 1; if (bandRef.current) delete bandRef.current.dataset.preview; }}
+      onPointerOver={preview}
+      onPointerDown={e => { touched.current = true; onDown(e); }}
       onPointerMove={onMove}
       onPointerUp={onUp}
       onPointerCancel={onUp}
