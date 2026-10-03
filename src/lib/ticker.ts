@@ -13,12 +13,23 @@ let last = 0;
 export const pointer = { x: -9999, y: -9999, active: false };
 
 if (typeof window !== 'undefined') {
-  window.addEventListener('pointermove', e => {
-    if (e.pointerType === 'touch') return;
+  // Mouse: always tracked. Touch: a finger acts as the pointer while it is
+  // down and for a moment after, so the wave effects react on phones too.
+  let lift = 0;
+  const follow = (e: PointerEvent) => {
     pointer.x = e.clientX;
     pointer.y = e.clientY;
     pointer.active = true;
-  }, { passive: true });
+    clearTimeout(lift);
+  };
+  window.addEventListener('pointermove', follow, { passive: true });
+  window.addEventListener('pointerdown', e => { if (e.pointerType === 'touch') follow(e); }, { passive: true });
+  const up = (e: PointerEvent) => {
+    if (e.pointerType !== 'touch') return;
+    lift = window.setTimeout(() => { pointer.active = false; }, 1200);
+  };
+  window.addEventListener('pointerup', up, { passive: true });
+  window.addEventListener('pointercancel', up, { passive: true });
   document.addEventListener('pointerleave', () => { pointer.active = false; });
 }
 

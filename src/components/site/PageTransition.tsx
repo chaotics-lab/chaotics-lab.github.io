@@ -35,9 +35,10 @@ export const PageTransition = ({ children }: { children: ReactNode }) => {
     if (prefersReducedMotion()) { swap(); return; }
     if (busy.current) return;
     busy.current = true;
-    // On a struggling device (src/lib/perf.ts) every transition is a plain
-    // fade; one level up, the zoom keeps its colour wash but not the page zoom.
-    const o: TransitionOpts = quality() === 0 ? { kind: 'fade' } : given;
+    // The transitions are cheap CSS transforms and stay on every device;
+    // only the card zoom drops its page zoom (keeps the colour wash) on
+    // weaker ones (src/lib/perf.ts).
+    const o: TransitionOpts = given;
     const t = TIMING[o.kind ?? 'sea'];
     setOpts(o);
     setPhase('cover');
