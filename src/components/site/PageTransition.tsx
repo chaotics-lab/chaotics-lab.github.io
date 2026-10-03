@@ -8,8 +8,8 @@ import { WAVE, WAVE_V } from '@/lib/wave';
 // blue) rise over the screen with drifting wave edges, the page switches
 // underneath, then they leave through the top in reverse order. 'slash':
 // three slanted bands cut in from the right and carry on off to the left.
-// 'zoom': a card's image grows to fill the screen with a turn and tints to
-// the sea's front colour; the page switches; the sea then leaves upward.
+// 'zoom': the page zooms into a card with a turn while the sea's front
+// colour washes over it; the page switches; the sea then leaves upward.
 // Keep the timings in sync with .pt-layer / .pts-band in index.css.
 const TIMING = {
   sea: { cover: 260 + 2 * 45, hold: 40, reveal: 300 + 2 * 45 },
@@ -36,6 +36,13 @@ export const PageTransition = ({ children }: { children: ReactNode }) => {
     const t = TIMING[o.kind ?? 'sea'];
     setOpts(o);
     setPhase('cover');
+    if (o.kind === 'zoom' && o.zoomEl && o.origin) {
+      o.zoomEl.style.transformOrigin = `${o.origin.x}px ${o.origin.y}px`;
+      o.zoomEl.animate(
+        [{ transform: 'scale(1) rotate(0deg)' }, { transform: 'scale(2.4) rotate(-4deg)' }],
+        { duration: t.cover + t.hold, easing: 'cubic-bezier(.6,0,.4,1)', fill: 'forwards' },
+      );
+    }
     timers.current.push(window.setTimeout(() => {
       swap();
       setPhase('reveal');
@@ -87,19 +94,9 @@ export const PageTransition = ({ children }: { children: ReactNode }) => {
           ))}
         </div>
       )}
-      {opts.kind === 'zoom' && phase === 'cover' && opts.rect && (
+      {opts.kind === 'zoom' && phase === 'cover' && (
         <div className="pt pt-zoom-wrap" data-phase="cover" aria-hidden="true">
-          <div
-            className="pt-zoom"
-            style={{
-              ['--x' as string]: `${opts.rect.x}px`,
-              ['--y' as string]: `${opts.rect.y}px`,
-              ['--w' as string]: `${opts.rect.w}px`,
-              ['--h' as string]: `${opts.rect.h}px`,
-              ['--tint' as string]: opts.tint ?? 'var(--h-deep)',
-              backgroundImage: opts.src ? `url("${opts.src}")` : undefined,
-            }}
-          />
+          <div className="pt-zoom" style={{ ['--tint' as string]: opts.tint ?? 'var(--h-deep)' }} />
         </div>
       )}
       {/* sideways sea (dir left/right), same layers as the filter sweep */}

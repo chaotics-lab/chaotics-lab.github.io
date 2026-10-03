@@ -5,15 +5,16 @@ import { createContext, useContext } from 'react';
 // band last), with `label` written on the front band. Used between projects.
 // dir (sea only): 'up' (default) rises from the bottom, 'down' pours in from
 // the top, 'right' / 'left' sweep sideways in that direction.
-// 'zoom': the image `src` grows from `rect` to fill the screen with a turn,
-// tinting to `tint`; then the sea (already covering) leaves upward.
+// 'zoom': the page content `zoomEl` zooms into `origin` (px in its own box)
+// with a turn while `tint` washes over the screen; then the sea (already
+// covering) leaves upward.
 export type TransitionOpts = {
   kind?: 'sea' | 'slash' | 'zoom';
   dir?: 'up' | 'down' | 'left' | 'right';
   colors?: [string, string, string];
   label?: string;
-  rect?: { x: number; y: number; w: number; h: number };
-  src?: string;
+  zoomEl?: HTMLElement;
+  origin?: { x: number; y: number };
   tint?: string;
 };
 

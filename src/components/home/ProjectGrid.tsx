@@ -38,16 +38,18 @@ export const ProjectGrid = ({ projects }: { projects: ProjectData[] }) => {
   );
 };
 
-// Clicking a card zooms its image up to the screen, tinted to the project's
-// deep colour, which the sea then carries away (see PageTransition 'zoom').
+// Clicking a card zooms the whole page into it while the project's deep
+// colour washes over, which the sea then carries away (PageTransition 'zoom').
 const zoomInto = (p: ProjectData): TransitionOpts => {
   const frame = document.querySelector<HTMLElement>(`[data-wcard][href="/project/${p.id}"] [data-frame]`);
+  const main = frame?.closest('main') ?? undefined;
   const r = frame?.getBoundingClientRect();
+  const m = main?.getBoundingClientRect();
   const pal = projectPalette((p as { themeColors?: string[] }).themeColors);
   return {
     kind: 'zoom',
-    rect: r ? { x: r.left, y: r.top, w: r.width, h: r.height } : undefined,
-    src: p.imageUrl ? `${p.imageUrl}/thumb-1.webp` : undefined,
+    zoomEl: main,
+    origin: r && m ? { x: r.left + r.width / 2 - m.left, y: r.top + r.height / 2 - m.top } : undefined,
     tint: pal?.deep,
   };
 };
