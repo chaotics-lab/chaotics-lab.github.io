@@ -43,7 +43,8 @@ export const OceanFx = () => {
       const end = Math.max(oceanTop + vh, pageH - vh * 0.6), mid = (oceanTop + end) / 2;
       const depth = `linear-gradient(to bottom, transparent ${oceanTop}px, rgba(0,0,0,0.18) ${oceanTop + vh * 0.35}px, rgba(0,0,0,0.4) ${mid}px, #000 ${end}px)`;
       canvas.style.maskImage = canvas.style.webkitMaskImage = `${depth}, ${SIDES}`;
-      canvas.style.maskSize = canvas.style.webkitMaskSize = `100% ${pageH}px, 100% 100%`;
+      // one screen past the page end too, so an overscroll bounce does not cut it
+      canvas.style.maskSize = canvas.style.webkitMaskSize = `100% ${pageH + vh}px, 100% 100%`;
     };
     const fit = () => {
       const dpr = Math.min(1.5, window.devicePixelRatio || 1);
@@ -119,6 +120,8 @@ export const OceanFx = () => {
     const off = onTick((_, dt) => {
       if (!enabled()) return;
       const y = window.scrollY;
+      // the page height can change without the body resizing (late images, fonts): follow it live
+      if (Math.max(document.documentElement.scrollHeight, vh) !== pageH) layout();
       canvas.style.maskPosition = canvas.style.webkitMaskPosition = `0 ${-y}px, 0 0`;
       if (oceanTop - y >= vh) return; // the ocean hasn't started on screen yet
       fx.move?.(pointer.active ? pointer.x : null, pointer.y);
