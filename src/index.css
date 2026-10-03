@@ -722,12 +722,13 @@ All colors MUST be HSL.
 }
 .h-btn:hover { transform: translateY(-2px); }
 .h-btn-cream { background: var(--h-cream); color: var(--h-ink); }
-.h-btn-line { position: relative; isolation: isolate; border: 1.5px solid rgb(var(--h-c2-rgb) / 0.6); color: var(--h-c3); transition: color 420ms cubic-bezier(.37,0,.63,1), transform 160ms cubic-bezier(.34,1.56,.64,1); }
-/* cream fill rising from the bottom on hover (sine in-out), inset like the
+.h-btn-line { position: relative; isolation: isolate; border: 1.5px solid rgb(var(--h-c2-rgb) / 0.6); color: var(--h-c3); transition: color 480ms cubic-bezier(.76,0,.24,1), transform 160ms cubic-bezier(.34,1.56,.64,1); }
+/* cream fill rising from the bottom on hover (steep in-out: slow start,
+   quick middle, gentle landing), inset like the
    header's hover blob so a ring of the pill stays uncoloured */
 .h-btn-line::before {
   content: ""; position: absolute; inset: 3px; z-index: -1; border-radius: inherit; background: var(--h-cream);
-  clip-path: inset(100% 0 0 0 round 9999px); transition: clip-path 420ms cubic-bezier(.37,0,.63,1);
+  clip-path: inset(100% 0 0 0 round 9999px); transition: clip-path 480ms cubic-bezier(.76,0,.24,1);
 }
 .h-btn-line:hover, .h-btn-line:focus-visible { color: var(--h-ink); }
 .h-btn-line:hover::before, .h-btn-line:focus-visible::before { clip-path: inset(0 0 0 0 round 9999px); }
