@@ -66,7 +66,18 @@ export const OceanLayer = () => {
     };
     fit();
     window.addEventListener('resize', fit);
-    const ro = new ResizeObserver(() => { pageH = Math.max(document.documentElement.scrollHeight, vh); });
+    // When the page grows or shrinks (a filter change, images loading),
+    // rescale every depth so things keep their place on the page instead
+    // of sliding with the new height.
+    const ro = new ResizeObserver(() => {
+      const next = Math.max(document.documentElement.scrollHeight, vh);
+      if (next === pageH) return;
+      const k = pageH / next;
+      for (const ic of icons) ic.u *= k;
+      for (const sh of shards) sh.u *= k;
+      for (const g of glints) g.u *= k;
+      pageH = next;
+    });
     ro.observe(document.body);
 
     // Layer -> screen: centred on the same scroll position as the content
