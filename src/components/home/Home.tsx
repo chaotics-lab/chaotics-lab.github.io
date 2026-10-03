@@ -12,10 +12,12 @@ import { ProjectGrid } from './ProjectGrid';
 // Filter change: the sea transition over the whole page, with the
 // "Projects" title and the pills kept above it, in three steps:
 //   1. the sea covers the page (SWEEP_COVER_MS),
-//   2. the grid swaps; its old height is held so the page doesn't jump,
-//      and the reveal waits until the new cards on screen have their
-//      images (at most READY_MAX_MS),
-//   3. the sea leaves (SWEEP_REVEAL_MS), then the held height eases away.
+//   2. the grid swaps and the page takes its new height while hidden (so
+//      the background gradient and the sea settle before anyone sees
+//      them); the grid only keeps a min-height if the page would get too
+//      short to stay at the same scroll position. The reveal waits until
+//      the new cards on screen have their images (at most READY_MAX_MS),
+//   3. the sea leaves (SWEEP_REVEAL_MS).
 // Same layers and timings as .pt-layer in index.css.
 const SWEEP_COVER_MS = 260 + 2 * 45;
 const SWEEP_REVEAL_MS = 300 + 2 * 45;
@@ -42,7 +44,16 @@ export const Home = () => {
 
     setSweep('cover');
     after(SWEEP_COVER_MS + 20, () => {
-      setHoldH(h => h ?? gridRef.current?.offsetHeight);
+      // Smallest grid height that keeps the page long enough for the current
+      // scroll position, so the title and pills don't move.
+      const grid = gridRef.current;
+      if (grid) {
+        const doc = document.documentElement;
+        const gridTop = grid.getBoundingClientRect().top + window.scrollY;
+        const below = doc.scrollHeight - gridTop - grid.offsetHeight;
+        const need = Math.ceil(window.scrollY + window.innerHeight - gridTop - below);
+        setHoldH(need > 0 ? need : undefined);
+      }
       setSwapped(true);
       setShown(id);
       const start = performance.now();
@@ -58,11 +69,7 @@ export const Home = () => {
         requestAnimationFrame(() => {
           if (!alive()) return;
           setSweep('reveal');
-          after(SWEEP_REVEAL_MS, () => {
-            setSweep(null);
-            setHoldH(0);
-            after(600, () => setHoldH(undefined));
-          });
+          after(SWEEP_REVEAL_MS, () => setSweep(null));
         });
       };
       requestAnimationFrame(ready);
@@ -104,7 +111,7 @@ export const Home = () => {
     [projects, shown],
   );
   const tabs = CATEGORIES.filter(c => c.id === 'all' || available.has(c.id));
-  const active = CATEGORIES.find(c => c.id === category) ?? CATEGORIES[0];
+  const active = CATEGORIES.find(c => c.id === shown) ?? CATEGORIES[0]; // description swaps with the grid
 
   return (
     <main>

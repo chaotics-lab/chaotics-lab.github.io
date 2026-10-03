@@ -1018,7 +1018,6 @@ All colors MUST be HSL.
 @keyframes pts-label { from { opacity: 0; translate: 6rem 0; } to { opacity: 1; translate: 0 0; } }
 .pts-label > .h-caps { color: var(--h-cream); }
 .f-sweep { z-index: 60; } /* filter sweep: over the page and header, under the Projects title and pills (z 61) */
-.f-hold { transition: min-height 500ms cubic-bezier(.65,0,.35,1); }
 .f-hold[data-swapped] .w-card { animation: none; } /* swapped in under the sea: shown as-is */
 .pt-page { animation: pt-fade 380ms ease-out both; }
 @keyframes pt-fade { from { opacity: 0; } to { opacity: 1; } }
