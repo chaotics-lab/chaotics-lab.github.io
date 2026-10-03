@@ -722,14 +722,15 @@ All colors MUST be HSL.
 }
 .h-btn:hover { transform: translateY(-2px); }
 .h-btn-cream { background: var(--h-cream); color: var(--h-ink); }
-.h-btn-line { position: relative; isolation: isolate; overflow: hidden; border: 1.5px solid rgb(var(--h-c2-rgb) / 0.6); color: var(--h-c3); transition: color 250ms ease, border-color 250ms ease, transform 160ms cubic-bezier(.34,1.56,.64,1); }
-/* cream fill rising from the bottom on hover */
+.h-btn-line { position: relative; isolation: isolate; border: 1.5px solid rgb(var(--h-c2-rgb) / 0.6); color: var(--h-c3); transition: color 420ms cubic-bezier(.37,0,.63,1), transform 160ms cubic-bezier(.34,1.56,.64,1); }
+/* cream fill rising from the bottom on hover (sine in-out), inset like the
+   header's hover blob so a ring of the pill stays uncoloured */
 .h-btn-line::before {
-  content: ""; position: absolute; inset: -1px; z-index: -1; background: var(--h-cream);
-  transform: scaleY(0); transform-origin: bottom; transition: transform 380ms cubic-bezier(.65,0,.35,1);
+  content: ""; position: absolute; inset: 3px; z-index: -1; border-radius: inherit; background: var(--h-cream);
+  clip-path: inset(100% 0 0 0 round 9999px); transition: clip-path 420ms cubic-bezier(.37,0,.63,1);
 }
-.h-btn-line:hover, .h-btn-line:focus-visible { color: var(--h-ink); border-color: var(--h-cream); }
-.h-btn-line:hover::before, .h-btn-line:focus-visible::before { transform: none; }
+.h-btn-line:hover, .h-btn-line:focus-visible { color: var(--h-ink); }
+.h-btn-line:hover::before, .h-btn-line:focus-visible::before { clip-path: inset(0 0 0 0 round 9999px); }
 
 /* ---- Ticker (element band) ---- */
 .h-marquee { display: flex; width: max-content; animation: h-marquee 38s linear infinite; }
@@ -835,7 +836,7 @@ All colors MUST be HSL.
 }
 .s-top[data-shown="true"] { opacity: 1; transform: none; pointer-events: auto; }
 @media (min-width: 640px) { .s-top { right: 1.5rem; bottom: 1.5rem; } }
-.s-top-item { border-radius: 9999px; transition: color 200ms ease, background-color 200ms ease; }
+.s-top-item { border-radius: 9999px; padding: 0.55rem; transition: color 200ms ease, background-color 200ms ease; }
 .s-top-item:hover, .s-top-item:focus-visible { background: var(--h-cream); color: var(--h-ink); outline: none; }
 .s-circle {
   width: 2.75rem;
@@ -1015,6 +1016,11 @@ All colors MUST be HSL.
 .pt[data-phase="reveal"] .pt-layer { animation: pt-reveal 300ms cubic-bezier(.7,0,.3,1) var(--out) both; }
 @keyframes pt-cover { from { transform: translateY(110%); } to { transform: none; } }
 @keyframes pt-reveal { from { transform: none; } to { transform: translateY(-110%); } }
+/* 'down': the sea comes in from the top and leaves through the bottom */
+.pt[data-dir="down"][data-phase="cover"] .pt-layer { animation-name: pt-cover-down; }
+.pt[data-dir="down"][data-phase="reveal"] .pt-layer { animation-name: pt-reveal-down; }
+@keyframes pt-cover-down { from { transform: translateY(-110%); } to { transform: none; } }
+@keyframes pt-reveal-down { from { transform: none; } to { transform: translateY(110%); } }
 /* Slash variant: wide slanted bands cut in from the right, then carry on
    off to the left, front band first. The front band carries the label. */
 .pts-band {

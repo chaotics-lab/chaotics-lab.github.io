@@ -82,7 +82,7 @@ export const PageTransition = ({ children }: { children: ReactNode }) => {
           ))}
         </div>
       )}
-      <div className="pt" data-phase={opts.kind === 'slash' ? 'idle' : phase} aria-hidden="true">
+      <div className="pt" data-phase={opts.kind === 'slash' ? 'idle' : phase} data-dir={opts.dir ?? 'up'} aria-hidden="true">
         {LAYERS.map((color, i) => (
           <div
             key={color}

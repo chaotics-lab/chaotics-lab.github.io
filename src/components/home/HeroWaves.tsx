@@ -106,6 +106,10 @@ export const HeroWaves = () => {
     const nodeT = new Float32Array(NODES);
     const nodeX = (i: number) => -EDGE + (i / (NODES - 1)) * (W + 2 * EDGE);
     const nodeOf = (x: number) => Math.round(((x + EDGE) / (W + 2 * EDGE)) * (NODES - 1));
+    // pull: 0..1, how close the pointer is to the water (vertically, to the
+    // front wave under it). Every effect follows the pointer in proportion:
+    // close to the water it takes over, far away it barely matters.
+    let pull = 0;
     let rainDir = 0;
     let windDir = 1;
     // Volta shocks: a jagged burst at node j that sends a shock wave
@@ -301,8 +305,8 @@ export const HeroWaves = () => {
           const p = live.flora[pl][i];
           // flowers drift toward the pointer and open up near it
           const dx = m.x - p.x * sx;
-          const bloom = m.on * Math.exp(-(dx * dx) / (2 * 160 * 160));
-          p.x += (p.vx * v + (m.on * Math.max(-1, Math.min(1, dx / 300)) * 22 * Math.exp(-Math.abs(dx) / 500)) / sx) * TIER_SPEED[p.tier] * dt;
+          const bloom = pull * Math.exp(-(dx * dx) / (2 * 160 * 160));
+          p.x += (p.vx * v + (pull * Math.max(-1, Math.min(1, dx / 300)) * 30 * Math.exp(-Math.abs(dx) / 500)) / sx) * TIER_SPEED[p.tier] * dt;
           if (p.x > W + 40) p.x = -40;
           if (p.x < -40) p.x = W + 40;
           p.rot += p.spin * (1 + 4 * bloom) * dt;
@@ -340,7 +344,7 @@ export const HeroWaves = () => {
         if (S.storm > 0.05) {
           const Y = layerY[pl];
           for (let i = 2; i < NODES - 2; i++) {
-            if (Y[i] < Y[i - 1] && Y[i] < Y[i + 1] && live.aero[pl].length < els.aero[pl].length && Math.random() < S.storm * (0.25 + Math.max(0, gust - 1) * 2) * dt * 2.5) {
+            if (Y[i] < Y[i - 1] && Y[i] < Y[i + 1] && live.aero[pl].length < els.aero[pl].length && Math.random() < S.storm * (0.25 + Math.max(0, gust - 1) * 2 + 3 * near[i]) * dt * 2.5) {
               live.aero[pl].push({ x: layerX[pl][i], y: Y[i], vx: rnd(110, 210) * v, vy: rnd(-45, -15) * v, rot: rnd(-20, 20), spin: rnd(-40, 40), size: rnd(12, 24) * f, age: 0, life: rnd(1.1, 1.9), phase: rnd(0, 6.3), tier: tierOf() });
             }
           }
@@ -349,9 +353,9 @@ export const HeroWaves = () => {
         // Pyra: solar flares now and then burst out of the water and throw
         // icons up on parabolas; they drop back in.
         if (S.solar > 0.05 && (nextBurst[pl] -= dt) <= 0) {
-          // more flares, and mostly right under the pointer when it's there
-          const focus = m.on > 0.3 && Math.random() < 0.75;
-          nextBurst[pl] = rnd(0.35, 1.1) / (1 + 1.5 * m.on);
+          // more flares, and mostly right under the pointer, the closer it is
+          const focus = Math.random() < pull * 0.9;
+          nextBurst[pl] = rnd(0.35, 1.1) / (1 + 2 * pull);
           const x = focus ? Math.max(0, Math.min(W, (m.x + (Math.random() - 0.5) * 2 * 140) / sx)) : rnd(0.05, 0.95) * W;
           const n = 2 + Math.floor(Math.random() * 2);
           for (let j = 0; j < n && live.pyra[pl].length < els.pyra[pl].length; j++) {
@@ -365,7 +369,9 @@ export const HeroWaves = () => {
           rainClock[pl] += dt * S.rain * (4 + pl * 3);
           while (rainClock[pl] > 1 && live.aqua[pl].length < els.aqua[pl].length) {
             rainClock[pl] -= 1;
-            live.aqua[pl].push({ x: rnd(-0.2, 1.2) * W, y: -10, vx: rainDir * 170 * v, vy: rnd(260, 360) * v, rot: 0, spin: 0, size: rnd(10, 16) * f, age: 0, life: 3, phase: 0, tier: tierOf() });
+            // the closer the pointer, the more of the rain falls around it
+            const x = Math.random() < pull * 0.6 ? (m.x + (Math.random() - 0.5) * 2 * 220) / sx - rainDir * 60 : rnd(-0.2, 1.2) * W;
+            live.aqua[pl].push({ x, y: -10, vx: rainDir * 170 * v, vy: rnd(260, 360) * v, rot: 0, spin: 0, size: rnd(10, 16) * f, age: 0, life: 3, phase: 0, tier: tierOf() });
           }
           if (rainClock[pl] > 1) rainClock[pl] = 1;
         }
@@ -462,10 +468,11 @@ export const HeroWaves = () => {
       }
       // -1 .. 1, already at full strength 25% in from either side
       const side = Math.max(-1, Math.min(1, (m.x / (box.w || 1) - 0.5) / 0.25));
-      rainDir += (m.on * side - rainDir) * Math.min(1, dt * 2);
-      windDir += ((m.on > 0.5 ? Math.sign(side) * Math.max(0.5, Math.abs(side)) : 1) - windDir) * Math.min(1, dt * 1.5);
-      const midY = box.h * 0.6;
-      const yNear = Math.exp(-((m.y - midY) ** 2) / (2 * 240 * 240));
+      const waterY = surface(2, m.x / sxNow).y * (box.h / H || 1);
+      const yNear = Math.exp(-((m.y - waterY) ** 2) / (2 * 260 * 260));
+      pull += (m.on * yNear - pull) * Math.min(1, dt * 4);
+      rainDir += (pull * side - rainDir) * Math.min(1, dt * 2);
+      windDir += (1 + pull * (Math.sign(side) * Math.max(0.5, Math.abs(side)) - 1) - windDir) * Math.min(1, dt * 1.5);
       for (let i = 0; i < NODES; i++) {
         const d = nodeX(i) * sxNow - m.x;
         near[i] = m.on * yNear * Math.exp(-(d * d) / (2 * 170 * 170));

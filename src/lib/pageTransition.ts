@@ -3,7 +3,8 @@ import { createContext, useContext } from 'react';
 // 'sea' (default): sea layers rise from the bottom and leave at the top.
 // 'slash': slanted bands sweep across from the right, in `colors` (front
 // band last), with `label` written on the front band. Used between projects.
-export type TransitionOpts = { kind?: 'sea' | 'slash'; colors?: [string, string, string]; label?: string };
+// dir 'down' (sea only): it comes in from the top and leaves at the bottom.
+export type TransitionOpts = { kind?: 'sea' | 'slash'; dir?: 'up' | 'down'; colors?: [string, string, string]; label?: string };
 
 type PageTransition = {
   // Cover the screen, run `swap` while hidden, uncover.

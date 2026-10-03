@@ -30,7 +30,7 @@ export const SiteFooter = () => {
           <span>© {new Date().getFullYear()} Lox</span>
           <button
             type="button"
-            onClick={() => dive(() => window.scrollTo(0, 0))}
+            onClick={() => dive(() => window.scrollTo(0, 0), { dir: 'down' })}
             className="inline-flex items-center gap-1.5 hover:text-white transition-colors"
           >
             Back to top <ArrowUp size={14} weight="bold" className="h-bob-up" />
