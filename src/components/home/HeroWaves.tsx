@@ -9,8 +9,8 @@ import { currentElement, onThemeChange } from '@/lib/theme';
 // a second when it changes.
 const W = 1000;
 const H = 300;
-const NODES = 72;
-const EDGE = 60; // nodes run this far past both sides, so shifted ends stay hidden
+const NODES = 96;
+const EDGE = 240; // nodes run this far past both sides, so shifted ends stay hidden
 const LAYERS = [
   { base: 95, a: [18, 8], k: [0.007, 0.017], w: [0.45, -0.7], stir: 0.15, phase: 0 },
   { base: 150, a: [14, 7], k: [0.009, 0.021], w: [-0.6, 0.9], stir: 0.35, phase: 2.1 },
@@ -96,6 +96,19 @@ export const HeroWaves = () => {
     const jitter = new Float32Array(NODES);
     let zapShift = 0;
     let flick = 0;
+    // The pointer, eased: m.x in px from the left, m.y in px from the top
+    // of the waves, m.on fades with pointer presence. near[i] = how close
+    // node i is to it (1 at the pointer). Each element reads it its own way.
+    const m = { x: 0, y: 0, on: 0, high: 0.5 };
+    const near = new Float32Array(NODES);
+    // Per-node clocks, so the water can run slower (Cryo) or faster (Gaia)
+    // around the pointer; they drift back to the shared clock elsewhere.
+    const nodeT = new Float32Array(NODES);
+    const nodeX = (i: number) => -EDGE + (i / (NODES - 1)) * (W + 2 * EDGE);
+    const nodeOf = (x: number) => Math.round(((x + EDGE) / (W + 2 * EDGE)) * (NODES - 1));
+    let rainDir = 0;
+    let windDir = 1;
+    let heat = 1;
     type Shock = { j: number; amp: number; age: number };
     const shocks: Shock[] = [];
     const shockAt = (i: number) => {
@@ -155,13 +168,17 @@ export const HeroWaves = () => {
         // The layer's depth can wander on its own.
         const base = L.base + S.drift * (14 * Math.sin(t * 0.21 + n * 1.7) + 9 * Math.sin(t * 0.47 + n * 3.1));
         for (let i = 0; i < NODES; i++) {
-          const x0 = -EDGE + (i / (NODES - 1)) * (W + 2 * EDGE);
+          const x0 = nodeX(i);
           const kx = x0 * S.freq;
-          const swell = (1 + S.drift * 0.45 * Math.sin(x0 * 0.0023 + t * 0.3 + n * 2)) * gust * breathe;
+          const tn = nodeT[i] || t; // this node's clock
+          // Pyra: the pointer's height sets the waves' height. Gaia swells
+          // and Cryo flattens a little around the pointer.
+          const local = (1 + S.solar * (heat - 1)) * (1 + (S.earth * 0.7 - S.frost * 0.35) * near[i]);
+          const swell = (1 + S.drift * 0.45 * Math.sin(x0 * 0.0023 + t * 0.3 + n * 2)) * gust * breathe * local;
           const a0 = L.a[0] * S.amp * swell;
           const a1 = L.a[1] * S.amp * swell;
-          const p0 = kx * L.k[0] + t * L.w[0] + L.phase;
-          const p1 = kx * L.k[1] + t * L.w[1] + Math.cos(x0 * 0.004 + t * 0.3) * 1.5;
+          const p0 = kx * L.k[0] + tn * L.w[0] + L.phase;
+          const p1 = kx * L.k[1] + tn * L.w[1] + Math.cos(x0 * 0.004 + tn * 0.3) * 1.5;
           // Volta bends the sines into triangles.
           let y = a0 * (Math.sin(p0) + S.zig * (tri(p0) - Math.sin(p0))) + a1 * (Math.sin(p1) + S.zig * (tri(p1) - Math.sin(p1)));
           // Pyra: a faster harmonic rolling the other way.
@@ -174,7 +191,8 @@ export const HeroWaves = () => {
           y += S.storm * gust * (5 * Math.sin(kx * 0.05 + t * 2.6 + n) + 3.5 * Math.sin(kx * 0.083 - t * 3.1));
           // Aero: crests pulled together into sharp peaks (Gerstner-style;
           // kept under the point where the surface would fold over).
-          xs[i] = x0 - S.storm * Math.min(2.6, 0.85 / (a0 * L.k[0] * S.freq || 1)) * a0 * Math.cos(p0);
+          // (the lean follows the wind, which follows the pointer)
+          xs[i] = x0 - S.storm * windDir * Math.min(2.6, 0.85 / (a0 * L.k[0] * S.freq || 1)) * a0 * Math.cos(p0);
           ys[i] = base + y + h[i] * L.stir * S.stir + dripH[n][i];
         }
         const top = curve(S.zig > 0.5);
@@ -271,11 +289,15 @@ export const HeroWaves = () => {
         // Flora: flowers drift right and slowly turn, resting on the water.
         if (!hidden.has('flora')) els.flora[pl].forEach((el, i) => {
           const p = live.flora[pl][i];
-          p.x += p.vx * v * TIER_SPEED[p.tier] * dt;
+          // flowers drift toward the pointer and open up near it
+          const dx = m.x - p.x * sx;
+          const bloom = m.on * Math.exp(-(dx * dx) / (2 * 160 * 160));
+          p.x += (p.vx * v + (m.on * Math.max(-1, Math.min(1, dx / 300)) * 22 * Math.exp(-Math.abs(dx) / 500)) / sx) * TIER_SPEED[p.tier] * dt;
           if (p.x > W + 40) p.x = -40;
-          p.rot += p.spin * dt;
+          if (p.x < -40) p.x = W + 40;
+          p.rot += p.spin * (1 + 4 * bloom) * dt;
           const s = surface(pl, p.x);
-          const size = p.size * f * TIER_SIZE[p.tier] * (1 + 0.04 * Math.sin(t + p.phase));
+          const size = p.size * f * TIER_SIZE[p.tier] * (1 + 0.04 * Math.sin(t + p.phase)) * (1 + 0.4 * bloom);
           place(el, p.x, s.y - (size * 0.2) / sy + Math.sin(t * 0.8 + p.phase) * 0.5, p.rot + Math.atan(s.slope * sy / sx) * 28, size / TIER_SIZE[p.tier], S.petals * al, sx, sy, p.tier);
         });
 
@@ -331,7 +353,7 @@ export const HeroWaves = () => {
           rainClock[pl] += dt * S.rain * (4 + pl * 3);
           while (rainClock[pl] > 1 && live.aqua[pl].length < els.aqua[pl].length) {
             rainClock[pl] -= 1;
-            live.aqua[pl].push({ x: rnd(-0.05, 1) * W, y: -10, vx: 40 * v, vy: rnd(260, 360) * v, rot: 0, spin: 0, size: rnd(10, 16) * f, age: 0, life: 3, phase: 0, tier: tierOf() });
+            live.aqua[pl].push({ x: rnd(-0.2, 1.2) * W, y: -10, vx: rainDir * 170 * v, vy: rnd(260, 360) * v, rot: 0, spin: 0, size: rnd(10, 16) * f, age: 0, life: 3, phase: 0, tier: tierOf() });
           }
           if (rainClock[pl] > 1) rainClock[pl] = 1;
         }
@@ -345,7 +367,8 @@ export const HeroWaves = () => {
             const g = k === 'pyra' ? 300 * v : k === 'volta' ? 420 * v : k === 'aero' ? 12 : 0;
             p.vy += g * dt;
             const ts = TIER_SPEED[p.tier];
-            p.x += (p.vx * ts * (k === 'aero' ? gust : 1) * dt) / sx;
+            if (k === 'aqua') p.vx += (rainDir * 170 * v - p.vx) * Math.min(1, dt * 2); // drops lean with the pointer
+            p.x += (p.vx * ts * (k === 'aero' ? gust * windDir : 1) * dt) / sx;
             p.y += (p.vy * ts * dt) / sy;
             p.rot += p.spin * dt;
             // Falling into the water: keep sinking (slower) and fade out.
@@ -407,7 +430,7 @@ export const HeroWaves = () => {
       const py = pointer.y - (box.y - window.scrollY);
       if (pointer.active && px >= 0 && px <= box.w && py >= -60 && py <= box.h) {
         const push = Math.max(-0.6, Math.min(0.6, ((pointer.y - lastY) + Math.abs(pointer.x - lastX) * 0.35) * 0.012));
-        const j = (px / box.w) * (NODES - 1);
+        const j = nodeOf(px / (box.w / W || 1));
         for (let i = 0; i < NODES; i++) v[i] += push * Math.exp(-((i - j) ** 2) / 8);
       }
       lastX = pointer.x;
@@ -416,6 +439,30 @@ export const HeroWaves = () => {
       while (acc >= 1 / 60) { acc -= 1 / 60; step(); }
       const ease = Math.min(1, dt * 3);
       (Object.keys(style) as (keyof WaveStyle)[]).forEach(k => { style[k] += (target[k] - style[k]) * ease; });
+
+      // pointer, eased
+      const sxNow = box.w / W || 1;
+      const mk = Math.min(1, dt * 6);
+      m.on += ((pointer.active ? 1 : 0) - m.on) * Math.min(1, dt * 3);
+      if (pointer.active) {
+        m.x += (px - m.x) * mk;
+        m.y += (py - m.y) * mk;
+        m.high += (Math.max(0, Math.min(1, 1 - pointer.y / window.innerHeight)) - m.high) * mk;
+      }
+      const side = Math.max(-1, Math.min(1, (m.x / (box.w || 1)) * 2 - 1)); // -1 left .. 1 right
+      rainDir += (m.on * side - rainDir) * Math.min(1, dt * 2);
+      windDir += ((m.on > 0.5 ? Math.sign(side) * Math.max(0.5, Math.abs(side)) : 1) - windDir) * Math.min(1, dt * 1.5);
+      heat += ((m.on > 0.5 ? 0.55 + 1.4 * m.high : 1) - heat) * Math.min(1, dt * 2);
+      const midY = box.h * 0.6;
+      const yNear = Math.exp(-((m.y - midY) ** 2) / (2 * 240 * 240));
+      for (let i = 0; i < NODES; i++) {
+        const d = nodeX(i) * sxNow - m.x;
+        near[i] = m.on * yNear * Math.exp(-(d * d) / (2 * 170 * 170));
+        // Cryo freezes the water near the pointer, Gaia makes it run
+        const rate = 1 - style.frost * 0.9 * near[i] + style.earth * 1.6 * near[i];
+        if (!nodeT[i]) nodeT[i] = clock;
+        nodeT[i] += dt * style.speed * rate + (clock - nodeT[i]) * Math.min(1, dt * 0.6);
+      }
       zapClock += dt;
       if (zapClock > 0.22) {
         zapClock = 0;
@@ -424,11 +471,18 @@ export const HeroWaves = () => {
         for (let i = 0; i < NODES; i++) jitter[i] = Math.random() * 2 - 1;
         if (style.zig > 0.5 && Math.random() < 0.6) sparks(Math.floor(Math.random() * NODES), 1, Math.floor(Math.random() * 3));
       }
+      // Volta: the closer the pointer is to the water, the more the current
+      // jumps there: more shocks, near it, and more sparks.
+      const mNode = nodeOf(m.x / sxNow);
+      const charge = mNode >= 0 && mNode < NODES ? near[mNode] : 0;
+      if (style.zig > 0.5 && charge > 0.05 && Math.random() < charge * dt * 4) sparks(Math.max(0, Math.min(NODES - 1, mNode + Math.round((Math.random() - 0.5) * 8))), 1, 2);
       // Volta shocks, every 1.2 to 4 s at a random spot.
       for (let i = shocks.length - 1; i >= 0; i--) if ((shocks[i].age += dt) > 1.4) shocks.splice(i, 1);
-      if (style.zig > 0.5 && (nextShock -= dt) <= 0) {
+      if (style.zig > 0.5 && (nextShock -= dt * (1 + 6 * charge)) <= 0) {
         nextShock = 1.2 + Math.random() * 2.8;
-        const j = 4 + Math.random() * (NODES - 8);
+        const j = charge > 0.05 && Math.random() < 0.4 + 0.6 * charge
+          ? Math.max(2, Math.min(NODES - 3, mNode + (Math.random() - 0.5) * 8))
+          : 4 + Math.random() * (NODES - 8);
         shocks.push({ j, amp: (Math.random() < 0.5 ? -1 : 1) * (26 + Math.random() * 16), age: 0 });
         flick = 1;
         [0, 1, 2].forEach(pl => sparks(Math.round(j), 2 + pl * 2, pl));
