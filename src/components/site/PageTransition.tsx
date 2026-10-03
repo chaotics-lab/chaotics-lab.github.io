@@ -134,7 +134,7 @@ export const PageTransition = ({ children }: { children: ReactNode }) => {
     <PageTransitionContext.Provider value={value}>
       {children}
       {opts.kind === 'slash' && (
-        <div className="pt" data-phase={phase} aria-hidden="true">
+        <div className="pt" data-phase={phase} data-dir={opts.dir} aria-hidden="true">
           {(opts.colors ?? SLASH).map((color, i) => (
             <div
               key={i}

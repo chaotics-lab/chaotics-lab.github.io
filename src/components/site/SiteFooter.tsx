@@ -1,5 +1,5 @@
 import { ArrowUp, ArrowUpRight } from '@phosphor-icons/react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { TOP_RUN, useDiveScroll } from '@/lib/diveScroll';
 import { SOCIALS, isExternal } from './links';
 import { ElementSwitch } from './ElementSwitch';
@@ -7,6 +7,8 @@ import { ElementSwitch } from './ElementSwitch';
 export const SiteFooter = () => {
   const scrollTo = useDiveScroll();
   const navigate = useNavigate();
+  // project pages wear the project's colours, so the element picker has nothing to do there
+  const onProject = useLocation().pathname.startsWith('/project/');
   // back at the top, the address drops any #section (e.g. /#projects -> /)
   const toTop = () => scrollTo(() => 0, { dir: 'down' }, {
     ...TOP_RUN,
@@ -35,7 +37,7 @@ export const SiteFooter = () => {
             </a>
           ))}
         </nav>
-        <ElementSwitch />
+        {!onProject && <ElementSwitch />}
         </div>
         <div className="flex items-center justify-between lg:justify-end gap-6 text-sm text-[var(--h-c2)] whitespace-nowrap">
           <span>© {new Date().getFullYear()} Lox</span>

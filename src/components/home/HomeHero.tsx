@@ -6,7 +6,9 @@ export const HomeHero = () => {
   const scrollTo = useDiveScroll();
 
   return (
-    <section className="relative min-h-[88svh] overflow-hidden flex items-center pt-28 pb-44">
+    // Hero and element band fit one screen, even in a short window: the hero
+    // takes the screen minus the band, and the title scales with the height too.
+    <section className="relative min-h-[calc(100svh-7.5rem)] md:min-h-[calc(100svh-12rem)] overflow-hidden flex items-center pt-20 md:pt-20 pb-16 md:pb-14">
       {/* soft light from the surface */}
       <div
         className="absolute -top-[30vh] -right-[20vw] w-[80vw] h-[80vh] pointer-events-none"
@@ -16,12 +18,12 @@ export const HomeHero = () => {
       <HeroWaves />
 
       <div className="container mx-auto px-5 sm:px-8 relative">
-        <h1 className="h-display text-[clamp(4.6rem,15vw,14rem)]">
+        <h1 className="h-display text-[clamp(3.2rem,min(15vw,20svh),14rem)]">
           <span className="h-line"><span style={{ animationDelay: '100ms' }}>Hey, I'm</span></span>
           <span className="h-line"><span className="text-[var(--h-c1)]" style={{ animationDelay: '200ms' }}>Lox.</span></span>
         </h1>
 
-        <div className="mt-8 flex flex-col md:flex-row md:items-end justify-between gap-8">
+        <div className="mt-6 md:mt-8 flex flex-col md:flex-row md:items-end justify-between gap-6 md:gap-8">
           <div>
             <p className="h-serif text-3xl md:text-4xl text-[var(--h-c3)]">
               <span className="h-line"><span style={{ animationDelay: '320ms' }}>Welcome to my project portfolio :)</span></span>

@@ -2,7 +2,8 @@ import { createContext, useContext } from 'react';
 
 // 'sea' (default): sea layers rise from the bottom and leave at the top.
 // 'slash': slanted bands sweep across from the right, in `colors` (front
-// band last), with `label` written on the front band. Used between projects.
+// band last), with `label` written on the front band; dir 'left' sweeps the
+// other way. Used between projects.
 // dir (sea only): 'up' (default) rises from the bottom, 'down' pours in from
 // the top, 'right' / 'left' sweep sideways in that direction.
 // 'blot': wavy blots in `colors` (back to front) grow from `origin` (screen
