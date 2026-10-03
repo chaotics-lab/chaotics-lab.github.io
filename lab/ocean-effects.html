@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ocean Effects Lab</title>
+<style>
+  :root { --top:#0B5BD9; --deep:#052C7E; --night:#031A4E; --c1:#16CFFB; --c3:#BFF4FF; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--night); color: #fff; font: 600 14px system-ui, sans-serif; }
+  header { padding: 20px 16px 4px; }
+  header h1 { margin: 0; font: italic 900 28px/1 "Arial Black", system-ui; text-transform: uppercase; letter-spacing: -.01em; }
+  header p { margin: 8px 0 0; color: var(--c3); font-weight: 400; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 14px; padding: 16px; }
+  figure { margin: 0; position: relative; border-radius: 10px; overflow: hidden; background: linear-gradient(180deg, var(--top), var(--deep) 60%, var(--night)); aspect-ratio: 4 / 3; cursor: crosshair; }
+  canvas { display: block; width: 100%; height: 100%; }
+  figcaption { position: absolute; left: 12px; top: 10px; font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--c3); pointer-events: none; }
+  figcaption b { color: #fff; }
+</style></head><body>
+<header><h1>Ocean effects lab</h1><p>Flat white strokes on the Aqua background. Click a tile to trigger the effect where you click.</p></header>
+<div class="grid">
+  <figure><canvas data-fx="volta"></canvas><figcaption><b>Volta</b> · lightning (midpoint displacement)</figcaption></figure>
+  <figure><canvas data-fx="gaia"></canvas><figcaption><b>Gaia</b> · strata (noise contours) + dust</figcaption></figure>
+  <figure><canvas data-fx="aero"></canvas><figcaption><b>Aero</b> · currents (curl noise) + vortex</figcaption></figure>
+  <figure><canvas data-fx="cryo"></canvas><figcaption><b>Cryo</b> · crystals (6-fold branching)</figcaption></figure>
+  <figure><canvas data-fx="pyra"></canvas><figcaption><b>Pyra</b> · embers (curl noise) + heat lines</figcaption></figure>
+  <figure><canvas data-fx="flora"></canvas><figcaption><b>Flora</b> · vines (space colonization)</figcaption></figure>
+  <figure><canvas data-fx="aqua"></canvas><figcaption><b>Aqua</b> · bubbles (rings + crescent)</figcaption></figure>
+</div>
+<script>
+const FLORA_PATH = 'M 248.6 10 C 247 10.5, 245.4 11.3, 245.1 11.7 C 244.8 12.1, 242.5 14.2, 240 16.3 C 233 22.3, 212.3 41.8, 205 49.3 C 201.4 53, 198 56, 197.5 56 C 196.9 56, 193.8 58.8, 190.4 62.2 C 187.1 65.7, 179 73.5, 172.5 79.5 C 166 85.5, 159.9 91.3, 158.9 92.2 C 154.5 96.4, 152.2 105.6, 153.8 112.5 C 155 117.3, 159.2 127.4, 160.3 127.8 C 163 129.1, 157.2 134.5, 154.2 133.6 C 153.2 133.3, 150.7 131.2, 148.5 129 C 137 117.4, 120.4 116.2, 109.9 126.2 C 109.1 126.9, 103.6 129.9, 97.6 132.9 C 91.7 135.9, 86.3 138.8, 85.6 139.4 C 85 140, 79.3 143.2, 73 146.4 C 66.7 149.6, 61.3 152.6, 61 153 C 60.7 153.3, 55.3 156.3, 49 159.5 C 42.7 162.7, 37.2 165.7, 36.9 166.1 C 36.6 166.6, 32.8 168.8, 28.4 171.1 C 24.1 173.3, 19.3 175.8, 17.9 176.6 C 9.5 181.1, 7.7 197.3, 14.1 210.5 C 16 214.3, 17.8 217.7, 18.1 218 C 18.8 218.6, 28.5 240.6, 29.4 243.8 C 29.8 245, 30.5 246, 30.9 246 C 31.7 246, 33.2 249.1, 39.5 264 C 41.5 268.7, 43.5 272.7, 43.9 273 C 44.7 273.5, 50.9 287.2, 54.1 295.4 C 55.1 298.1, 56.4 300.6, 56.9 301 C 57.5 301.3, 58.6 303.2, 59.4 305.2 C 62.9 313.6, 73 317.8, 85.4 316.1 C 94.9 314.8, 98 315.7, 98 319.9 C 98 323.3, 97.6 323.7, 88.5 328.4 C 79.7 332.9, 75.8 338.3, 75.2 347.1 C 74.8 352.9, 81.6 396.9, 83.1 398 C 83.5 398.3, 84.5 402.8, 85.4 408 C 86.3 413.2, 88.4 425.1, 90 434.5 C 91.7 443.9, 93.3 453.4, 93.7 455.8 C 94 458.1, 94.6 460, 95 460 C 95.4 460, 96 461.6, 96.3 463.5 C 97 467.5, 102.2 475.2, 105.9 477.7 C 109.9 480.3, 120.8 480.4, 139.5 478.2 C 148.8 477, 159.4 475.8, 163 475.4 C 166.6 475, 169.7 474.4, 170 474.1 C 170.3 473.7, 183.6 471.9, 199.5 470.2 C 215.4 468.4, 230.7 466.4, 233.4 465.7 C 241.4 463.8, 248.9 454.4, 249 446.3 C 249 444.5, 249.4 443, 250 443 C 250.6 443, 251 442.1, 251 441 C 251 436.3, 254.3 432.4, 257.4 433.6 C 259 434.2, 261 438.3, 261 441 C 261 442.1, 261.4 443, 262 443 C 262.6 443, 263 444.5, 263 446.3 C 263.1 454.4, 270.6 463.8, 278.6 465.7 C 281.3 466.4, 296.6 468.4, 312.5 470.2 C 328.4 471.9, 341.7 473.7, 342 474.1 C 342.3 474.4, 345.4 475, 349 475.4 C 352.6 475.8, 363.1 477, 372.5 478.2 C 391.2 480.4, 402.1 480.3, 406.1 477.7 C 409.8 475.2, 415 467.5, 415.7 463.5 C 416 461.6, 416.6 460, 417 460 C 417.4 460, 418 458.1, 418.3 455.8 C 418.7 453.4, 420.3 443.9, 422 434.5 C 423.6 425.1, 425.7 413.2, 426.6 408 C 427.5 402.8, 428.5 398.3, 428.9 398 C 430.4 396.9, 437.2 352.9, 436.8 347.1 C 436.2 338.3, 432.3 332.9, 423.5 328.4 C 414.4 323.7, 414 323.3, 414 319.9 C 414 315.7, 417.1 314.8, 426.6 316.1 C 439 317.8, 449.1 313.6, 452.6 305.2 C 453.4 303.2, 454.5 301.3, 455.1 301 C 455.6 300.6, 456.9 298.1, 457.9 295.4 C 461.1 287.2, 467.3 273.5, 468.1 273 C 468.5 272.7, 470.5 268.7, 472.5 264 C 478.8 249.1, 480.3 246, 481.1 246 C 481.5 246, 482.2 245, 482.6 243.8 C 483.5 240.6, 493.2 218.6, 493.9 218 C 494.2 217.7, 496 214.3, 497.9 210.5 C 504.3 197.3, 502.5 181.1, 494.1 176.6 C 492.7 175.8, 487.9 173.3, 483.6 171.1 C 479.2 168.8, 475.4 166.6, 475.1 166.1 C 474.8 165.7, 469.3 162.7, 463 159.5 C 456.7 156.3, 451.3 153.3, 451 153 C 450.7 152.6, 445.3 149.6, 439 146.4 C 432.7 143.2, 427 140, 426.4 139.4 C 425.7 138.8, 420.3 135.9, 414.4 132.9 C 408.4 129.9, 402.9 126.9, 402.1 126.2 C 391.6 116.2, 375 117.4, 363.5 129 C 361.3 131.2, 358.8 133.3, 357.8 133.6 C 354.8 134.5, 349 129.1, 351.8 127.8 C 352.8 127.4, 357 117.3, 358.2 112.5 C 359.8 105.6, 357.5 96.4, 353.1 92.2 C 352.1 91.3, 346 85.5, 339.5 79.5 C 333 73.5, 324.9 65.7, 321.6 62.2 C 318.2 58.8, 315.1 56, 314.5 56 C 314 56, 310.6 53, 307 49.3 C 299.7 41.8, 279 22.3, 272 16.3 C 269.5 14.2, 267.2 12.2, 266.9 11.7 C 265.2 9.3, 254.3 8.3, 248.6 10 M 248.9 188.4 C 246.4 189, 243 190.8, 241.4 192.3 C 239.8 193.8, 238.1 195, 237.5 195 C 236.2 195, 228 203.2, 228 204.6 C 228 205.2, 225.4 207.9, 222.3 210.4 C 219.1 213, 215.7 215.8, 214.7 216.6 C 213.7 217.4, 209 219.7, 204.2 221.6 C 187.3 228.6, 180.2 236.3, 179.2 248.7 C 178.7 255.8, 181.7 267.3, 185.3 271.2 C 191 277.7, 194.8 289.8, 196.5 307.3 C 196.9 311, 197.5 314, 198 314 C 198.5 314, 199.2 315.5, 199.5 317.3 C 202.8 332.6, 217.3 339.7, 237.5 336 C 240.3 335.5, 244.6 334.7, 247.3 334.4 C 249.9 334, 252 333.3, 252 332.9 C 252 332.4, 253.8 332, 256 332 C 258.2 332, 260 332.4, 260 332.9 C 260 333.3, 262.1 334, 264.8 334.4 C 267.4 334.7, 271.8 335.5, 274.5 336 C 294.7 339.7, 309.2 332.6, 312.5 317.3 C 312.8 315.5, 313.5 314, 314 314 C 314.5 314, 315.1 311, 315.5 307.3 C 317.2 289.8, 321 277.7, 326.7 271.2 C 330.3 267.3, 333.3 255.8, 332.8 248.7 C 331.8 236.3, 324.7 228.6, 307.8 221.6 C 303 219.7, 298.3 217.4, 297.3 216.6 C 296.3 215.8, 292.9 213, 289.8 210.4 C 286.6 207.9, 284 205.3, 284 204.7 C 284 203.3, 275.9 195, 274.5 195 C 274 195, 272 193.7, 270.2 192.1 C 265.1 187.5, 257.1 186.2, 248.9 188.4';
+const rnd = (a, b) => a + Math.random() * (b - a);
+const TAU = Math.PI * 2;
+// ---- value noise (smooth, 2D + time) ----
+const perm = new Uint8Array(512); { const p = [...Array(256).keys()].sort(() => Math.random() - 0.5); for (let i = 0; i < 512; i++) perm[i] = p[i & 255]; }
+const grad = (h, x, y) => { const a = (h / 256) * TAU; return Math.cos(a) * x + Math.sin(a) * y; };
+const fade = t => t * t * t * (t * (t * 6 - 15) + 10);
+function noise(x, y) {
+  const X = Math.floor(x) & 255, Y = Math.floor(y) & 255; x -= Math.floor(x); y -= Math.floor(y);
+  const u = fade(x), v = fade(y), a = perm[X] + Y, b = perm[X + 1] + Y;
+  const l1 = grad(perm[a], x, y) + u * (grad(perm[b], x - 1, y) - grad(perm[a], x, y));
+  const l2 = grad(perm[a + 1], x, y - 1) + u * (grad(perm[b + 1], x - 1, y - 1) - grad(perm[a + 1], x, y - 1));
+  return l1 + v * (l2 - l1);
+}
+// curl of a scalar potential: divergence-free swirling flow
+function curl(x, y, t) {
+  const e = 0.01, n = (a, b) => noise(a + t * 0.07, b - t * 0.05);
+  return [(n(x, y + e) - n(x, y - e)) / (2 * e), -(n(x + e, y) - n(x - e, y)) / (2 * e)];
+}
+
+const FX = {};
+
+// ---- VOLTA: midpoint-displacement bolts, branch, flicker once, fade ----
+FX.volta = () => {
+  let bolts = [], next = 0.4, flash = 0;
+  function bolt(x0, y0, x1, y1, spread, depth, out, width) {
+    let pts = [[x0, y0], [x1, y1]];
+    for (let d = 0; d < depth; d++) {
+      const nxt = [pts[0]];
+      for (let i = 0; i < pts.length - 1; i++) {
+        const [ax, ay] = pts[i], [bx, by] = pts[i + 1];
+        const nx = -(by - ay), ny = bx - ax, len = Math.hypot(nx, ny) || 1;
+        const off = rnd(-spread, spread);
+        nxt.push([(ax + bx) / 2 + (nx / len) * off, (ay + by) / 2 + (ny / len) * off], pts[i + 1]);
+      }
+      pts = nxt; spread /= 2;
+    }
+    out.push({ pts, width });
+    // branches from a few points, shorter, thinner, angled off the trunk
+    if (width > 1) for (let k = 0; k < 2; k++) {
+      const i = Math.floor(rnd(pts.length * 0.2, pts.length * 0.8)), [bx, by] = pts[i];
+      const ang = Math.atan2(y1 - y0, x1 - x0) + rnd(0.35, 0.8) * (Math.random() < 0.5 ? -1 : 1);
+      const L = Math.hypot(x1 - x0, y1 - y0) * rnd(0.2, 0.4);
+      bolt(bx, by, bx + Math.cos(ang) * L, by + Math.sin(ang) * L, L * 0.25, depth - 1, out, width * 0.5);
+    }
+  }
+  function strike(w, h, x, y) {
+    const x0 = x ?? rnd(w * 0.15, w * 0.85), y0 = y ?? rnd(h * 0.1, h * 0.5);
+    const ang = rnd(-0.9, 0.9) + Math.PI / 2, L = rnd(h * 0.3, h * 0.55);
+    const make = () => { const segs = []; bolt(x0, y0, x0 + Math.cos(ang) * L, y0 + Math.sin(ang) * L, L * 0.28, 6, segs, 2.4); return segs; };
+    bolts.push({ segs: make(), make, age: 0, life: 0.6, flicked: false });
+    flash = 1;
+  }
+  return {
+    click: (w, h, x, y) => strike(w, h, x, y),
+    draw(g, w, h, dt) {
+      if ((next -= dt) <= 0) { next = rnd(1, 2.4); strike(w, h); }
+      flash *= Math.pow(0.002, dt);
+      if (flash > 0.01) { g.fillStyle = `rgba(255,255,255,${0.06 * flash})`; g.fillRect(0, 0, w, h); }
+      g.lineCap = 'round'; g.lineJoin = 'round';
+      bolts = bolts.filter(b => (b.age += dt) < b.life);
+      for (const b of bolts) {
+        const k = b.age / b.life;
+        if (!b.flicked && k > 0.25) { b.segs = b.make(); b.flicked = true; } // re-seeded once: the flicker
+        const a = k < 0.08 ? 1 : 1 - (k - 0.08) / 0.92;
+        g.strokeStyle = `rgba(255,255,255,${a})`;
+        for (const s of b.segs) {
+          g.lineWidth = s.width * (1 - k * 0.6);
+          g.beginPath(); g.moveTo(...s.pts[0]); for (const p of s.pts) g.lineTo(...p); g.stroke();
+        }
+      }
+    },
+  };
+};
+
+// ---- GAIA: drifting contour lines of a noise field (marching squares) + falling dust ----
+FX.gaia = () => {
+  let dust = [], t = 0, push = null;
+  const LEVELS = [-0.25, -0.12, 0, 0.12, 0.25];
+  return {
+    click: (w, h, x, y) => { for (let i = 0; i < 14; i++) dust.push({ x: x + rnd(-10, 10), y: y + rnd(-6, 6), vx: rnd(-40, 40), vy: rnd(-60, -10), r: rnd(0, TAU), s: rnd(2, 4.5), age: 0 }); push = { x, y, t: 0 }; },
+    draw(g, w, h, dt) {
+      t += dt;
+      const C = 10, cols = Math.ceil(w / C) + 1, rows = Math.ceil(h / C) + 1, f = new Float32Array(cols * rows);
+      // stretched horizontally so the contours lie like strata; slow drift
+      for (let j = 0; j < rows; j++) for (let i = 0; i < cols; i++) {
+        let v = noise(i * C * 0.004 + t * 0.03, j * C * 0.016) * 0.9 + noise(i * C * 0.012, j * C * 0.04 + 9) * 0.25;
+        if (push) { const d = Math.hypot(i * C - push.x, j * C - push.y); v += 0.25 * Math.exp(-d * d / 2500) * Math.exp(-push.t * 1.5); }
+        f[j * cols + i] = v;
+      }
+      if (push && (push.t += dt) > 3) push = null;
+      g.strokeStyle = 'rgba(255,255,255,0.28)'; g.lineWidth = 1.2;
+      g.beginPath();
+      for (const L of LEVELS) for (let j = 0; j < rows - 1; j++) for (let i = 0; i < cols - 1; i++) {
+        const a = f[j * cols + i], b = f[j * cols + i + 1], c = f[(j + 1) * cols + i + 1], d = f[(j + 1) * cols + i];
+        const code = (a > L ? 8 : 0) | (b > L ? 4 : 0) | (c > L ? 2 : 0) | (d > L ? 1 : 0);
+        if (code === 0 || code === 15) continue;
+        const x = i * C, y = j * C, lerp = (p, q) => (L - p) / (q - p);
+        const T = [x + C * lerp(a, b), y], R = [x + C, y + C * lerp(b, c)], B = [x + C * lerp(d, c), y + C], Lf = [x, y + C * lerp(a, d)];
+        const seg = { 1: [Lf, B], 2: [B, R], 3: [Lf, R], 4: [T, R], 5: [Lf, T, B, R], 6: [T, B], 7: [Lf, T], 8: [Lf, T], 9: [T, B], 10: [Lf, B, T, R], 11: [T, R], 12: [Lf, R], 13: [B, R], 14: [Lf, B] }[code];
+        for (let k = 0; k < seg.length; k += 2) { g.moveTo(...seg[k]); g.lineTo(...seg[k + 1]); }
+      }
+      g.stroke();
+      if (Math.random() < dt * 6) dust.push({ x: rnd(0, w), y: -6, vx: rnd(-6, 6), vy: rnd(14, 30), r: rnd(0, TAU), s: rnd(1.5, 3.5), age: 0 });
+      g.fillStyle = 'rgba(255,255,255,0.55)';
+      dust = dust.filter(p => { p.age += dt; p.vy += 60 * dt * (p.vy < 25 ? 1 : 0); p.x += p.vx * dt; p.vx *= 0.97; p.y += p.vy * dt; p.r += dt * 2; return p.y < h + 8 && p.age < 9; });
+      for (const p of dust) { g.save(); g.translate(p.x, p.y); g.rotate(p.r); g.beginPath(); g.moveTo(0, -p.s); g.lineTo(p.s, p.s * 0.6); g.lineTo(-p.s * 0.8, p.s * 0.7); g.closePath(); g.fill(); g.restore(); }
+    },
+  };
+};
+
+// ---- AERO: particles following curl noise, drawn as fading trails, plus a vortex ----
+FX.aero = () => {
+  let ps = [], t = 0, vort = null;
+  const spawn = (w, h) => ({ x: rnd(-20, w * 0.3), y: rnd(0, h), trail: [], age: 0, life: rnd(2.5, 4.5) });
+  return {
+    click: (w, h, x, y) => { vort = { x, y, t: 0 }; },
+    draw(g, w, h, dt) {
+      t += dt;
+      while (ps.length < 60) ps.push(spawn(w, h));
+      if (vort && (vort.t += dt) > 3.5) vort = null;
+      g.lineCap = 'round';
+      for (const p of ps) {
+        p.age += dt;
+        let [vx, vy] = curl(p.x * 0.006, p.y * 0.006, t);
+        vx = vx * 40 + 70; vy *= 40; // a steady wind plus the swirl
+        if (vort) { const dx = p.x - vort.x, dy = p.y - vort.y, d2 = dx * dx + dy * dy + 400, s = 9000 / d2 * Math.max(0, 1 - vort.t / 3.5); vx += -dy * s * 0.12; vy += dx * s * 0.12; }
+        p.x += vx * dt; p.y += vy * dt;
+        p.trail.push([p.x, p.y]); if (p.trail.length > 26) p.trail.shift();
+        const a = Math.min(1, p.age / 0.4, (p.life - p.age) / 0.6) * 0.5;
+        if (a <= 0 || p.trail.length < 2) continue;
+        g.strokeStyle = `rgba(255,255,255,${a})`; g.lineWidth = 1.3;
+        g.beginPath(); g.moveTo(...p.trail[0]); for (const q of p.trail) g.lineTo(...q); g.stroke();
+      }
+      ps = ps.filter(p => p.age < p.life && p.x < w + 40);
+    },
+  };
+};
+
+// ---- CRYO: 6-fold branching crystals that grow, hold, crack and fade ----
+FX.cryo = () => {
+  let xs = [], next = 0.3;
+  function make(x, y, R) {
+    const arm = [], subs = Math.floor(rnd(2, 4));
+    arm.push({ a: 0, l: R, from: 0 });
+    for (let i = 1; i <= subs; i++) { const at = (i / (subs + 1)) * R * rnd(0.85, 1.05), l = R * rnd(0.22, 0.42) * (1 - i / (subs + 2)); arm.push({ a: Math.PI / 3, l, from: at }, { a: -Math.PI / 3, l, from: at }); }
+    return { x, y, arm, age: 0, grow: 0.7, hold: 1.1, crack: 0.5, rot: rnd(0, TAU), cracks: [...Array(18)].map(() => [rnd(-3, 3), rnd(-3, 3), Math.random() < 0.35]) };
+  }
+  return {
+    click: (w, h, x, y) => xs.push(make(x, y, rnd(26, 44))),
+    draw(g, w, h, dt) {
+      if ((next -= dt) <= 0) { next = rnd(0.6, 1.4); xs.push(make(rnd(30, w - 30), rnd(40, h - 30), rnd(14, 34))); }
+      g.lineCap = 'round';
+      xs = xs.filter(c => (c.age += dt) < c.grow + c.hold + c.crack);
+      for (const c of xs) {
+        const gk = Math.min(1, c.age / c.grow), ck = Math.max(0, (c.age - c.grow - c.hold) / c.crack);
+        const eased = 1 - Math.pow(1 - gk, 3);
+        g.strokeStyle = `rgba(255,255,255,${0.9 * (1 - ck)})`; g.lineWidth = 1.6;
+        for (let s = 0; s < 6; s++) {
+          const base = c.rot + (s * Math.PI) / 3;
+          c.arm.forEach((b, bi) => {
+            const reach = eased * c.arm[0].l; if (b.from > reach) return;
+            const grow = Math.min(1, (reach - b.from) / (b.l || 1)) * (bi === 0 ? 1 : 1);
+            const L = bi === 0 ? reach : b.l * grow;
+            const cr = c.cracks[(s * 3 + bi) % c.cracks.length];
+            if (ck > 0 && cr[2] && ck > 0.3) return; // cracked pieces drop out
+            const ox = ck * cr[0] * 3, oy = ck * cr[1] * 3;
+            const sx = c.x + Math.cos(base) * b.from + ox, sy = c.y + Math.sin(base) * b.from + oy;
+            const ang = base + b.a;
+            g.beginPath(); g.moveTo(sx, sy); g.lineTo(sx + Math.cos(ang) * L, sy + Math.sin(ang) * L); g.stroke();
+          });
+        }
+      }
+    },
+  };
+};
+
+// ---- PYRA: embers rising along curl noise, flickering white -> accent -> out; thin heat lines ----
+FX.pyra = () => {
+  let es = [], t = 0, heat = [], nextHeat = 1;
+  const add = (x, y, n, burst) => {
+    for (let i = 0; i < n; i++) {
+      const a = rnd(-Math.PI, 0), v = rnd(60, 170);
+      es.push({ x: x + rnd(-6, 6), y, vy: burst ? Math.sin(a) * v : rnd(-40, -18), vx: burst ? Math.cos(a) * v : 0, age: 0, life: rnd(1.6, 3.2), s: rnd(1.6, 3), ph: rnd(0, TAU) });
+    }
+  };
+  return {
+    click: (w, h, x, y) => add(x, y, 24, true),
+    draw(g, w, h, dt) {
+      t += dt;
+      if (Math.random() < dt * 10) add(rnd(0, w), h + 4, 1);
+      es = es.filter(e => (e.age += dt) < e.life);
+      for (const e of es) {
+        const [cx, cy] = curl(e.x * 0.01, e.y * 0.01, t);
+        // burst speed bleeds off, then buoyancy takes over
+        e.vx = e.vx * Math.pow(0.15, dt) + cx * 180 * dt; e.vy = e.vy * Math.pow(0.3, dt) + (-30 - e.vy) * 0.6 * dt;
+        const px = e.x, py = e.y; e.x += e.vx * dt; e.y += (e.vy + cy * 10) * dt;
+        const k = e.age / e.life, fl = 0.6 + 0.4 * Math.sin(e.age * 22 + e.ph);
+        const a = Math.min(1, e.age / 0.15) * (1 - k) * fl;
+        // a short streak along the motion, at least a dot
+        const dx = e.x - px, dy = e.y - py, L = Math.hypot(dx, dy) || 1, len = Math.max(e.s, Math.min(14, L * 4));
+        g.strokeStyle = k < 0.35 ? `rgba(255,255,255,${a})` : `rgba(22,207,251,${a})`; // white -> accent
+        g.lineWidth = e.s * 0.7; g.lineCap = 'round';
+        g.beginPath(); g.moveTo(e.x - (dx / L) * len, e.y - (dy / L) * len); g.lineTo(e.x, e.y); g.stroke();
+      }
+      // heat: a few wavy horizontal strokes that rise and fade (cheap stand-in for a displacement filter)
+      if ((nextHeat -= dt) <= 0) { nextHeat = rnd(1.2, 2.5); heat.push({ y: rnd(h * 0.5, h), age: 0, life: 1.8, ph: rnd(0, TAU) }); }
+      heat = heat.filter(hl => (hl.age += dt) < hl.life);
+      g.lineWidth = 1;
+      for (const hl of heat) {
+        const k = hl.age / hl.life, y = hl.y - k * 60;
+        g.strokeStyle = `rgba(255,255,255,${0.22 * Math.sin(Math.PI * k)})`;
+        g.beginPath(); for (let x = 0; x <= w; x += 8) { const yy = y + Math.sin(x * 0.05 + hl.ph + t * 6) * 3; x ? g.lineTo(x, yy) : g.moveTo(x, yy); } g.stroke();
+      }
+    },
+  };
+};
+
+// ---- FLORA: space-colonization vine grown offscreen, revealed tip by tip, flowers at the ends, fade ----
+const FLORA = new Path2D(FLORA_PATH);
+FX.flora = () => {
+  let vines = [], next = 0.2;
+  function grow(x0, y0, h) {
+    // attractors fill a leaning crown above the trunk, none beside it
+    const cx = x0 + rnd(-0.15, 0.15) * h, cy = y0 - h * 0.6, rx = h * rnd(0.22, 0.32), ry = h * 0.2;
+    const att = [...Array(90)].map(() => { const a = rnd(0, TAU), r = Math.sqrt(Math.random()); return [cx + Math.cos(a) * r * rx, cy + Math.sin(a) * r * ry]; });
+    const nodes = [{ x: x0, y: y0, p: -1, d: 0 }], STEP = 7, KILL = 10, INF = 80;
+    for (let it = 0; it < 130 && att.length; it++) {
+      const pull = new Map();
+      for (const a of att) { let best = -1, bd = INF; nodes.forEach((n, i) => { const d = Math.hypot(a[0] - n.x, a[1] - n.y); if (d < bd) { bd = d; best = i; } }); if (best >= 0) { const v = pull.get(best) || [0, 0, 0]; v[0] += (a[0] - nodes[best].x) / bd; v[1] += (a[1] - nodes[best].y) / bd; v[2]++; pull.set(best, v); } }
+      if (!pull.size) { const n = nodes[nodes.length - 1], dx = cx - n.x, dy = cy - n.y, L = Math.hypot(dx, dy) || 1; nodes.push({ x: n.x + (dx / L) * STEP + Math.sin(it * 0.7) * 1.5, y: n.y + (dy / L) * STEP, p: nodes.length - 1, d: n.d + 1 }); }
+      for (const [i, v] of pull) { const L = Math.hypot(v[0], v[1]) || 1, n = nodes[i]; nodes.push({ x: n.x + (v[0] / L) * STEP, y: n.y + (v[1] / L) * STEP, p: i, d: n.d + 1 }); }
+      for (let k = att.length - 1; k >= 0; k--) if (nodes.some(n => Math.hypot(att[k][0] - n.x, att[k][1] - n.y) < KILL)) att.splice(k, 1);
+    }
+    const kids = new Set(nodes.map(n => n.p)); const tips = nodes.filter((n, i) => !kids.has(i) && n.d > 6);
+    return { nodes, tips: tips.sort(() => Math.random() - 0.5).slice(0, 4), age: 0, maxD: Math.max(...nodes.map(n => n.d)) };
+  }
+  return {
+    click: (w, h, x, y) => vines.push(grow(x, y, h * 0.6)),
+    draw(g, w, h, dt) {
+      if ((next -= dt) <= 0) { next = rnd(2.2, 3.4); vines.push(grow(rnd(w * 0.15, w * 0.85), h + 4, h)); }
+      vines = vines.filter(v => (v.age += dt) < 4.6);
+      g.lineCap = 'round';
+      for (const v of vines) {
+        const reveal = Math.min(1, v.age / 1.8) * v.maxD, a = v.age < 3.4 ? 1 : 1 - (v.age - 3.4) / 1.2;
+        g.strokeStyle = `rgba(255,255,255,${0.8 * a})`;
+        for (const n of v.nodes) { if (n.p < 0 || n.d > reveal) continue; const p = v.nodes[n.p]; g.lineWidth = Math.max(0.8, 2.6 * (1 - n.d / v.maxD)); g.beginPath(); g.moveTo(p.x, p.y); g.lineTo(n.x, n.y); g.stroke(); }
+        for (const tp of v.tips) {
+          const open = Math.max(0, Math.min(1, (reveal - tp.d) / 6 + (v.age - 1.8) * 1.5)); if (open <= 0) continue;
+          const s = 16 * open / 512; g.save(); g.translate(tp.x, tp.y); g.rotate(v.age * 0.5); g.scale(s, s); g.translate(-256, -256);
+          g.fillStyle = `rgba(255,255,255,${0.2 * a})`; g.fill(FLORA); g.lineWidth = 1.3 / s; g.strokeStyle = `rgba(255,255,255,${a})`; g.stroke(FLORA); g.restore();
+        }
+      }
+    },
+  };
+};
+
+// ---- AQUA: bubbles as thick white rings with a crescent highlight; pop into an expanding ring ----
+FX.aqua = () => {
+  let bs = [], pops = [];
+  const add = (x, y, n) => { for (let i = 0; i < n; i++) bs.push({ x: x + rnd(-8, 8), y: y + rnd(0, 20), r: rnd(3, 8), vy: rnd(-55, -30), ph: rnd(0, TAU), age: 0, popAt: rnd(0.1, 0.45) }); };
+  return {
+    click: (w, h, x, y) => add(x, y, 9),
+    draw(g, w, h, dt) {
+      if (Math.random() < dt * 3) { const x = rnd(w * 0.1, w * 0.9); add(x, h + 10, Math.random() < 0.3 ? 4 : 1); }
+      bs = bs.filter(b => {
+        b.age += dt; b.y += b.vy * dt; b.x += Math.sin(b.age * 3 + b.ph) * 18 * dt; b.r += dt * 0.6;
+        if (b.y < h * b.popAt) { pops.push({ x: b.x, y: b.y, r: b.r, age: 0 }); return false; }
+        return true;
+      });
+      for (const b of bs) {
+        g.lineWidth = Math.max(1.4, b.r * 0.35); g.strokeStyle = 'rgba(255,255,255,0.75)';
+        g.beginPath(); g.arc(b.x, b.y, b.r, 0, TAU); g.stroke();
+        g.lineWidth = Math.max(1, b.r * 0.22); g.strokeStyle = '#fff'; // crescent highlight, top-left
+        g.beginPath(); g.arc(b.x, b.y, b.r * 0.55, Math.PI * 1.05, Math.PI * 1.45); g.stroke();
+      }
+      pops = pops.filter(p => (p.age += dt) < 0.35);
+      for (const p of pops) { const k = p.age / 0.35; g.lineWidth = 1.2; g.strokeStyle = `rgba(255,255,255,${0.8 * (1 - k)})`; g.beginPath(); g.arc(p.x, p.y, p.r * (1 + k * 1.8), 0, TAU); g.stroke(); }
+    },
+  };
+};
+
+// ---- runner ----
+const tiles = [...document.querySelectorAll('canvas[data-fx]')].map(c => ({ c, g: c.getContext('2d'), fx: FX[c.dataset.fx](), w: 0, h: 0 }));
+const fit = () => tiles.forEach(t => { const r = t.c.getBoundingClientRect(), d = Math.min(2, devicePixelRatio || 1); t.w = r.width; t.h = r.height; t.c.width = r.width * d; t.c.height = r.height * d; t.g.setTransform(d, 0, 0, d, 0, 0); });
+fit(); addEventListener('resize', fit);
+tiles.forEach(t => t.c.addEventListener('pointerdown', e => { const r = t.c.getBoundingClientRect(); t.fx.click(t.w, t.h, e.clientX - r.left, e.clientY - r.top); }));
+let last = performance.now();
+const loop = now => { const dt = Math.min(0.05, (now - last) / 1000); last = now; for (const t of tiles) { t.g.clearRect(0, 0, t.w, t.h); t.fx.draw(t.g, t.w, t.h, dt); } requestAnimationFrame(loop); };
+requestAnimationFrame(loop);
+</script></body></html>
