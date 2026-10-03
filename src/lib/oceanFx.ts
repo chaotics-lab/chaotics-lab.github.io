@@ -578,8 +578,9 @@ function caustic(src: string) {
   img.src = src;
   return null;
 }
-// [texture, scale, drift x and y in px/s, alpha]: the deep one first, larger and dimmer, drifting the other way
-const CAUSTIC_LAYERS = [['/caustic-deep.jpg', 1.5, -7, 5, 0.45], ['/caustic.jpg', 1.6, 9, 3, 0.55]] as const;
+// [texture, scale, squash (height / width, lower lies flatter), drift x and y in px/s, alpha]:
+// the deep one first, larger and dimmer, drifting the other way
+const CAUSTIC_LAYERS = [['/caustic-deep.jpg', 1.5, 0.55, -7, 5, 0.45], ['/caustic.jpg', 1.6, 0.38, 9, 3, 0.55]] as const;
 
 // ---- Aqua: under water. Slanted light shafts from the surface sway and
 // breathe; marine snow drifts in a slow current and swirls away from the
@@ -647,12 +648,12 @@ function aqua(): Fx {
           fg.setTransform(1, 0, 0, 1, 0, 0);
           fg.clearRect(0, 0, w, B);
           fg.globalCompositeOperation = 'lighter';
-          CAUSTIC_LAYERS.forEach(([src, k, vx, vy, al], i) => {
+          CAUSTIC_LAYERS.forEach(([src, k, flat, vx, vy, al], i) => {
             const art = caustic(src);
             if (art && !pats[i]) pats[i] = fg.createPattern(art, 'repeat');
             const pat = pats[i];
             if (!pat) return;
-            pat.setTransform(new DOMMatrix([k, 0, 0, k * 0.55, w / 2 + t * vx, B + t * vy])); // lies flat; anchored at the middle of the page end
+            pat.setTransform(new DOMMatrix([k, 0, 0, k * flat, w / 2 + t * vx, B + t * vy])); // lies flat; anchored at the middle of the page end
             fg.globalAlpha = al;
             fg.fillStyle = pat;
             fg.fillRect(0, 0, w, B);
