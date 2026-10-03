@@ -28,11 +28,12 @@
   <figure class="el-pyra"><canvas data-fx="pyraLava"></canvas><figcaption><b>Pyra B</b> · lava blobs (hover to heat)</figcaption></figure>
   <figure class="el-pyra"><canvas data-fx="pyraLamp"></canvas><figcaption><b>Pyra C</b> · lava lamp (ge1doot)</figcaption></figure>
   <figure class="el-pyra"><canvas data-fx="pyraHeat"></canvas><figcaption><b>Pyra D</b> · lamp with heat (hover)</figcaption></figure>
-  <figure class="el-aero"><canvas data-fx="aeroFlock"></canvas><figcaption><b>Aero B</b> · flock, curved lines</figcaption></figure>
+  <figure class="el-aero"><canvas data-fx="aeroStorm"></canvas><figcaption><b>Aero C</b> · eye of the storm (hover, click)</figcaption></figure>
   <figure class="el-cryo"><canvas data-fx="cryoFrost"></canvas><figcaption><b>Cryo B</b> · frost (hover melts, click)</figcaption></figure>
   <figure class="el-gaia"><canvas data-fx="gaiaStars"></canvas><figcaption><b>Gaia B</b> · sea of stars (hover, click)</figcaption></figure>
   <figure class="el-flora"><canvas data-fx="floraCoral"></canvas><figcaption><b>Flora B</b> · flower coral (move to draw)</figcaption></figure>
   <figure class="el-flora"><canvas data-fx="floraRoots"></canvas><figcaption><b>Flora C</b> · roots and vines (hover)</figcaption></figure>
+  <figure><canvas data-fx="aeroFlock"></canvas><figcaption><b>Aqua B</b> · currents (flock lines)</figcaption></figure>
   <figure><canvas data-fx="aquaZ2"></canvas><figcaption><b>Aqua C</b> · crumple water, zoom x2</figcaption></figure>
   <figure><canvas data-fx="aquaZ3"></canvas><figcaption><b>Aqua D</b> · crumple water, zoom x3</figcaption></figure>
   <figure><canvas data-fx="aquaZ5"></canvas><figcaption><b>Aqua E</b> · crumple water, zoom x5</figcaption></figure>
@@ -862,6 +863,44 @@ FX.cryoFrost = () => {
       p.globalCompositeOperation = 'source-over';
       g.drawImage(haze, 0, 0, w, h);
       g.drawImage(paint, 0, 0, w, h);
+    },
+  };
+};
+
+// ---- AERO C: eye of the storm, seen from above. Wind streaks orbit a calm eye (faster near the eye
+// wall, as angular speed rises toward the centre) and slowly spiral inward; reaching the wall, they
+// start again at the rim. Each streak is a short arc along its orbit. Brightness follows two spiral arms
+// (log spirals) that turn slowly, and peaks on the eye wall. The eye wanders and leans toward the
+// pointer; a click sends a gust. A few strokes per frame (brightness bands).
+FX.aeroStorm = () => {
+  const N = 240, BANDS = 4;
+  let ps = null, t = 0, cx = 0, cy = 0, ptr = null, gust = 0, W = 0;
+  const born = (R, r0, far) => ({ r: far ? R * rnd(0.75, 1) : rnd(r0 * 1.1, R), th: rnd(0, TAU), L: rnd(14, 40), sp: rnd(0.8, 1.2) });
+  return {
+    click: () => { gust = 1; },
+    move: (x, y) => { ptr = x == null ? null : { x, y }; },
+    draw(g, w, h, dt) {
+      t += dt;
+      const r0 = Math.min(w, h) * 0.09, R = Math.hypot(w, h) * 0.6;
+      if (!ps || W !== w) { W = w; cx = w / 2; cy = h / 2; ps = [...Array(N)].map(() => born(R, r0, false)); }
+      // the eye drifts on its own, and leans toward the pointer
+      const tx = ptr ? ptr.x : w * (0.5 + 0.25 * noise(t * 0.05, 1.7)), ty = ptr ? ptr.y : h * (0.5 + 0.25 * noise(3.3, t * 0.05));
+      cx += (tx - cx) * Math.min(1, dt * 0.8); cy += (ty - cy) * Math.min(1, dt * 0.8);
+      gust *= Math.pow(0.3, dt);
+      const paths = [...Array(BANDS)].map(() => new Path2D());
+      for (const p of ps) {
+        const v = 90 * p.sp * Math.sqrt(r0 / p.r) * (1 + 2.5 * gust) + 25; // tangential speed, px/s
+        p.th += (v / p.r) * dt;
+        p.r -= (6 + 40 * (r0 / p.r)) * dt;
+        if (p.r < r0 * 1.15) Object.assign(p, born(R, r0, true));
+        const arms = 0.5 + 0.5 * Math.cos(2 * p.th - 2.2 * Math.log(p.r / r0) - t * 0.4), wall = Math.exp(-(((p.r - r0 * 1.5) / (r0 * 0.5)) ** 2));
+        const b = Math.min(1, 0.04 + 0.9 * arms ** 3 + 0.8 * wall);
+        const a1 = p.th, a0 = p.th - p.L / p.r;
+        const pa = paths[Math.min(BANDS - 1, (b * BANDS) | 0)];
+        pa.moveTo(cx + Math.cos(a0) * p.r, cy + Math.sin(a0) * p.r); pa.arc(cx, cy, p.r, a0, a1);
+      }
+      g.lineCap = 'round';
+      paths.forEach((pa, i) => { g.strokeStyle = `rgba(255,255,255,${0.15 + 0.75 * (i + 1) / BANDS})`; g.lineWidth = 0.6 + i * 0.35; g.stroke(pa); });
     },
   };
 };
