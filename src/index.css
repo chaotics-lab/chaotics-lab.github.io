@@ -1035,6 +1035,13 @@ html[data-quality="0"] .ocean-layer { display: none; }
 .pt[data-dir="down"][data-phase="reveal"] .pt-layer { animation-name: pt-reveal-down; }
 @keyframes pt-cover-down { from { transform: translateY(-110%); } to { transform: none; } }
 @keyframes pt-reveal-down { from { transform: none; } to { transform: translateY(110%); } }
+/* ---- Phones ---- */
+@media (max-width: 639px) {
+  .ai-drop-head { flex-direction: column; align-items: flex-start; gap: 1.25rem; padding: 1.75rem 0; }
+  .p-logo { height: 4rem !important; width: auto; max-width: 60vw; align-self: flex-start; } /* above the title, not beside it */
+  .p-next-link { margin-left: 0; }
+}
+.h-pill { white-space: nowrap; }
 /* Fade variant (minimal quality): one plain layer, in and out */
 .pt-fade { background: var(--h-deep); }
 .pt-fade[data-phase="cover"] { animation: pt-fade-in 160ms ease-out both; }

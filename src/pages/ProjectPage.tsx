@@ -128,9 +128,9 @@ const ProjectPage = () => {
           <div className="mt-10">
             <p className="h-caps text-[0.68rem] text-[var(--h-c2)]">{[categories.join(' / '), when].filter(Boolean).join(' · ')}</p>
             {/* Logo sits left of the title, as tall as the title */}
-            <div className="mt-4 flex items-center gap-4 md:gap-7">
+            <div className="mt-4 flex flex-col sm:flex-row items-start sm:items-center gap-4 md:gap-7">
               {project.logoUrl && <img src={project.logoUrl} alt="" className="p-logo" style={titleH ? { height: titleH } : undefined} />}
-              <h1 ref={titleRef} className="h-display text-[clamp(3rem,8vw,7rem)] break-words min-w-0">
+              <h1 ref={titleRef} className="h-display text-[clamp(2.4rem,8vw,7rem)] break-words min-w-0 max-w-full">
                 <span className="h-line"><span>{withoutCompany(project.title)}</span></span>
               </h1>
             </div>
@@ -173,7 +173,7 @@ const ProjectPage = () => {
             {when && <div><dt>Date</dt><dd>{when}</dd></div>}
             {project.type && <div><dt>Type</dt><dd>{project.type}</dd></div>}
             {categories.length > 0 && (
-              <div>
+              <div className="p-facts-wide">
                 <dt>Category</dt>
                 <dd className="flex flex-wrap gap-1.5">{categories.map(c => <span key={c} className="h-pill h-pill-static">{c}</span>)}</dd>
               </div>
