@@ -867,6 +867,8 @@ html[data-quality="0"] .ocean-layer { display: none; }
 .s-el { padding: 0.5rem; border-radius: 9999px; transition: color 220ms ease, background-color 220ms ease; }
 @media (hover: hover) { .s-el:hover, .s-el:focus-visible { color: color-mix(in oklab, var(--h-c3) 45%, var(--el)); background: color-mix(in oklab, var(--el) 18%, transparent); outline: none; } }
 .s-el[aria-pressed="true"] { color: color-mix(in oklab, var(--h-c3) 30%, var(--el)); background: color-mix(in oklab, var(--el) 26%, transparent); }
+.e-glyph { display: block; object-fit: contain; filter: brightness(0) invert(1); transition: filter 220ms ease, transform 380ms cubic-bezier(.34,1.56,.64,1); } /* white silhouette */
+.e-glyph[data-active] { filter: none; } /* the chosen element in its own colours */
 /* Back-to-top pill: one header-style item; the cream fill appears on hover */
 .s-top {
   position: fixed; right: 1rem; bottom: 1rem; z-index: 50;
@@ -1078,8 +1080,8 @@ html[data-quality="0"] .ocean-layer { display: none; }
 .pt-fade[data-phase="cover"] { animation: pt-fade-in 160ms ease-out both; }
 .pt-fade[data-phase="reveal"] { animation: pt-fade-in 220ms ease-in reverse both; }
 @keyframes pt-fade-in { from { opacity: 0; } to { opacity: 1; } }
-/* Blot (card -> project) and wipe (element switch) variants: each layer's
-   clip path or mask is set per frame from PageTransition.tsx. */
+/* Blot variant (card -> project): each layer's wavy clip path is set per
+   frame from PageTransition.tsx. */
 .pt-blot { position: absolute; inset: 0; }
 /* Slash variant: wide slanted bands cut in from the right, then carry on
    off to the left, front band first. The front band carries the label. */

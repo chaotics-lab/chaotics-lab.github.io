@@ -1,8 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { ELEMENTS } from '@/config/elements';
 import { applyTheme, currentElement, onThemeChange } from '@/lib/theme';
-import { usePageTransition } from '@/lib/pageTransition';
-import { THEMES } from '@/config/themes';
 import { onTick, prefersReducedMotion } from '@/lib/ticker';
 import { IconTile } from './IconTile';
 
@@ -16,8 +14,8 @@ const hintOff = () => { try { sessionStorage.setItem(HINT_KEY, '1'); } catch { /
 // The list is rendered twice and wraps at half its width, so the loop is
 // seamless. It can be dragged (finger or mouse) and keeps a little momentum;
 // hovering eases it down to 20% speed. A tap or click picks an element and
-// sweeps its colours round from it (PageTransition 'wipe').
-// Until someone does, resting the mouse on an element for a moment shows
+// slides the site into its colour scheme. Until someone does, resting the
+// mouse on an element for a moment shows
 // "Click to change theme" by the cursor (on touch screens, once under the
 // band after a few seconds in view). The ocean layer is clipped to the
 // band's bottom edge, found through data-ocean-top.
@@ -25,7 +23,6 @@ export const ElementMarquee = () => {
   const [active, setActive] = useState(currentElement);
   useEffect(() => onThemeChange(() => setActive(currentElement())), []);
 
-  const { dive } = usePageTransition();
   const trackRef = useRef<HTMLDivElement>(null);
   const bandRef = useRef<HTMLDivElement>(null);
   const [hint, setHint] = useState<{ x: number; y: number } | null>(null);
@@ -102,15 +99,13 @@ export const ElementMarquee = () => {
     if (d.moved > DRAG_PX) motion.current.fling = Math.max(-2500, Math.min(2500, d.vel));
   };
 
-  const pick = (id: string, from: HTMLElement) => {
+  const pick = (id: string) => {
     if (drag.current.moved > DRAG_PX) return; // that was a drag, not a click
     hintOff();
     hideHint();
     setTouchHint(false);
     if (id === currentElement()) return;
-    // the new colours sweep round from the clicked element (PageTransition 'wipe')
-    const r = (from.querySelector('.e-tile') ?? from).getBoundingClientRect(), pal = THEMES[id] ?? THEMES.aqua;
-    dive(() => applyTheme(id), { kind: 'wipe', colors: [pal.c1, pal.top], origin: { x: r.left + r.width / 2, y: r.top + r.height / 2 } });
+    applyTheme(id, true);
   };
 
   return (
@@ -133,7 +128,7 @@ export const ElementMarquee = () => {
               <button
                 key={`${copy}-${i}`}
                 type="button"
-                onClick={ev => pick(e.id, ev.currentTarget)}
+                onClick={() => pick(e.id)}
                 tabIndex={copy === 0 && i < ELEMENTS.length ? 0 : -1}
                 aria-pressed={active === e.id}
                 aria-label={`${e.name} colour scheme`}
