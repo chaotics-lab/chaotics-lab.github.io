@@ -558,54 +558,39 @@ function flora(): Fx {
   };
 }
 
-// Caustic tile, adapted from water-caustics (github.com/ethanfox/water-caustics,
-// src/caustic-field.ts), MIT License, Copyright (c) 2026 water-caustics
-// contributors. Same build: each octave warps the plane with a few sines,
-// then takes the product of two crossing sine waves, bright where it is near
-// zero. Here every frequency is a whole number of turns over the tile, so the
-// tile repeats without seams. Drawn once, white on transparent.
-const TILE = 256;
-function causticTile() {
-  const c = canvas();
-  c.width = c.height = TILE;
-  const x = c.getContext('2d')!, img = x.createImageData(TILE, TILE), K = TAU / TILE;
-  // per octave: two warps [nx, ny, phase] and two crossing waves [ax, ay, phase]
-  const OCT = [
-    { warp: [[1, 1, 0.3], [1, -1, 1.7]], waves: [[2, 1, 0.2], [-1, 2, 1.1]], amp: 26, gain: 1.12 },
-    { warp: [[1, 2, 2.1], [-2, 1, 0.6]], waves: [[3, -1, 0.9], [1, 3, 2.4]], amp: 18, gain: 0.78 },
-  ];
-
-  for (let j = 0; j < TILE; j++) for (let i = 0; i < TILE; i++) {
-    let best = 0;
-    for (const o of OCT) {
-      let px = i, py = j;
-      for (const [wx, wy, ph] of o.warp) { const s = Math.sin(K * (wx * px + wy * py) + ph); px += s * o.amp; py += Math.cos(K * (wy * px - wx * py) + ph) * o.amp; }
-      const ridge = Math.sin(K * (o.waves[0][0] * px + o.waves[0][1] * py) + o.waves[0][2]) * Math.sin(K * (o.waves[1][0] * px + o.waves[1][1] * py) + o.waves[1][2]);
-      const v = (0.165 / (Math.abs(ridge) * 5.6 + 0.22)) * o.gain;
-      best = Math.max(best, v);
-    }
-    const cv = clamp(best, 0, 1.95) ** 1.45;
-    const veins = clamp((cv - 0.15) / 0.93, 0, 1), haze = clamp((cv - 0.03) / 0.75, 0, 1) * 0.3, o = (j * TILE + i) * 4;
-    img.data[o] = img.data[o + 1] = img.data[o + 2] = 255;
-    img.data[o + 3] = 255 * clamp(veins * veins * (3 - 2 * veins) * 0.9 + haze, 0, 1);
-  }
-  x.putImageData(img, 0, 0);
-  return c;
+// The seabed's caustics: a looping, seamless tile baked once per visit in a
+// worker (causticWorker.ts), CAUSTIC_FRAMES frames over CAUSTIC_LOOP_S
+// seconds, shared by every Aqua. Empty until the first frames arrive.
+const CAUSTIC_FRAMES = 36, CAUSTIC_LOOP_S = 12;
+let caustics: (ImageBitmap | null)[] | null = null;
+function causticFrames() {
+  if (caustics) return caustics;
+  const out: (ImageBitmap | null)[] = (caustics = Array(CAUSTIC_FRAMES).fill(null));
+  const w = new Worker(new URL('./causticWorker.ts', import.meta.url), { type: 'module' });
+  let left = CAUSTIC_FRAMES;
+  w.onmessage = async (e: MessageEvent<{ f: number; size: number; px: Uint8ClampedArray }>) => {
+    out[e.data.f] = await createImageBitmap(new ImageData(e.data.px, e.data.size, e.data.size));
+    if (--left === 0) w.terminate();
+  };
+  w.postMessage({ frames: CAUSTIC_FRAMES });
+  return out;
 }
 
 // ---- Aqua: under water. Slanted light shafts from the surface sway and
 // breathe; marine snow drifts in a slow current and swirls away from the
-// pointer; the seabed is a sandy floor in perspective with caustics dancing
-// on it: the tile above, laid in thin strips scaled for their depth, two
-// layers drifting apart and adding up. A click sends a ripple ring and scatters the snow.
+// pointer; on the seabed, caustics: the looping tile above, squashed a little
+// so it lies flat, two neighbouring frames blended. A click sends a ripple
+// ring and scatters the snow.
 type Ray = { x: number; w: number; ph: number; sp: number };
 type Flake = { x: number; y: number; s: number; ph: number; vx: number; vy: number };
 function aqua(): Fx {
   let rays: Ray[] = [], snow: Flake[] = [], rings: { x: number; y: number; age: number }[] = [], t = 0, W = 0, H = 0, ptr: Ptr = null;
-  let tile: HTMLCanvasElement | null = null, pats: CanvasPattern[] = [], floorT = 0;
+  let floorT = 0;
+  const frames = causticFrames(), pats = new Map<ImageBitmap, CanvasPattern>();
   // soft light at a quarter of the resolution; the seabed rendered 15 times a second and reused in between
   const rays4 = sprite(false), rayBuf = rays4.c, rg = rays4.g, bed = sprite(), floorBuf = bed.c, fg = bed.g;
   rayBuf.style.width = rayBuf.style.height = '100%'; // a quarter of the resolution, stretched by the compositor
+  floorBuf.style.maskImage = floorBuf.style.webkitMaskImage = 'linear-gradient(to bottom, transparent, #000 70%)';
   const setup = (w: number, h: number) => {
     const n = Math.max(4, Math.round(w / 220));
     rays = Array.from({ length: n }, (_, i) => ({ x: ((i + 0.5 + rnd(-0.3, 0.3)) / n) * w * 1.1 - w * 0.05, w: rnd(30, 110), ph: rnd(0, TAU), sp: rnd(0.15, 0.3) }));
@@ -647,42 +632,27 @@ function aqua(): Fx {
         b.moveTo(f.x + f.s / 2, f.y); b.arc(f.x, f.y, f.s / 2, 0, TAU);
       }
       bands.forEach((pa, i) => { g.fillStyle = `rgba(255,255,255,${0.3 + i * 0.25})`; g.fill(pa); });
-      // the seabed: a floor in perspective from a soft horizon down to the end of the page. Depth z
-      // runs from 1 (the page end) to ZF (the horizon); plane units are pixels at z = 1. The tile is
-      // laid in strips: each one maps the plane to the screen at its own depth (x shrinks by 1/z
-      // around the centre, plane depth squeezes onto the strip's height)
-      const band = Math.min(340, h * 0.42), horizon = floor - band;
+      // the seabed: the caustic band along the end of the page, redrawn 15 times a second
+      const band = Math.min(320, h * 0.4), horizon = floor - band;
       if (horizon < h) {
-        if (!tile) { tile = causticTile(); pats = [fg.createPattern(tile, 'repeat')!, fg.createPattern(tile, 'repeat')!]; }
         const B = Math.round(band);
         if (floorBuf.width !== Math.round(w) || floorBuf.height !== B) { bed.size(w, B); floorT = 0; }
-        if ((floorT -= dt) <= 0) { // 15 updates a second are plenty for this slow light; drawn in the buffer's own space: horizon at 0, page end at B
+        if ((floorT -= dt) <= 0) {
           floorT = 1 / 15;
-          const ZF = 5, D = 420, cx = w / 2, STRIPS = 90;
-          const yAt = (z: number) => B - B * ((1 - 1 / z) / (1 - 1 / ZF)), planeY = (z: number) => (D * (z - 1)) / (ZF - 1);
-          fg.globalCompositeOperation = 'source-over';
-          fg.globalAlpha = 1;
+          const pos = ((t / CAUSTIC_LOOP_S) % 1) * CAUSTIC_FRAMES, i0 = Math.floor(pos), k = pos - i0;
+          const a = frames[i0], b = frames[(i0 + 1) % CAUSTIC_FRAMES];
+          fg.setTransform(1, 0, 0, 1, 0, 0);
           fg.clearRect(0, 0, w, B);
-          const tint = fg.createLinearGradient(0, B, 0, 0); // sand
-          tint.addColorStop(0, 'rgba(255,255,255,0.08)');
-          tint.addColorStop(1, 'rgba(255,255,255,0)');
-          fg.fillStyle = tint;
-          fg.fillRect(0, 0, w, B);
-          // two layers drifting apart; the second is larger and mirrored, so the repeats never line up
-          const layers = [{ k: 2, u: t * 7, v: t * 5 }, { k: -2.7, u: -t * 6, v: t * 7 }];
-          fg.globalCompositeOperation = 'lighter';
-          for (let s = 0; s < STRIPS; s++) {
-            // strips are spaced evenly in 1/z, so they are evenly thin on screen
-            const z0 = 1 / (1 - (s / STRIPS) * (1 - 1 / ZF)), z1 = 1 / (1 - ((s + 1) / STRIPS) * (1 - 1 / ZF)), zm = (z0 + z1) / 2;
-            const y1 = yAt(z0), y0 = yAt(z1), Y0 = planeY(z0), sy = (y1 - y0) / (planeY(z1) - Y0);
-            fg.globalAlpha = 0.42 * Math.min(1, (1 - s / STRIPS) * 1.6); // fades toward the horizon
-            layers.forEach((L, li) => {
-              const p = pats[li], kx = L.k / zm, ky = Math.abs(L.k) * sy;
-              p.setTransform(new DOMMatrix([kx, 0, 0, -ky, cx - (cx - L.u) * kx, y1 + (Y0 + L.v) * ky]));
-              fg.fillStyle = p;
-              fg.fillRect(0, y0, w, y1 - y0 + 0.5);
-            });
+          fg.setTransform(1.6, 0, 0, 0.85, w / 2, B); // lies flat; anchored at the middle of the page end
+          for (const [img, al] of [[a, 1 - k], [b, k]] as const) {
+            if (!img) continue;
+            let pat = pats.get(img);
+            if (!pat) { pat = fg.createPattern(img, 'repeat')!; pats.set(img, pat); }
+            fg.globalAlpha = 0.8 * al;
+            fg.fillStyle = pat;
+            fg.fillRect(-w, -B / 0.85, 2 * w, B / 0.85);
           }
+          fg.globalAlpha = 1;
         }
         bed.at(0, horizon);
       } else bed.at(0, null);

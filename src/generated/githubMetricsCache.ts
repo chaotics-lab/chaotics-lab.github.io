@@ -18,7 +18,7 @@ export interface GithubMetricsCache {
 }
 
 export const githubMetricsCache: GithubMetricsCache = {
-  "generatedAt": "2026-10-03T16:24:09.162Z",
+  "generatedAt": "2026-10-03T16:31:04.610Z",
   "porypal": {
     "unique_cloners": 853,
     "total_clones": 1651,
@@ -29,47 +29,47 @@ export const githubMetricsCache: GithubMetricsCache = {
   "repos": {
     "Loxed/vhdl-calc": {
       "stars": null,
-      "downloads": null
+      "downloads": 0
     },
     "Loxed/AceAttorneyGuide": {
       "stars": null,
-      "downloads": null
+      "downloads": 0
     },
     "Loxed/flight-traffic-simulation": {
       "stars": null,
-      "downloads": null
+      "downloads": 0
     },
     "chaotics-labs/Slice": {
       "stars": null,
-      "downloads": null
+      "downloads": 32
     },
     "Loxed/cluedo-knight": {
       "stars": null,
-      "downloads": null
+      "downloads": 0
     },
     "chaotics-labs/iisu-icon-maker": {
       "stars": null,
-      "downloads": null
+      "downloads": 0
     },
     "Loxed/le-saboteur": {
       "stars": null,
-      "downloads": null
+      "downloads": 0
     },
     "Loxed/marque": {
       "stars": null,
-      "downloads": null
+      "downloads": 0
     },
     "Loxed/PersonaPlayApplication": {
       "stars": null,
-      "downloads": null
+      "downloads": 0
     },
     "Loxed/porypal": {
       "stars": null,
-      "downloads": null
+      "downloads": 673
     },
     "Loxed/youtube-video-tracker": {
       "stars": null,
-      "downloads": null
+      "downloads": 0
     }
   }
 };
