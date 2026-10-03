@@ -866,20 +866,13 @@ All colors MUST be HSL.
 .ai-drop-head:hover .ai-drop-title,
 .ai-drop-head:focus-visible .ai-drop-title { color: var(--h-c1); }
 .ai-drop-head:focus-visible { outline: none; }
-.ai-drop-toggle {
-  flex: none;
-  display: grid;
-  place-items: center;
-  width: 3.25rem;
-  height: 3.25rem;
-  border-radius: 9999px;
-  border: 1.5px solid rgb(var(--h-c2-rgb) / 0.45);
-  color: var(--h-c3);
-  transition: transform 450ms cubic-bezier(.34,1.56,.64,1), background-color 200ms ease, color 200ms ease, border-color 200ms ease;
-}
-.ai-drop-head:hover .ai-drop-toggle,
-.ai-drop-head:focus-visible .ai-drop-toggle { background: var(--h-cream); border-color: var(--h-cream); color: var(--h-ink); }
-.ai-drop[data-open="true"] .ai-drop-toggle { transform: rotate(135deg); }
+/* the toggle is an outline button lit by hovering the whole row */
+.ai-drop-toggle { flex: none; white-space: nowrap; }
+.ai-drop-head:hover .ai-drop-toggle, .ai-drop-head:focus-visible .ai-drop-toggle { color: var(--h-ink); }
+.ai-drop-head:hover .ai-drop-toggle::before, .ai-drop-head:focus-visible .ai-drop-toggle::before { clip-path: inset(0 0 0 0 round 9999px); }
+.ai-drop-head:hover .ai-drop-toggle .h-swap > span:first-child, .ai-drop-head:focus-visible .ai-drop-toggle .h-swap > span:first-child { transform: translateY(100%); }
+.ai-drop-plus { transition: transform 450ms cubic-bezier(.34,1.56,.64,1); }
+.ai-drop[data-open="true"] .ai-drop-plus { transform: rotate(135deg); }
 .ai-drop-body { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 450ms cubic-bezier(.2,.8,.2,1); }
 .ai-drop[data-open="true"] .ai-drop-body { grid-template-rows: 1fr; }
 .ai-drop-item { padding-top: 1.25rem; border-top: 1.5px solid var(--h-line); opacity: 0; transform: translateY(14px); transition: opacity 300ms ease, transform 450ms cubic-bezier(.2,.8,.2,1); }
@@ -956,6 +949,7 @@ All colors MUST be HSL.
 .p-facts dd { margin-top: 0.4rem; color: #fff; font-weight: 500; }
 .h-pill-static { padding: 0.3rem 0.75rem; font-size: 0.82rem; cursor: default; } /* filter-pill look, read-only */
 .h-pill-static:hover { border-color: rgb(var(--h-c2-rgb) / 0.45); color: var(--h-c3); }
+.h-pill-stat, .h-pill-stat:hover { align-items: center; gap: 0.4rem; color: #fff; border-color: rgb(var(--h-c2-rgb) / 0.6); background: rgb(var(--h-night-rgb) / 0.35); font-variant-numeric: tabular-nums; }
 /* Bottom row: back link on the left, next project on the right */
 .p-next { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem 2rem; padding: 1.25rem 0; border-top: 1.5px solid var(--h-line); }
 .p-next-link { margin-left: auto; min-width: 0; max-width: 100%; } /* an outline button like the others */
@@ -1031,7 +1025,7 @@ All colors MUST be HSL.
 /* Zoom variant (card -> project): the page zooms into the card (from JS)
    while this wash of the sea's front colour takes over the screen; the sea
    layers then take over from it and leave upward. */
-.pt-zoom { position: absolute; inset: 0; background: var(--tint); animation: pt-zoom-tint 600ms cubic-bezier(.5,0,.75,0) both; }
+.pt-zoom { position: absolute; inset: 0; background: var(--tint); animation: pt-zoom-tint 380ms cubic-bezier(.3,0,.5,1) 60ms both; }
 @keyframes pt-zoom-tint { from { opacity: 0; } to { opacity: 1; } }
 /* Slash variant: wide slanted bands cut in from the right, then carry on
    off to the left, front band first. The front band carries the label. */
@@ -1107,6 +1101,6 @@ All colors MUST be HSL.
 @media (prefers-reduced-motion: reduce) {
   .g-fill[data-run], .h-line > span, .h-marquee, .h-swap-in, .p-logo, .pt-page, .h-bob, .h-bob-up, .w-card { animation: none !important; }
   .pt { display: none; }
-  .w-arrow, .w-rule > span, .h-swap > span, .h-btn, .h-pill, .s-nav-blob, .h-pill-blob, .s-top, .h-btn-line::before, .s-circle, .g-track, .g-arrow, .p-next-arrow, .ai-drop-body, .ai-drop-item, .ai-drop-toggle, .ai-drop-title, .s-icon { transition: none; }
+  .w-arrow, .w-rule > span, .h-swap > span, .h-btn, .h-pill, .s-nav-blob, .h-pill-blob, .s-top, .h-btn-line::before, .s-circle, .g-track, .g-arrow, .p-next-arrow, .ai-drop-body, .ai-drop-item, .ai-drop-plus, .ai-drop-title, .s-icon { transition: none; }
   .w-cursor { display: none; }
 }

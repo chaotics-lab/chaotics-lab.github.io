@@ -82,7 +82,7 @@ const ProjectCard = ({ p, i }: { p: ProjectData & { showGithubStats?: boolean };
             <span className="h-caps text-[0.62rem]">{[categoryLabel(p.category?.[0]), year].filter(Boolean).join(' · ')}</span>
             {p.AIUsed && <AITag value={parseInt(p.AIUsed, 10)} className="ml-auto" />}
             {p.showGithubStats && (
-              <span className="flex items-center gap-1.5">
+              <span className="flex items-center gap-2">
                 {stars !== null && <GithubStarsBadge stars={stars} />}
                 <GithubDownloadsBadge downloads={stats ? stats.total_downloads + stats.unique_cloners : null} />
               </span>

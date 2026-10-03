@@ -200,6 +200,8 @@ export const HeroWaves = () => {
           y += S.zig * (5 * ((i + zapShift + n) % 2 ? 1 : -1) * (0.75 + 0.25 * jitter[i]) + 2.5 * jitter[i]);
           // Volta: shock waves
           if (S.volt > 0.01) y += S.volt * shockAt(i, n);
+          // Gaia: the water trembles near the pointer, like an earthquake
+          if (S.earth > 0.01 && near[i] > 0.01) y += S.earth * near[i] * 4.5 * Math.sin(t * 61 + i * 1.7 + n) * Math.sin(t * 23 + n * 2.1);
           // Aero: wind chop.
           y += S.storm * gust * (5 * Math.sin(kx * 0.05 + t * 2.6 + n) + 3.5 * Math.sin(kx * 0.083 - t * 3.1));
           // Aero: crests pulled together into sharp peaks (Gerstner-style;
@@ -248,6 +250,15 @@ export const HeroWaves = () => {
       live.gaia[pl] = els.gaia[pl].map((_, i, a) => ({ x: ((i + rnd(0.15, 0.85)) / a.length) * W, y: 0, vx: 0, vy: 0, rot: rnd(-10, 10), spin: 0, size: rnd(22, 34), age: 0, life: 1, phase: rnd(0, 6.3), tier: tierOf() }));
     });
     const nextBurst = [rnd(0.2, 0.8), rnd(0.2, 0.8), rnd(0.2, 0.8)];
+    // Volta: icons that ride the two fronts of a fresh shock wave for a
+    // while (phase = direction, ±1; spin wobble), then fade.
+    const riders = (j: number, pl: number) => {
+      const x = nodeX(j);
+      for (const dir of [-1, 1]) for (let i = 0; i < 1 + pl; i++) {
+        if (live.volta[pl].length >= els.volta[pl].length) return;
+        live.volta[pl].push({ x, y: surface(pl, x).y, vx: dir, vy: 0, rot: rnd(-20, 20), spin: rnd(-60, 60), size: rnd(18, 30) * PLANE_SIZE[pl], age: -i * 0.06, life: rnd(0.7, 1.1), phase: 2, tier: tierOf() });
+      }
+    };
     // Volta: sparks jump out of the water where it jolts (node j).
     const sparks = (j: number, n: number, pl: number) => {
       const x = -EDGE + (j / (NODES - 1)) * (W + 2 * EDGE);
@@ -384,6 +395,14 @@ export const HeroWaves = () => {
             p.age += dt;
             const g = k === 'pyra' ? 300 * v : k === 'volta' ? 420 * v : k === 'aero' ? 12 : 0;
             p.vy += g * dt;
+            if (k === 'volta' && p.phase === 2) {
+              // rider: keeps up with the shock front (SHOCK_SPEED nodes/s) on the surface
+              if (p.age > 0) p.x += p.vx * SHOCK_SPEED * ((W + 2 * EDGE) / (NODES - 1)) * dt;
+              p.y = surface(pl, p.x).y - (8 + 6 * Math.abs(Math.sin(p.age * 18))) / sy;
+              p.rot += p.spin * dt;
+              if (p.age >= p.life) list.splice(i, 1);
+              continue;
+            }
             const ts = TIER_SPEED[p.tier];
             if (k === 'aqua') p.vx += (rainDir * 170 * v - p.vx) * Math.min(1, dt * 2); // drops lean with the pointer
             p.x += (p.vx * ts * (k === 'aero' ? gust * windDir : 1) * dt) / sx;
@@ -511,6 +530,7 @@ export const HeroWaves = () => {
         shocks.push({ j, amp: (Math.random() < 0.5 ? -1 : 1) * (26 + Math.random() * 16), age: 0 });
         flick = 1;
         [0, 1, 2].forEach(pl => sparks(Math.round(j), 2 + pl * 2, pl));
+        [0, 1, 2].forEach(pl => riders(j, pl));
       }
       clock += dt * style.speed;
       draw(clock);

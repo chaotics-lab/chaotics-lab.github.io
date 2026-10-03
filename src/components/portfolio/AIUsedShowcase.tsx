@@ -15,7 +15,7 @@ export const AIUsedShowcase = () => {
         onClick={() => setOpen(o => !o)}
         aria-expanded={open}
         aria-controls="ai-levels"
-        className="ai-drop-head"
+        className="ai-drop-head h-swap-host"
       >
         <span className="min-w-0">
           <span className="block h-display text-[clamp(2.4rem,5.5vw,4.2rem)] ai-drop-title">How I use AI</span>
@@ -23,8 +23,13 @@ export const AIUsedShowcase = () => {
             Every project is tagged with how much AI went into it. I track it so I keep learning new skills, not just work faster.
           </span>
         </span>
-        <span className="ai-drop-toggle" aria-hidden="true">
-          <Plus size={20} weight="bold" />
+        {/* looks like the other outline buttons; the whole row is the button */}
+        <span className="h-btn h-btn-line ai-drop-toggle" aria-hidden="true">
+          <span className="h-swap">
+            <span>{open ? 'Hide' : 'Show the levels'}</span>
+            <span className="h-serif text-[1.1rem] leading-[1.05]">{open ? 'Hide' : 'Show the levels'}</span>
+          </span>
+          <Plus size={16} weight="bold" className="ai-drop-plus" />
         </span>
       </button>
 
@@ -43,9 +48,13 @@ export const AIUsedShowcase = () => {
             href="https://www.media.mit.edu/projects/your-brain-on-chatgpt/overview/"
             target="_blank"
             rel="noopener noreferrer"
-            className="mb-9 inline-flex items-center gap-1 text-[var(--h-c2)] underline underline-offset-4 hover:text-white transition-colors"
+            className="mb-9 h-btn h-btn-line h-swap-host"
           >
-            Your Brain on ChatGPT <ArrowUpRight size={14} weight="bold" />
+            <span className="h-swap">
+              <span>Your Brain on ChatGPT</span>
+              <span className="h-serif text-[1.1rem] leading-[1.05]" aria-hidden="true">Your Brain on ChatGPT</span>
+            </span>
+            <ArrowUpRight size={14} weight="bold" />
           </a>
         </div>
       </div>

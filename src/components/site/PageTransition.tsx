@@ -14,7 +14,7 @@ import { WAVE, WAVE_V } from '@/lib/wave';
 const TIMING = {
   sea: { cover: 260 + 2 * 45, hold: 40, reveal: 300 + 2 * 45 },
   slash: { cover: 280 + 2 * 60, hold: 320, reveal: 320 + 2 * 60 }, // hold: time to read the title
-  zoom: { cover: 560, hold: 40, reveal: 300 + 2 * 45 }, // cover: .pt-zoom
+  zoom: { cover: 560, hold: 220, reveal: 300 + 2 * 45 }, // cover: .pt-zoom; hold: a beat on the full colour
 };
 
 const LAYERS = ['var(--h-c1)', 'var(--h-top)', 'var(--h-deep)'];
@@ -40,7 +40,7 @@ export const PageTransition = ({ children }: { children: ReactNode }) => {
       o.zoomEl.style.transformOrigin = `${o.origin.x}px ${o.origin.y}px`;
       o.zoomEl.animate(
         [{ transform: 'scale(1) rotate(0deg)' }, { transform: 'scale(2.4) rotate(-4deg)' }],
-        { duration: t.cover + t.hold, easing: 'cubic-bezier(.6,0,.4,1)', fill: 'forwards' },
+        { duration: t.cover, easing: 'cubic-bezier(.6,0,.4,1)', fill: 'forwards' },
       );
     }
     timers.current.push(window.setTimeout(() => {
