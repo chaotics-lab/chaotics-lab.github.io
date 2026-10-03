@@ -17,7 +17,7 @@ import { WAVE, WAVE_V } from '@/lib/wave';
 // sin(lobes * (angle - progress * turn))), with R reaching the far corner.
 // 'band': two rectangles at the element band's angle grow up and down from
 // its edges and fill the screen with the new element's colours; the scheme
-// swaps; they pull back to the screen edges.
+// swaps; they close back into the band.
 // Keep the timings in sync with .pt-layer / .pts-band / .ptb-rect in index.css.
 const BLOT = { in: 320, out: 380, gap: 75 }; // ms per blot, and between them
 const TIMING = {
@@ -25,7 +25,7 @@ const TIMING = {
   slash: { cover: 280 + 2 * 60, hold: 320, reveal: 320 + 2 * 60 }, // hold: time to read the title
   blot: { cover: BLOT.gap * 2 + BLOT.in, hold: 120, reveal: BLOT.gap * 2 + BLOT.out },
   fade: { cover: 160, hold: 30, reveal: 220 }, // minimal quality: one plain fade (.pt-fade)
-  band: { cover: 280, hold: 60, reveal: 320 }, // .ptb-rect
+  band: { cover: 280, hold: 100, reveal: 380 }, // .ptb-rect; hold: lets the new colours paint before it closes
 };
 
 const LAYERS = ['var(--h-c1)', 'var(--h-top)', 'var(--h-deep)'];

@@ -1083,15 +1083,15 @@ html[data-quality="0"] .ocean-layer { display: none; }
 .pt-blot { position: absolute; inset: 0; }
 /* Band variant (element switch): a strip as wide as the screen and more,
    centred on the element band and turned like it; one rectangle grows up
-   from its top edge, one down from its bottom edge, then each pulls back
-   to its own end of the screen */
+   from its top edge, one down from its bottom edge, and once the colours
+   have switched both close back into the band */
 .ptb { position: absolute; left: -15vw; width: 130vw; height: 0; }
 .ptb-rect { position: absolute; left: 0; right: 0; height: 160vh; }
 .ptb-up { bottom: var(--gap); transform-origin: 50% 100%; }
 .ptb-down { top: var(--gap); transform-origin: 50% 0; }
 .pt[data-phase="cover"] .ptb-rect { animation: ptb-grow 280ms cubic-bezier(.7,0,.3,1) both; }
-.pt[data-phase="reveal"] .ptb-up { transform-origin: 50% 0; animation: ptb-grow 320ms cubic-bezier(.7,0,.3,1) reverse both; }
-.pt[data-phase="reveal"] .ptb-down { transform-origin: 50% 100%; animation: ptb-grow 320ms cubic-bezier(.7,0,.3,1) reverse both; }
+.pt[data-phase="reveal"] .ptb-rect { animation: ptb-close 380ms cubic-bezier(.6,0,.2,1) both; }
+@keyframes ptb-close { from { transform: scaleY(1); } to { transform: scaleY(0); } }
 @keyframes ptb-grow { from { transform: scaleY(0); } to { transform: scaleY(1); } }
 /* Slash variant: wide slanted bands cut in from the right, then carry on
    off to the left, front band first. The front band carries the label. */

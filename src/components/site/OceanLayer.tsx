@@ -8,13 +8,14 @@ import { currentIcon, onThemeChange } from '@/lib/theme';
 // canvas behind the content draws, in flat shapes:
 //   - the element icons as white silhouettes, sinking and tumbling at
 //     different depths (far ones smaller, fainter and slower); mostly the
-//     picked element's, all elements evenly on project pages,
+//     picked element's, all elements evenly on project pages; one under the
+//     cursor fades to its own colours, and back when the cursor leaves,
 //   - tiny element icons rising and twinkling, denser deeper down.
 // Positions live in "layer space": x as a fraction of the width, y as a
 // fraction of the page height. Things further away (smaller z) move
 // slower with the scroll.
 
-type Icon = { img: HTMLCanvasElement | null; u: number; x: number; z: number; vu: number; phase: number; tumble: number; nx: number; dim: number; check: number; over?: boolean };
+type Icon = { img: HTMLCanvasElement | null; tint: HTMLImageElement | null; u: number; x: number; z: number; vu: number; phase: number; tumble: number; hot: number; dim: number; check: number; over?: boolean };
 type Speck = { u: number; x: number; z: number; size: number; rot: number; spin: number; phase: number; freq: number; rise: number; main: boolean; id: string };
 
 const rand = (a: number, b: number) => a + Math.random() * (b - a);
@@ -27,7 +28,7 @@ const MAX_TILT = (120 * Math.PI) / 180; // icons never turn further than this ei
 const deep = (from: number) => from + (1 - (1 - Math.random()) ** 1.7) * (1 - from);
 
 // Element icon recoloured to a white silhouette, drawn once.
-function whiteIcon(src: string, px: number, done: (c: HTMLCanvasElement) => void) {
+function whiteIcon(src: string, px: number, done: (c: HTMLCanvasElement, img: HTMLImageElement) => void) {
   const img = new Image();
   img.onload = () => {
     const c = document.createElement('canvas');
@@ -38,7 +39,7 @@ function whiteIcon(src: string, px: number, done: (c: HTMLCanvasElement) => void
     g.globalCompositeOperation = 'source-in';
     g.fillStyle = '#FFFFFF';
     g.fillRect(0, 0, px, px);
-    done(c);
+    done(c, img);
   };
   img.src = src;
 }
@@ -87,17 +88,18 @@ export const OceanLayer = () => {
 
     // 21 icons spread over the whole depth. Two in three are the active
     // element, the rest cycle through the other six.
-    const art = new Map<string, HTMLCanvasElement>();
-    ELEMENTS.forEach(e => whiteIcon(`/${e.id}.png`, 128, c => { art.set(e.id, c); assign(); }));
+    const art = new Map<string, HTMLCanvasElement>(), tints = new Map<string, HTMLImageElement>(); // white silhouettes, and the icons in colour
+    ELEMENTS.forEach(e => whiteIcon(`/${e.id}.png`, 128, (c, img) => { art.set(e.id, c); tints.set(e.id, img); assign(); }));
     const icons: Icon[] = Array.from({ length: ELEMENTS.length * 3 }, (_, k) => ({
       img: null,
+      tint: null,
       u: TOP + (k / (ELEMENTS.length * 3)) * (1 - TOP) + rand(0, 0.03),
       x: k % 3 === 2 ? rand(0.05, 0.95) : sideX(),
       z: k % 3 === 2 ? rand(0.35, 0.5) : rand(0.55, 0.9),
       vu: rand(0.004, 0.009),
       phase: rand(0, Math.PI * 2),
       tumble: rand(0.35, 1),
-      nx: 0,
+      hot: 0,
       dim: 1,
       check: Math.floor(Math.random() * 12),
     }));
@@ -111,6 +113,7 @@ export const OceanLayer = () => {
       slots.forEach((ic, k) => {
         const id = !main ? ELEMENTS[k % ELEMENTS.length].id : k % 3 === 2 ? others[Math.floor(k / 3) % others.length].id : main;
         ic.img = art.get(id) ?? null;
+        ic.tint = tints.get(id) ?? null;
       });
     }
     // On an element change the icons fade out, swap, and fade back in.
@@ -172,8 +175,8 @@ export const OceanLayer = () => {
       ctx.save();
       clipBelowBand();
 
-      // Icons sink, sway and tumble, wrap back to the top of the ocean at
-      // the bottom, and drift aside from the cursor.
+      // Icons sink, sway and tumble, and wrap back to the top of the ocean at
+      // the bottom; the one under the cursor fades to its colours.
       for (const ic of icons) {
         ic.u += (ic.vu * ic.z * dt * 120) / pageH;
         if (ic.u > 1.02) ic.u = TOP;
@@ -181,30 +184,27 @@ export const OceanLayer = () => {
         const y = screenY(ic.u, ic.z);
         if (y < -80 || y > vh + 80) continue;
         const base = ic.x * vw + Math.sin(t * 0.5 + ic.phase) * 14 * ic.z;
-        if (pointer.active) {
-          const dx = base + ic.nx - pointer.x;
-          const dy = y - pointer.y;
-          const d = Math.hypot(dx, dy);
-          if (d < 140) ic.nx += (dx / (d || 1)) * (140 - d) * 0.02 * ic.z;
-        }
-        ic.nx *= 0.97;
+        const size = 18 + ic.z * 46;
+        const over = pointer.active && Math.hypot(base - pointer.x, y - pointer.y) < size * 0.6;
+        ic.hot += ((over ? 1 : 0) - ic.hot) * Math.min(1, dt * (over ? 6 : 3)); // quick in, slower out
         const fade = Math.max(0, Math.min(1, (ic.u - TOP) / 0.04, (1.02 - ic.u) / 0.04));
         // Fainter while behind text (checked every dozen frames or so).
         if (--ic.check <= 0) {
           ic.check = 12;
-          const under = document.elementFromPoint(base + ic.nx, y);
+          const under = document.elementFromPoint(base, y);
           ic.over = !!under?.closest(TEXTY);
         }
         ic.dim += ((ic.over ? 0.35 : 1) - ic.dim) * Math.min(1, dt * 4);
-        const size = 18 + ic.z * 46;
+        const rest = ic.z < 0.5 ? 0.22 : 0.3 + ic.z * 0.45, a = iconAlpha * fade * (ic.dim * rest + (0.95 - ic.dim * rest) * ic.hot);
         ctx.save();
-        ctx.globalAlpha = iconAlpha * ic.dim * fade * (ic.z < 0.5 ? 0.22 : 0.3 + ic.z * 0.45);
-        ctx.translate(base + ic.nx, y);
+        ctx.translate(base, y);
         // Two slow swings mixed together, so the tumble never repeats
         // exactly but always stays within +-120 degrees.
         const swing = 0.7 * Math.sin(t * 0.37 + ic.phase) + 0.3 * Math.sin(t * 0.83 + ic.phase * 1.7);
         ctx.rotate(swing * ic.tumble * MAX_TILT);
+        ctx.globalAlpha = a * (1 - ic.hot);
         ctx.drawImage(ic.img, -size / 2, -size / 2, size, size);
+        if (ic.hot > 0.01 && ic.tint) { ctx.globalAlpha = a * ic.hot; ctx.drawImage(ic.tint, -size / 2, -size / 2, size, size); }
         ctx.restore();
       }
 

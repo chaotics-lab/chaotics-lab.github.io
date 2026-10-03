@@ -7,8 +7,8 @@ import { createContext, useContext } from 'react';
 // dir (sea only): 'up' (default) rises from the bottom, 'down' pours in from
 // the top, 'right' / 'left' sweep sideways in that direction.
 // 'band': two rectangles at `angle` (deg) grow up and down from the edges of a
-// band `gap` px tall centred on `origin`, in `colors` [up, down]; then pull
-// back to the screen edges. Used to switch element from the element band.
+// band `gap` px tall centred on `origin`, in `colors` [up, down]; then close
+// back into the band. Used to switch element from the element band.
 // 'blot': wavy blots in `colors` (back to front) grow from `origin` (screen
 // px) over the screen, then open from the middle onto the new page.
 export type TransitionOpts = {
