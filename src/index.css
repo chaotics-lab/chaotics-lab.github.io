@@ -835,6 +835,13 @@ All colors MUST be HSL.
   .s-nav-item .s-nav-label { display: inline-block; }
 }
 .s-nav-item[data-on="true"] { color: var(--h-ink); }
+/* Lighter / minimal quality (src/lib/perf.ts): no backdrop blur, which is
+   costly on phones; the pills get a more solid background instead. */
+html[data-quality="1"] .s-nav, html[data-quality="1"] .s-circle, html[data-quality="1"] .g-arrow,
+html[data-quality="0"] .s-nav, html[data-quality="0"] .s-circle, html[data-quality="0"] .g-arrow {
+  -webkit-backdrop-filter: none; backdrop-filter: none; background: rgb(var(--h-night-rgb) / 0.85);
+}
+html[data-quality="0"] .ocean-layer { display: none; }
 /* Element switch (footer): icon-only header items; hover and the active
    one lean towards the element's colour */
 .s-el { padding: 0.5rem; border-radius: 9999px; transition: color 220ms ease, background-color 220ms ease; }

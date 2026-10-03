@@ -2,6 +2,8 @@
 // a smoothed pointer. The loop only runs while something is subscribed and
 // pauses with the tab (rAF does that on its own).
 
+import { recordFrame } from './perf';
+
 type TickFn = (t: number, dt: number) => void;
 
 const subs = new Set<TickFn>();
@@ -22,6 +24,7 @@ if (typeof window !== 'undefined') {
 
 const loop = (now: number) => {
   raf = requestAnimationFrame(loop);
+  recordFrame(now - last); // feeds the quality governor (src/lib/perf.ts)
   const dt = Math.min(0.05, (now - last) / 1000);
   last = now;
   const t = now / 1000;

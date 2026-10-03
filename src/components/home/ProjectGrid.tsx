@@ -8,6 +8,7 @@ import { useGithubStats } from '@/hooks/useGithubStats';
 import { docOffset, lerp, onTick, pointer, prefersReducedMotion, smoothstep } from '@/lib/ticker';
 import { AITag } from './AITag';
 import { projectPalette, themeRgb } from '@/lib/theme';
+import { quality } from '@/lib/perf';
 import { TransitionLink } from '@/components/site/TransitionLink';
 import type { TransitionOpts } from '@/lib/pageTransition';
 
@@ -272,7 +273,7 @@ function useWaveField(gridRef: React.RefObject<HTMLDivElement>, cursorRef: React
         img.onload = () => {
           c.img = img;
           c.el.dataset.ready = '';
-          if (reduced) paint(c, flat(c));
+          if (reduced || quality() === 0) paint(c, flat(c));
         };
         img.onerror = () => {
           if (!img.src.endsWith('/1.png')) img.src = `${c.base}/1.png`;
@@ -314,7 +315,22 @@ function useWaveField(gridRef: React.RefObject<HTMLDivElement>, cursorRef: React
     let cost = 0;
     let frames = 0;
 
+    let flatDone = false;
     const off = onTick((t, dt) => {
+      // Minimal quality: cards stay flat, painted once, no bending.
+      if (quality() === 0) {
+        if (!flatDone) {
+          for (const c of cards) {
+            if (c.img) paint(c, flat(c));
+            c.label.style.transform = '';
+            c.labelWrap.style.opacity = '';
+          }
+          cursor.style.visibility = 'hidden';
+          flatDone = true;
+        }
+        return;
+      }
+      if (quality() < 2 && row < ROW * 2) row = ROW * 2; // lighter: coarser rows
       const vw = window.innerWidth;
       const vh = window.innerHeight;
       const sy = window.scrollY;

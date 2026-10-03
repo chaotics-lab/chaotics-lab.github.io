@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { ELEMENTS } from '@/config/elements';
 import { onTick, pointer, prefersReducedMotion } from '@/lib/ticker';
+import { quality } from '@/lib/perf';
 import { currentIcon, onThemeChange } from '@/lib/theme';
 
 // The whole page is an ocean that gets deeper as you scroll. One fixed
@@ -156,7 +157,13 @@ export const OceanLayer = () => {
       ctx.clip();
     };
 
+    let blank = false;
     const off = onTick((t, dt) => {
+      // minimal quality: no ocean at all
+      if (quality() === 0) {
+        if (!blank) { ctx.clearRect(0, 0, vw, vh); blank = true; }
+        return;
+      }
       ctx.clearRect(0, 0, vw, vh);
       if (swapPending) {
         iconAlpha -= dt / 0.3;
@@ -205,7 +212,10 @@ export const OceanLayer = () => {
       // surface, brighter in the dark.
       const mainId = currentIcon();
       const mainArt = mainId ? art.get(mainId) : undefined;
-      for (const sp of specks) {
+      const lite = quality() < 2;
+      for (let si = 0; si < specks.length; si++) {
+        const sp = specks[si];
+        if (lite && si % 2) continue; // lighter: half the specks
         sp.u -= (sp.rise * dt * 60) / pageH;
         if (sp.u < TOP) sp.u = deep(0.5);
         sp.rot += sp.spin * dt;

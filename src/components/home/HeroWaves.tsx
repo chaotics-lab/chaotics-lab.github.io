@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { docOffset, onTick, pointer, prefersReducedMotion } from '@/lib/ticker';
 import { WAVES, type WaveStyle } from '@/config/waves';
 import { currentElement, onThemeChange } from '@/lib/theme';
+import { onQuality, quality } from '@/lib/perf';
 
 // Water at the foot of the hero. Each layer is a sum of sines; the front
 // layer also carries a spring chain that the pointer nudges a little. The
@@ -301,14 +302,21 @@ export const HeroWaves = () => {
       });
     };
 
+    // Quality: lighter drops the farthest plane, minimal drops all icons.
+    const planeGroups = [...svg.querySelectorAll<SVGGElement>('[data-plane]')];
+    const showPlanes = () => planeGroups.forEach((g, pl) => { g.style.display = quality() === 0 || (quality() < 2 && pl === 0) ? 'none' : ''; });
+    showPlanes();
+    const offQuality = onQuality(showPlanes);
+
     const fx = (dt: number, t: number) => {
+      if (quality() === 0) return;
       const sx = box.w / W || 1;
       const sy = box.h / H || 1;
       const S = style;
       const weight: Record<Kind, number> = { flora: S.petals, aero: S.storm, cryo: S.frost, pyra: S.solar, aqua: S.rain, gaia: S.earth, volta: Math.max(S.zig, S.volt) };
       KINDS.forEach(k => { if (weight[k] > 0.01) hidden.delete(k); else if (!live[k].some(a => a.length && (k === 'aero' || k === 'pyra' || k === 'aqua' || k === 'volta'))) hide(k); });
 
-      for (let pl = 0; pl < 3; pl++) {
+      for (let pl = quality() < 2 ? 1 : 0; pl < 3; pl++) {
         const f = PLANE_SIZE[pl];
         const v = PLANE_SPEED[pl];
         const al = PLANE_ALPHA[pl];
@@ -542,6 +550,7 @@ export const HeroWaves = () => {
     return () => {
       off();
       offTheme();
+      offQuality();
       window.removeEventListener('resize', measure);
       io.disconnect();
     };
@@ -575,8 +584,10 @@ export const HeroWaves = () => {
               <clipPath id={`hw-clip-${pl}`}><path /></clipPath>
               <clipPath id={`hw-under-${pl}`}><path /></clipPath>
             </defs>
-            <use href={`#hw-icons-${pl}`} clipPath={`url(#hw-clip-${pl})`} />
-            <use href={`#hw-icons-${pl}`} clipPath={`url(#hw-under-${pl})`} opacity={UNDER_ALPHA} />
+            <g data-plane={pl}>
+              <use href={`#hw-icons-${pl}`} clipPath={`url(#hw-clip-${pl})`} />
+              <use href={`#hw-icons-${pl}`} clipPath={`url(#hw-under-${pl})`} opacity={UNDER_ALPHA} />
+            </g>
             <path data-fill fill={`url(#hw-${pl})`} />
           </g>
         ))}
