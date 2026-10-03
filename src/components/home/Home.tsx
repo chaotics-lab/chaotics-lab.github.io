@@ -126,8 +126,10 @@ export const Home = () => {
 
       <section id="projects" className="pt-24 md:pt-32 scroll-mt-4">
         <div className="container mx-auto px-5 sm:px-8 text-center">
-          <h2 className="relative z-[61] h-display text-[clamp(3.4rem,9vw,8rem)]">Projects</h2>
-          <div ref={tabsRef} className="relative z-[61] mt-8 inline-flex flex-wrap justify-center gap-2" role="tablist" aria-label="Filter projects">
+          <h2 className={`relative ${sweep ? 'z-[61]' : ''} h-display text-[clamp(3.4rem,9vw,8rem)]`}>Projects</h2>
+          {/* title and pills rise above the sea only during a filter change, so
+              they never cover the fixed header or back-to-top button */}
+          <div ref={tabsRef} className={`relative ${sweep ? 'z-[61]' : ''} mt-8 inline-flex flex-wrap justify-center gap-2`} role="tablist" aria-label="Filter projects">
             {blob && (
               <span
                 className="h-pill-blob"

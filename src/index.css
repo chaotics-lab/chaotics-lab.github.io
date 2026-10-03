@@ -722,8 +722,14 @@ All colors MUST be HSL.
 }
 .h-btn:hover { transform: translateY(-2px); }
 .h-btn-cream { background: var(--h-cream); color: var(--h-ink); }
-.h-btn-line { border: 1.5px solid rgb(var(--h-c2-rgb) / 0.6); color: var(--h-c3); }
-.h-btn-line:hover { background: rgb(var(--h-c2-rgb) / 0.12); color: #fff; }
+.h-btn-line { position: relative; isolation: isolate; overflow: hidden; border: 1.5px solid rgb(var(--h-c2-rgb) / 0.6); color: var(--h-c3); transition: color 250ms ease, border-color 250ms ease, transform 160ms cubic-bezier(.34,1.56,.64,1); }
+/* cream fill rising from the bottom on hover */
+.h-btn-line::before {
+  content: ""; position: absolute; inset: -1px; z-index: -1; background: var(--h-cream);
+  transform: scaleY(0); transform-origin: bottom; transition: transform 380ms cubic-bezier(.65,0,.35,1);
+}
+.h-btn-line:hover, .h-btn-line:focus-visible { color: var(--h-ink); border-color: var(--h-cream); }
+.h-btn-line:hover::before, .h-btn-line:focus-visible::before { transform: none; }
 
 /* ---- Ticker (element band) ---- */
 .h-marquee { display: flex; width: max-content; animation: h-marquee 38s linear infinite; }
@@ -821,6 +827,16 @@ All colors MUST be HSL.
   .s-nav-item .s-nav-label { display: inline-block; }
 }
 .s-nav-item[data-on="true"] { color: var(--h-ink); }
+/* Back-to-top pill: one header-style item; the cream fill appears on hover */
+.s-top {
+  position: fixed; right: 1rem; bottom: 1rem; z-index: 50;
+  opacity: 0; transform: translateY(1.5rem); pointer-events: none;
+  transition: opacity 250ms ease, transform 450ms cubic-bezier(.34,1.56,.64,1);
+}
+.s-top[data-shown="true"] { opacity: 1; transform: none; pointer-events: auto; }
+@media (min-width: 640px) { .s-top { right: 1.5rem; bottom: 1.5rem; } }
+.s-top-item { border-radius: 9999px; transition: color 200ms ease, background-color 200ms ease; }
+.s-top-item:hover, .s-top-item:focus-visible { background: var(--h-cream); color: var(--h-ink); outline: none; }
 .s-circle {
   width: 2.75rem;
   height: 2.75rem;
@@ -1059,6 +1075,6 @@ All colors MUST be HSL.
 @media (prefers-reduced-motion: reduce) {
   .g-fill[data-run], .h-line > span, .h-marquee, .h-swap-in, .p-logo, .pt-page, .h-bob, .h-bob-up, .w-card { animation: none !important; }
   .pt { display: none; }
-  .w-arrow, .w-rule > span, .h-swap > span, .h-btn, .h-pill, .s-nav-blob, .h-pill-blob, .s-circle, .g-track, .g-arrow, .p-next-arrow, .ai-drop-body, .ai-drop-item, .ai-drop-toggle, .ai-drop-title, .s-icon { transition: none; }
+  .w-arrow, .w-rule > span, .h-swap > span, .h-btn, .h-pill, .s-nav-blob, .h-pill-blob, .s-top, .h-btn-line::before, .s-circle, .g-track, .g-arrow, .p-next-arrow, .ai-drop-body, .ai-drop-item, .ai-drop-toggle, .ai-drop-title, .s-icon { transition: none; }
   .w-cursor { display: none; }
 }
