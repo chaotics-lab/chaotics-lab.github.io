@@ -43,6 +43,9 @@ function useFrames(base?: string) {
   return frames;
 }
 
+// Back to the projects: the sea sweeps across left to right.
+const BACK: TransitionOpts = { dir: 'right' };
+
 // Project to project: slanted bands in the next project's colours.
 const slashTo = (p: Project): TransitionOpts => {
   const pal = projectPalette(p.themeColors);
@@ -113,7 +116,7 @@ const ProjectPage = () => {
 
         {/* Title block */}
         <section className="relative container mx-auto px-5 sm:px-8">
-          <TransitionLink to="/#projects" className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--h-c2)] hover:text-white transition-colors h-swap-host">
+          <TransitionLink to="/#projects" transition={BACK} className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--h-c2)] hover:text-white transition-colors h-swap-host">
             <ArrowLeft size={16} weight="bold" />
             <span className="h-swap">
               <span>All projects</span>
@@ -192,7 +195,7 @@ const ProjectPage = () => {
         {/* Footer row: back to the grid, or on to the next project */}
         <nav className="container mx-auto px-5 sm:px-8 mt-24 md:mt-28" aria-label="Projects">
           <div className="p-next">
-            <TransitionLink to="/#projects" className="p-next-back h-swap-host">
+            <TransitionLink to="/#projects" transition={BACK} className="p-next-back h-swap-host">
               <ArrowLeft size={16} weight="bold" />
               <span className="h-swap">
                 <span>All projects</span>

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import { useNavigate } from 'react-router-dom';
 import { PageTransitionContext, type TransitionOpts } from '@/lib/pageTransition';
 import { prefersReducedMotion } from '@/lib/ticker';
-import { WAVE } from '@/lib/wave';
+import { WAVE, WAVE_V } from '@/lib/wave';
 
 // P3R-style page changes. 'sea': three layers of sea (cyan, blue, deep
 // blue) rise over the screen with drifting wave edges, the page switches
@@ -61,6 +61,8 @@ export const PageTransition = ({ children }: { children: ReactNode }) => {
     return () => window.removeEventListener('pointerdown', onDown);
   }, []);
 
+  const sideways = opts.dir === 'left' || opts.dir === 'right';
+
   return (
     <PageTransitionContext.Provider value={value}>
       {children}
@@ -82,7 +84,21 @@ export const PageTransition = ({ children }: { children: ReactNode }) => {
           ))}
         </div>
       )}
-      <div className="pt" data-phase={opts.kind === 'slash' ? 'idle' : phase} data-dir={opts.dir ?? 'up'} aria-hidden="true">
+      {/* sideways sea (dir left/right), same layers as the filter sweep */}
+      <div className="pt" data-phase={opts.kind !== 'slash' && sideways ? phase : 'idle'} data-dir={opts.dir} aria-hidden="true">
+        {LAYERS.map((color, i) => (
+          <div
+            key={color}
+            className="pt-hlayer"
+            style={{ color, ['--in' as string]: `${i * 45}ms`, ['--out' as string]: `${(LAYERS.length - 1 - i) * 45}ms`, ['--drift' as string]: `${-i * 0.4}s` }}
+          >
+            <div className="pt-hedge pt-hflip"><svg className="pt-hwave" viewBox="0 0 60 2880" preserveAspectRatio="none"><path d={WAVE_V} fill="currentColor" /></svg></div>
+            <div className="pt-hbody" />
+            <div className="pt-hedge"><svg className="pt-hwave" viewBox="0 0 60 2880" preserveAspectRatio="none"><path d={WAVE_V} fill="currentColor" /></svg></div>
+          </div>
+        ))}
+      </div>
+      <div className="pt" data-phase={opts.kind === 'slash' || sideways ? 'idle' : phase} data-dir={opts.dir ?? 'up'} aria-hidden="true">
         {LAYERS.map((color, i) => (
           <div
             key={color}
