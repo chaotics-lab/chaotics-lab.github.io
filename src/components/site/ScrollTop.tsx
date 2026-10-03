@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { ArrowUp } from '@phosphor-icons/react';
+import { useNavigate } from 'react-router-dom';
 import { TOP_RUN, useDiveScroll } from '@/lib/diveScroll';
 
 const DOCK_AT = 40; // px from the bottom of the page
@@ -11,6 +12,12 @@ const FADE_MS = 220; // keep in sync with the opacity transition in index.css
 // when scrolling up. Going up, the sea pours in from the top.
 export const ScrollTop = () => {
   const scrollTo = useDiveScroll();
+  const navigate = useNavigate();
+  // back at the top, the address drops any #section (e.g. /#projects -> /)
+  const toTop = () => scrollTo(() => 0, { dir: 'down' }, {
+    ...TOP_RUN,
+    onSwap: () => { if (window.location.hash) navigate(window.location.pathname + window.location.search, { replace: true }); },
+  });
   const [shown, setShown] = useState(false);
   const pill = useRef<HTMLDivElement>(null);
 
@@ -72,7 +79,7 @@ export const ScrollTop = () => {
         <button
           type="button"
           className="s-nav-item s-top-item"
-          onClick={() => scrollTo(() => 0, { dir: 'down' }, TOP_RUN)}
+          onClick={toTop}
           tabIndex={shown ? 0 : -1}
           aria-label="Back to top"
         >

@@ -19,7 +19,8 @@ const jump = (y: number) => window.scrollTo({ top: y, behavior: 'instant' as Scr
 // Optional: `lead` (ms of motion before the sea starts), `end` (ms of
 // motion from the moment the sea starts leaving) and `after` (px covered in
 // that end part, or measured at the cut), e.g. to pass through a section.
-type RunOpts = { lead?: number; end?: number; after?: number | (() => number) };
+// `onSwap` runs while the sea covers the page (e.g. to tidy the URL).
+type RunOpts = { lead?: number; end?: number; after?: number | (() => number); onSwap?: () => void };
 
 export function useDiveScroll() {
   const { dive } = usePageTransition();
@@ -51,6 +52,7 @@ export function useDiveScroll() {
     window.setTimeout(() => {
       dive(() => {
         cancelAnimationFrame(raf);
+        more.onSwap?.();
         // slowing down (ease-out) onto the target, starting while covered
         const goal = target();
         const runB = Math.min(measure() ?? run, Math.abs(goal - window.scrollY));

@@ -1,10 +1,17 @@
 import { ArrowUp, ArrowUpRight } from '@phosphor-icons/react';
+import { useNavigate } from 'react-router-dom';
 import { TOP_RUN, useDiveScroll } from '@/lib/diveScroll';
 import { SOCIALS, isExternal } from './links';
 import { ElementSwitch } from './ElementSwitch';
 
 export const SiteFooter = () => {
   const scrollTo = useDiveScroll();
+  const navigate = useNavigate();
+  // back at the top, the address drops any #section (e.g. /#projects -> /)
+  const toTop = () => scrollTo(() => 0, { dir: 'down' }, {
+    ...TOP_RUN,
+    onSwap: () => { if (window.location.hash) navigate(window.location.pathname + window.location.search, { replace: true }); },
+  });
   return (
   <footer className="relative mt-28">
     <div className="container mx-auto px-5 sm:px-8">
@@ -36,7 +43,7 @@ export const SiteFooter = () => {
           <div id="footer-top" className="s-nav">
             <button
               type="button"
-              onClick={() => scrollTo(() => 0, { dir: 'down' }, TOP_RUN)}
+              onClick={toTop}
               className="s-nav-item s-top-item s-top-wide h-swap-host"
             >
               <ArrowUp size={18} weight="bold" className="s-icon" />
