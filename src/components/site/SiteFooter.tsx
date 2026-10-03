@@ -1,5 +1,5 @@
 import { ArrowUp, ArrowUpRight } from '@phosphor-icons/react';
-import { useDiveScroll } from '@/lib/diveScroll';
+import { TOP_RUN, useDiveScroll } from '@/lib/diveScroll';
 import { SOCIALS, isExternal } from './links';
 
 export const SiteFooter = () => {
@@ -32,7 +32,7 @@ export const SiteFooter = () => {
           <div id="footer-top" className="s-nav">
             <button
               type="button"
-              onClick={() => scrollTo(() => 0, { dir: 'down' })}
+              onClick={() => scrollTo(() => 0, { dir: 'down' }, TOP_RUN)}
               className="s-nav-item s-top-item s-top-wide h-swap-host"
             >
               <ArrowUp size={18} weight="bold" className="s-icon" />

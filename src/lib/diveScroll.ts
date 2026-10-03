@@ -15,9 +15,10 @@ const RUN = 240; // px moved on each side of the cut, at most
 
 const jump = (y: number) => window.scrollTo({ top: y, behavior: 'instant' as ScrollBehavior });
 
-// Optional: `after` (px, or measured at the cut) and `tail` (ms) make the
-// part after the sea longer, e.g. to pass through a section on the way.
-type RunOpts = { after?: number | (() => number); tail?: number };
+// Optional: `lead` (ms of motion before the sea starts), `end` (ms of
+// motion from the moment the sea starts leaving) and `after` (px covered in
+// that end part, or measured at the cut), e.g. to pass through a section.
+type RunOpts = { lead?: number; end?: number; after?: number | (() => number) };
 
 export function useDiveScroll() {
   const { dive } = usePageTransition();
@@ -28,8 +29,9 @@ export function useDiveScroll() {
     const sign = Math.sign(goal0 - y0);
     const measure = () => (typeof more.after === 'function' ? more.after() : more.after);
     const run = Math.min(measure() ?? RUN, Math.abs(goal0 - y0) / 2);
-    const tA = LEAD + COVER;
-    const tB = REVEAL + (more.tail ?? TAIL);
+    const lead = more.lead ?? LEAD;
+    const tA = lead + COVER;
+    const tB = Math.max(REVEAL, more.end ?? REVEAL + TAIL);
     const runA = Math.min(RUN, run * (tA / tB)); // same speed at the cut
     let raf = 0;
 
@@ -59,6 +61,9 @@ export function useDiveScroll() {
         };
         raf = requestAnimationFrame(stepB);
       }, opts);
-    }, LEAD);
+    }, lead);
   }, [dive]);
 }
+
+// Back to the top: half a second of motion on each side of the sea.
+export const TOP_RUN: RunOpts = { lead: 500, end: 500 };
