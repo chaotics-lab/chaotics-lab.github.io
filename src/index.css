@@ -965,10 +965,6 @@ html[data-quality="0"] .ocean-layer { display: none; }
 .g-count { font-weight: 700; font-size: 0.8rem; letter-spacing: 0.12em; color: #fff; font-variant-numeric: tabular-nums; }
 .g-count > span { color: var(--h-c2); }
 /* Facts strip: label over value, one rule above and below */
-.p-facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.25rem 1.5rem; padding: 1.25rem 0; border-top: 1.5px solid var(--h-line); border-bottom: 1.5px solid var(--h-line); }
-.p-facts-wide { grid-column: 1 / -1; }
-.p-facts dt { font-size: 0.66rem; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--h-c2); }
-.p-facts dd { margin-top: 0.4rem; color: #fff; font-weight: 500; }
 .h-pill-static { padding: 0.3rem 0.75rem; font-size: 0.82rem; cursor: default; } /* filter-pill look, read-only */
 @media (hover: hover) { .h-pill-static:hover { border-color: rgb(var(--h-c2-rgb) / 0.45); color: var(--h-c3); } }
 @media (hover: hover) { .h-pill-stat, .h-pill-stat:hover { align-items: center; gap: 0.4rem; color: #fff; border-color: rgb(var(--h-c2-rgb) / 0.6); background: rgb(var(--h-night-rgb) / 0.35); font-variant-numeric: tabular-nums; } }

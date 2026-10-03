@@ -53,6 +53,14 @@ const slashTo = (p: Project, dir: 'left' | 'right' = 'right'): TransitionOpts =>
   return { kind: 'slash', dir, label: withoutCompany(p.title), colors: pal ? [pal.c1, pal.top, pal.deep] : undefined };
 };
 
+// What it was built with, under the images: small read-only pills.
+const StackRow = ({ stack }: { stack: string[] }) => (stack.length ? (
+  <div className="mt-5 flex flex-wrap items-center gap-1.5" aria-label="Stack">
+    <span className="h-caps text-[0.62rem] text-[var(--h-c2)] mr-2">Built with</span>
+    {stack.map(t => <span key={t} className="h-pill h-pill-static">{t}</span>)}
+  </div>
+) : null);
+
 const ProjectPage = () => {
   const { projectId } = useParams<{ projectId: string }>();
   const index = PROJECTS.findIndex(p => p.id === projectId);
@@ -150,6 +158,7 @@ const ProjectPage = () => {
           {frames.length > 0 && (
             <div className="hidden lg:block lg:order-2 lg:sticky lg:top-24 self-start min-w-0">
               <Gallery key={project.id} frames={frames} title={withoutCompany(project.title)} />
+              <StackRow stack={stack} />
             </div>
           )}
 
@@ -157,7 +166,9 @@ const ProjectPage = () => {
             {/* buttons and pills are the home page's (h-btn-line, h-pill) */}
             <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
               {back()}
-              <p className="h-caps text-[0.68rem] text-[var(--h-c2)]">{[categories.join(' / '), when].filter(Boolean).join(' · ')}</p>
+              {/* the facts in one line: category, type, date, AI usage */}
+              <p className="h-caps text-[0.68rem] text-[var(--h-c2)]">{[categories.join(' / '), project.type, when].filter(Boolean).join(' · ')}</p>
+              {ai !== null && <span className="flex items-center gap-2 text-sm text-[var(--h-c3)]" title={`AI usage: ${aiLevel(ai).label}`}><AITag value={ai} /> {aiLevel(ai).label}</span>}
             </div>
 
             {/* Logo sits left of the title, as tall as the title */}
@@ -172,6 +183,7 @@ const ProjectPage = () => {
             {frames.length > 0 && (
               <div className="mt-6 lg:hidden">
                 <Gallery key={`m-${project.id}`} frames={frames} title={withoutCompany(project.title)} />
+                <StackRow stack={stack} />
               </div>
             )}
 
@@ -208,29 +220,8 @@ const ProjectPage = () => {
               </div>
             )}
 
-            {/* Facts */}
-            <dl className="p-facts mt-7">
-              {when && <div><dt>Date</dt><dd>{when}</dd></div>}
-              {project.type && <div><dt>Type</dt><dd>{project.type}</dd></div>}
-              {ai !== null && (
-                <div>
-                  <dt>AI usage</dt>
-                  <dd className="flex flex-wrap items-center gap-2"><AITag value={ai} /> {aiLevel(ai).label}</dd>
-                </div>
-              )}
-              {categories.length > 0 && (
-                <div>
-                  <dt>Category</dt>
-                  <dd className="flex flex-wrap gap-1.5">{categories.map(c => <span key={c} className="h-pill h-pill-static">{c}</span>)}</dd>
-                </div>
-              )}
-              {stack.length > 0 && (
-                <div className="p-facts-wide">
-                  <dt>Stack</dt>
-                  <dd className="flex flex-wrap gap-1.5">{stack.map(t => <span key={t} className="h-pill h-pill-static">{t}</span>)}</dd>
-                </div>
-              )}
-            </dl>
+            {/* no images: the stack goes under the summary instead */}
+            {frames.length === 0 && <StackRow stack={stack} />}
 
             {/* Write-up */}
             <article className="p-prose mt-12">
