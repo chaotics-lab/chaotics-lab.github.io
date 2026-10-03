@@ -116,12 +116,13 @@ const ProjectPage = () => {
 
         {/* Title block */}
         <section className="relative container mx-auto px-5 sm:px-8">
-          <TransitionLink to="/#projects" transition={BACK} className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--h-c2)] hover:text-white transition-colors h-swap-host">
+          {/* buttons and pills are the home page's (h-btn-line, h-pill) */}
+          <TransitionLink to="/#projects" transition={BACK} className="h-btn h-btn-line h-swap-host">
             <ArrowLeft size={16} weight="bold" />
             <span className="h-swap">
-              <span>All projects</span>
-              <span className="h-serif text-[1.05rem] leading-[1.05]" aria-hidden="true">All projects</span>
-            </span>
+                <span>All projects</span>
+                <span className="h-serif text-[1.1rem] leading-[1.05]" aria-hidden="true">All projects</span>
+              </span>
           </TransitionLink>
 
           <div className="mt-10">
@@ -140,13 +141,22 @@ const ProjectPage = () => {
             {(project.githubUrl || project.demoUrl) && (
               <div className="flex flex-wrap gap-3">
                 {project.githubUrl && (
-                  <a href={project.githubUrl} target="_blank" rel="noopener noreferrer" className="h-btn h-btn-cream">
-                    <GithubLogo size={18} weight="duotone" className="s-icon" /> GitHub <ArrowUpRight size={14} weight="bold" />
+                  <a href={project.githubUrl} target="_blank" rel="noopener noreferrer" className="h-btn h-btn-line h-swap-host">
+                    <GithubLogo size={18} weight="duotone" className="s-icon" />
+                    <span className="h-swap">
+                <span>GitHub</span>
+                <span className="h-serif text-[1.1rem] leading-[1.05]" aria-hidden="true">GitHub</span>
+              </span>
+                    <ArrowUpRight size={14} weight="bold" />
                   </a>
                 )}
                 {project.demoUrl && (
-                  <a href={project.demoUrl} target="_blank" rel="noopener noreferrer" className="h-btn h-btn-line">
-                    Visit <ArrowUpRight size={14} weight="bold" />
+                  <a href={project.demoUrl} target="_blank" rel="noopener noreferrer" className="h-btn h-btn-line h-swap-host">
+                    <span className="h-swap">
+                <span>Visit</span>
+                <span className="h-serif text-[1.1rem] leading-[1.05]" aria-hidden="true">Visit</span>
+              </span>
+                    <ArrowUpRight size={14} weight="bold" />
                   </a>
                 )}
               </div>
@@ -162,7 +172,12 @@ const ProjectPage = () => {
           <dl className="p-facts">
             {when && <div><dt>Date</dt><dd>{when}</dd></div>}
             {project.type && <div><dt>Type</dt><dd>{project.type}</dd></div>}
-            {categories.length > 0 && <div><dt>Category</dt><dd>{categories.join(', ')}</dd></div>}
+            {categories.length > 0 && (
+              <div>
+                <dt>Category</dt>
+                <dd className="flex flex-wrap gap-1.5">{categories.map(c => <span key={c} className="h-pill h-pill-static">{c}</span>)}</dd>
+              </div>
+            )}
             {ai !== null && (
               <div>
                 <dt>AI usage</dt>
@@ -172,7 +187,7 @@ const ProjectPage = () => {
             {stack.length > 0 && (
               <div className="p-facts-wide">
                 <dt>Stack</dt>
-                <dd className="flex flex-wrap gap-1.5">{stack.map(t => <span key={t} className="p-chip">{t}</span>)}</dd>
+                <dd className="flex flex-wrap gap-1.5">{stack.map(t => <span key={t} className="h-pill h-pill-static">{t}</span>)}</dd>
               </div>
             )}
           </dl>
@@ -195,11 +210,11 @@ const ProjectPage = () => {
         {/* Footer row: back to the grid, or on to the next project */}
         <nav className="container mx-auto px-5 sm:px-8 mt-24 md:mt-28" aria-label="Projects">
           <div className="p-next">
-            <TransitionLink to="/#projects" transition={BACK} className="p-next-back h-swap-host">
+            <TransitionLink to="/#projects" transition={BACK} className="h-btn h-btn-line h-swap-host">
               <ArrowLeft size={16} weight="bold" />
               <span className="h-swap">
                 <span>All projects</span>
-                <span className="h-serif text-[1.05rem] leading-[1.05]" aria-hidden="true">All projects</span>
+                <span className="h-serif text-[1.1rem] leading-[1.05]" aria-hidden="true">All projects</span>
               </span>
             </TransitionLink>
             {next && (

@@ -954,11 +954,10 @@ All colors MUST be HSL.
 @media (min-width: 1024px) { .p-facts { grid-template-columns: repeat(4, auto) minmax(0, 1fr); gap: 1.5rem 3rem; } .p-facts-wide { grid-column: auto; } }
 .p-facts dt { font-size: 0.66rem; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--h-c2); }
 .p-facts dd { margin-top: 0.4rem; color: #fff; font-weight: 500; }
-.p-chip { padding: 0.2rem 0.6rem; border-radius: 9999px; border: 1.5px solid rgb(var(--h-c2-rgb) / 0.35); font-size: 0.8rem; color: var(--h-c3); }
+.h-pill-static { padding: 0.3rem 0.75rem; font-size: 0.82rem; cursor: default; } /* filter-pill look, read-only */
+.h-pill-static:hover { border-color: rgb(var(--h-c2-rgb) / 0.45); color: var(--h-c3); }
 /* Bottom row: back link on the left, next project on the right */
 .p-next { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem 2rem; padding: 1.25rem 0; border-top: 1.5px solid var(--h-line); }
-.p-next-back { display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; font-weight: 600; color: var(--h-c2); transition: color 200ms ease; }
-.p-next-back:hover { color: #fff; }
 .p-next-link { display: inline-flex; align-items: center; gap: 0.75rem; min-width: 0; margin-left: auto; }
 .p-next-logo { height: 1.6rem; width: auto; max-width: 3rem; object-fit: contain; }
 .p-next-title { font-family: "Archivo", sans-serif; font-weight: 900; font-style: italic; font-stretch: 75%; text-transform: uppercase; font-size: clamp(1.1rem, 2.2vw, 1.6rem); line-height: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; transition: color 200ms ease; }
