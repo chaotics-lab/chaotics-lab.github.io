@@ -42,7 +42,7 @@ const BASE: WaveStyle = { amp: 1, speed: 1, freq: 1, zig: 0, fluid: 0, lumps: 0,
 export const WAVES: Record<string, WaveStyle> = {
   aqua: { ...BASE, rain: 1 },
   volta: { ...BASE, amp: 0.85, speed: 1.4, freq: 1.3, zig: 1 },
-  pyra: { ...BASE, amp: 1.45, speed: 1.6, freq: 0.9, fluid: 1, solar: 1, stir: 1.3 },
+  pyra: { ...BASE, amp: 1.45, speed: 2.3, freq: 0.9, fluid: 1, solar: 1, stir: 1.3 },
   cryo: { ...BASE, amp: 0.6, speed: 0.4, lumps: 1, frost: 1, stir: 0.5 },
   gaia: { ...BASE, amp: 0.75, speed: 0.5, freq: 0.7, lumps: 0.45, earth: 1, stir: 0.35, opacity: 1.8 },
   flora: { ...BASE, amp: 0.4, speed: 0.4, freq: 0.7, petals: 1, breathe: 0.4, stir: 0.4 },
