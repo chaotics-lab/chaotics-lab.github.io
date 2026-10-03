@@ -291,25 +291,34 @@ function cryo(): Fx {
   };
 }
 
-// ---- Air: a wind map. Thin streamlines blow across the screen along a
-// smooth field: mostly to the right, curling a little, with gusts rolling
-// from left to right (a scrolled noise sets how hard it blows at each x).
-// The flow parts around the pointer. On the seabed, grass bends with the
-// same gusts. A click sends a strong gust across. Trails are short position
-// histories drawn in three strokes (head, middle, tail).
-const TRAIL = 14;
-function aero(w0: number): Fx {
-  type P = { x: number; y: number; hx: Float32Array; hy: Float32Array; n: number; life: number };
+// ---- Air: wind on the seabed. Gusts roll from left to right (a scrolled
+// noise sets how hard it blows at each x): the grass leans with them, a few
+// taller plants rock and their fronds flutter harder in a gust, and a handful
+// of cyclone icons are carried along, turning toward where they go and
+// spinning a little, with a faint wake. The pointer pushes the icons and
+// parts the grass; a click sends a strong gust across.
+let cycloneArt: HTMLCanvasElement | null = null;
+function cyclone() {
+  if (cycloneArt) return cycloneArt;
+  const c = canvas(), img = new Image();
+  c.width = c.height = 96;
+  img.onload = () => { const x = c.getContext('2d')!; x.drawImage(img, 0, 0, 96, 96); x.globalCompositeOperation = 'source-in'; x.fillStyle = '#fff'; x.fillRect(0, 0, 96, 96); };
+  img.src = '/aero.png';
+  return (cycloneArt = c);
+}
+function aero(): Fx {
+  type Icon = { x: number; y: number; s: number; a: number; spin: number; ph: number; vx: number; vy: number; hx: number[]; hy: number[] };
   type Blade = { x: number; len: number; wb: number; ph: number };
-  let ps: P[] = [], blades: Blade[][] = [], t = 0, W = 0, H = 0, ptr: Ptr = null, burst = 0, bt = -9;
-  const N = Math.round(clamp(w0 / 4.5, 160, 340));
+  type Plant = { x: number; len: number; ph: number; fl: number[] };
+  let icons: Icon[] = [], blades: Blade[][] = [], plants: Plant[] = [], t = 0, W = 0, H = 0, ptr: Ptr = null, burst = 0, bt = -9;
+  const art = cyclone();
   const gust = (x: number, y: number) => Math.max(0, 0.35 + 0.75 * noise(x * 0.003 - t * 0.5, y * 0.002 + t * 0.05) + burst * Math.exp(-(((x - (t - bt) * 650 + 100) / 160) ** 2)));
-  const spawn = (p: P, w: number, h: number, anywhere: boolean) => {
-    p.x = anywhere ? rnd(-20, w) : rnd(-40, -5); p.y = rnd(0, h); p.n = 0; p.life = rnd(2.5, 6);
-  };
+  const born = (w: number, h: number, anywhere: boolean): Icon => ({ x: anywhere ? rnd(0, w) : rnd(-80, -30), y: rnd(h * 0.1, h * 0.9), s: rnd(16, 34), a: 0, spin: rnd(-1, 1), ph: rnd(0, TAU), vx: 0, vy: 0, hx: [], hy: [] });
   const setup = (w: number, h: number) => {
-    ps = Array.from({ length: N }, () => { const p = { x: 0, y: 0, hx: new Float32Array(TRAIL), hy: new Float32Array(TRAIL), n: 0, life: 0 }; spawn(p, w, h, true); return p; });
+    icons = Array.from({ length: Math.max(5, Math.round(w / 170)) }, () => born(w, h, true));
     blades = [0, 1].map(layer => Array.from({ length: Math.round(w / (layer ? 3.2 : 4.5)) }, () => ({ x: rnd(-10, w + 10), len: rnd(h * 0.04, h * (layer ? 0.12 : 0.16)), wb: rnd(1.2, 2.6), ph: rnd(0, TAU) })));
+    const n = Math.max(3, Math.round(w / 300));
+    plants = Array.from({ length: n }, (_, i) => ({ x: ((i + 0.5 + rnd(-0.3, 0.3)) / n) * w, len: h * rnd(0.22, 0.34), ph: rnd(0, TAU), fl: Array.from({ length: 7 }, () => rnd(0.24, 0.32)) }));
   };
   return {
     move: (x, y) => { ptr = x === null ? null : { x, y }; },
@@ -318,48 +327,67 @@ function aero(w0: number): Fx {
       t += dt;
       if (W !== w || H !== h) { W = w; H = h; setup(w, h); }
       burst *= Math.pow(0.5, dt);
-      const heads = new Path2D(), mids = new Path2D(), tails = new Path2D();
-      for (const p of ps) {
-        const k = gust(p.x, p.y), a = 0.35 * noise(p.x * 0.002, p.y * 0.003 + t * 0.08) + 0.15 * Math.sin(t * 0.3 + p.y * 0.01);
-        let vx = Math.cos(a) * (60 + 260 * k), vy = Math.sin(a) * (60 + 260 * k);
-        if (ptr) { // flow around the pointer: pushed out and swirled past
-          const dx = p.x - ptr.x, dy = p.y - ptr.y, d = Math.hypot(dx, dy);
-          if (d < 130 && d > 1) { const f = (1 - d / 130) ** 2 * 260; vx += (dx / d) * f - (dy / d) * f * 0.6; vy += (dy / d) * f + (dx / d) * f * 0.6; }
-        }
-        p.x += vx * dt; p.y += vy * dt; p.life -= dt;
-        if (p.x > w + 30 || p.y < -30 || p.y > h + 30 || p.life <= 0) { spawn(p, w, h, p.life <= 0); continue; }
-        p.hx.copyWithin(1, 0); p.hy.copyWithin(1, 0); p.hx[0] = p.x; p.hy[0] = p.y; p.n = Math.min(TRAIL, p.n + 1);
-        if (p.n < 4) continue;
-        // three pieces of the trail, each continuing the last
-        const pieces: [Path2D, number, number][] = [[heads, 0, 4], [mids, 4, 9], [tails, 9, TRAIL - 1]];
-        for (const [pa, i0, i1] of pieces) {
-          const e = Math.min(i1, p.n - 1);
-          if (e <= i0) break;
-          pa.moveTo(p.hx[i0], p.hy[i0]);
-          for (let i = i0 + 1; i <= e; i++) pa.lineTo(p.hx[i], p.hy[i]);
-        }
+      // cyclones carried by the wind
+      const wake = new Path2D();
+      for (const ic of icons) {
+        const k = gust(ic.x, ic.y);
+        let vx = 50 + 230 * k, vy = 30 * Math.sin(t * 0.7 + ic.ph) + 40 * noise(ic.x * 0.003, t * 0.1 + ic.ph);
+        if (ptr) { const dx = ic.x - ptr.x, dy = ic.y - ptr.y, d = Math.hypot(dx, dy); if (d < 140 && d > 1) { const f = (1 - d / 140) ** 2 * 500; vx += (dx / d) * f; vy += (dy / d) * f; } }
+        ic.vx += (vx - ic.vx) * Math.min(1, dt * 2.5);
+        ic.vy += (vy - ic.vy) * Math.min(1, dt * 2.5);
+        ic.x += ic.vx * dt; ic.y += ic.vy * dt;
+        ic.a += (ic.spin * 0.6 + ic.vx * 0.004) * dt;
+        if (ic.x > w + 60 || ic.y < -60 || ic.y > h + 60) { Object.assign(ic, born(w, h, false)); continue; }
+        ic.hx.unshift(ic.x); ic.hy.unshift(ic.y);
+        if (ic.hx.length > 10) { ic.hx.pop(); ic.hy.pop(); }
+        if (ic.hx.length > 3) { wake.moveTo(ic.hx[2], ic.hy[2]); for (let i = 3; i < ic.hx.length; i++) wake.lineTo(ic.hx[i], ic.hy[i]); }
       }
       g.lineCap = 'round';
-      g.lineWidth = 1;
-      g.strokeStyle = 'rgba(255,255,255,0.12)'; g.stroke(tails);
-      g.strokeStyle = 'rgba(255,255,255,0.35)'; g.stroke(mids);
-      g.lineWidth = 1.3;
-      g.strokeStyle = 'rgba(255,255,255,0.7)'; g.stroke(heads);
-      // grass on the seabed, leaning with the gust where it stands
-      if (floor < h + 20) {
-        blades.forEach((layer, li) => {
-          const pa = new Path2D();
-          for (const b of layer) {
-            const k = gust(b.x, floor);
-            let lean = 0.15 + 0.55 * k + 0.05 * Math.sin(t * 7 + b.ph) * k;
-            if (ptr && Math.abs(ptr.x - b.x) < 60 && ptr.y > floor - b.len * 1.5) lean += Math.sign(b.x - ptr.x || 1) * (1 - Math.abs(ptr.x - b.x) / 60) * 0.6;
-            const a = lean * 1.25, tx = b.x + Math.sin(a) * b.len, ty = floor + 2 - Math.cos(a) * b.len, cx = b.x + Math.sin(a * 0.45) * b.len * 0.55, cy = floor + 2 - b.len * 0.6;
-            pa.moveTo(b.x - b.wb, floor + 2); pa.quadraticCurveTo(cx - b.wb * 0.5, cy, tx, ty); pa.quadraticCurveTo(cx + b.wb * 0.5, cy, b.x + b.wb, floor + 2); pa.closePath();
-          }
-          g.fillStyle = `rgba(255,255,255,${li ? 0.4 : 0.18})`;
-          g.fill(pa);
+      g.strokeStyle = 'rgba(255,255,255,0.25)'; g.lineWidth = 1.2; g.stroke(wake);
+      for (const ic of icons) {
+        const lean = Math.atan2(ic.vy, Math.max(1, ic.vx)) * 0.6; // turned toward where it goes
+        g.save();
+        g.globalAlpha = 0.45 + 0.35 * ((ic.s - 16) / 18);
+        g.translate(ic.x, ic.y);
+        g.rotate(lean + 0.25 * Math.sin(ic.a));
+        g.drawImage(art, -ic.s / 2, -ic.s / 2, ic.s, ic.s);
+        g.restore();
+      }
+      if (floor > h + h * 0.4) return; // the seabed is not near the screen yet
+      // a few taller plants: a trunk rocking with the wind where it stands, fronds fluttering harder in a gust
+      const trunks = new Path2D(), fronds = new Path2D();
+      for (const p of plants) {
+        const k = gust(p.x, floor), rock = 0.1 + 0.2 * k + 0.04 * Math.sin(t * 2.2 + p.ph);
+        const tx = p.x + Math.sin(rock) * p.len, ty = floor - Math.cos(rock) * p.len;
+        trunks.moveTo(p.x, floor + 4);
+        trunks.quadraticCurveTo(p.x + Math.sin(rock * 0.4) * p.len * 0.5, floor - p.len * 0.55, tx, ty);
+        p.fl.forEach((f, i) => {
+          const base = (i / (p.fl.length - 1) - 0.5) * 2.4 + rock * 1.5, flap = Math.sin(t * (6 + 14 * k) + i * 1.7 + p.ph) * 0.12 * (0.4 + k), a = -Math.PI / 2 + base + flap + k * 0.5;
+          const L = p.len * f, ex = tx + Math.cos(a) * L, ey = ty + Math.sin(a) * L + L * 0.35;
+          fronds.moveTo(tx, ty);
+          fronds.quadraticCurveTo(tx + Math.cos(a) * L * 0.5, ty + Math.sin(a) * L * 0.5 - L * 0.12, ex, ey);
         });
       }
+      g.lineJoin = 'round';
+      g.strokeStyle = 'rgba(255,255,255,0.55)';
+      g.lineWidth = 2.2; g.stroke(trunks);
+      g.lineWidth = 1.2; g.stroke(fronds);
+      // grass, leaning with the gust where it stands
+      blades.forEach((layer, li) => {
+        const pa = new Path2D();
+        for (const b of layer) {
+          const k = gust(b.x, floor);
+          let lean = 0.15 + 0.55 * k + 0.05 * Math.sin(t * 7 + b.ph) * k;
+          if (ptr && Math.abs(ptr.x - b.x) < 60 && ptr.y > floor - b.len * 1.5) lean += Math.sign(b.x - ptr.x || 1) * (1 - Math.abs(ptr.x - b.x) / 60) * 0.6;
+          const a = lean * 1.25, tx = b.x + Math.sin(a) * b.len, ty = floor + 2 - Math.cos(a) * b.len, cx = b.x + Math.sin(a * 0.45) * b.len * 0.55, cy = floor + 2 - b.len * 0.6;
+          pa.moveTo(b.x - b.wb, floor + 2);
+          pa.quadraticCurveTo(cx - b.wb * 0.5, cy, tx, ty);
+          pa.quadraticCurveTo(cx + b.wb * 0.5, cy, b.x + b.wb, floor + 2);
+          pa.closePath();
+        }
+        g.fillStyle = `rgba(255,255,255,${li ? 0.4 : 0.18})`;
+        g.fill(pa);
+      });
     },
   };
 }
