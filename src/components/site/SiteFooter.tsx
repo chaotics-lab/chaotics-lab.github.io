@@ -1,9 +1,9 @@
 import { ArrowUp, ArrowUpRight } from '@phosphor-icons/react';
-import { usePageTransition } from '@/lib/pageTransition';
+import { useDiveScroll } from '@/lib/diveScroll';
 import { SOCIALS, isExternal } from './links';
 
 export const SiteFooter = () => {
-  const { dive } = usePageTransition();
+  const scrollTo = useDiveScroll();
   return (
   <footer className="relative mt-28">
     <div className="container mx-auto px-5 sm:px-8">
@@ -32,7 +32,7 @@ export const SiteFooter = () => {
           <div id="footer-top" className="s-nav">
             <button
               type="button"
-              onClick={() => dive(() => window.scrollTo(0, 0), { dir: 'down' })}
+              onClick={() => scrollTo(() => 0, { dir: 'down' })}
               className="s-nav-item s-top-item s-top-wide h-swap-host"
             >
               <ArrowUp size={18} weight="bold" className="s-icon" />

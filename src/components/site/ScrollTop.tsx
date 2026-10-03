@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { ArrowUp } from '@phosphor-icons/react';
-import { usePageTransition } from '@/lib/pageTransition';
+import { useDiveScroll } from '@/lib/diveScroll';
 
 const DOCK_AT = 40; // px from the bottom of the page
 const FADE_MS = 220; // keep in sync with the opacity transition in index.css
@@ -10,7 +10,7 @@ const FADE_MS = 220; // keep in sync with the opacity transition in index.css
 // crossfades into the footer's back-to-top pill (#footer-top), and back
 // when scrolling up. Going up, the sea pours in from the top.
 export const ScrollTop = () => {
-  const { dive } = usePageTransition();
+  const scrollTo = useDiveScroll();
   const [shown, setShown] = useState(false);
   const pill = useRef<HTMLDivElement>(null);
 
@@ -72,7 +72,7 @@ export const ScrollTop = () => {
         <button
           type="button"
           className="s-nav-item s-top-item"
-          onClick={() => dive(() => window.scrollTo(0, 0), { dir: 'down' })}
+          onClick={() => scrollTo(() => 0, { dir: 'down' })}
           tabIndex={shown ? 0 : -1}
           aria-label="Back to top"
         >

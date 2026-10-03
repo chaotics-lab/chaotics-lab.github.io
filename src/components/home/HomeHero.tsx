@@ -1,9 +1,9 @@
 import { ArrowDown } from '@phosphor-icons/react';
-import { usePageTransition } from '@/lib/pageTransition';
+import { useDiveScroll } from '@/lib/diveScroll';
 import { HeroWaves } from './HeroWaves';
 
 export const HomeHero = () => {
-  const { dive } = usePageTransition();
+  const scrollTo = useDiveScroll();
 
   return (
     <section className="relative min-h-[88svh] overflow-hidden flex items-center pt-28 pb-44">
@@ -31,7 +31,10 @@ export const HomeHero = () => {
             href="#projects"
             onClick={e => {
               e.preventDefault();
-              dive(() => document.getElementById('projects')?.scrollIntoView());
+              scrollTo(() => {
+                const el = document.getElementById('projects');
+                return el ? el.getBoundingClientRect().top + window.scrollY - parseFloat(getComputedStyle(el).scrollMarginTop || '0') : window.scrollY;
+              });
             }}
             className="h-btn h-btn-line h-swap-host self-start md:self-auto"
           >
