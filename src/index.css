@@ -1093,6 +1093,11 @@ html[data-quality="0"] .ocean-layer { display: none; }
 /* ---- Water details ---- */
 /* The ocean behind everything (OceanLayer.tsx) */
 .ocean-layer { position: fixed; inset: 0; z-index: -1; width: 100%; height: 100%; pointer-events: none; }
+/* Element effect at the bottom of the screen (OceanFx.tsx sets the mask and the opacity) */
+.ocean-fx {
+  position: fixed; left: 0; bottom: 0; z-index: -1; width: 100%; height: 70vh; pointer-events: none;
+  mask-size: 100% 100%; -webkit-mask-size: 100% 100%; transition: opacity 350ms ease;
+}
 
 /* Arrows that bob to invite a click */
 .h-bob { animation: h-bob 1.6s ease-in-out infinite; }
