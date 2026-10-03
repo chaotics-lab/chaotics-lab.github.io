@@ -125,16 +125,22 @@ const ProjectPage = () => {
               </span>
           </TransitionLink>
 
-          <div className="mt-10">
+          <div className="mt-6 sm:mt-10">
             <p className="h-caps text-[0.68rem] text-[var(--h-c2)]">{[categories.join(' / '), when].filter(Boolean).join(' · ')}</p>
             {/* Logo sits left of the title, as tall as the title */}
             <div className="mt-4 flex flex-col sm:flex-row items-start sm:items-center gap-4 md:gap-7">
               {project.logoUrl && <img src={project.logoUrl} alt="" className="p-logo" style={titleH ? { height: titleH } : undefined} />}
-              <h1 ref={titleRef} className="h-display text-[clamp(2.4rem,8vw,7rem)] break-words min-w-0 max-w-full">
+              <h1 ref={titleRef} className="h-display text-[clamp(1.9rem,8vw,7rem)] break-words min-w-0 max-w-full">
                 <span className="h-line"><span>{withoutCompany(project.title)}</span></span>
               </h1>
             </div>
-            <p className="mt-6 max-w-3xl text-lg md:text-xl leading-relaxed text-[var(--h-c3)]">{project.description}</p>
+            {/* phones: the images come right after the title */}
+            {frames.length > 0 && (
+              <div className="mt-6 lg:hidden">
+                <Gallery key={`m-${project.id}`} frames={frames} title={withoutCompany(project.title)} />
+              </div>
+            )}
+            <p className="mt-6 max-w-3xl text-base sm:text-lg md:text-xl leading-relaxed text-[var(--h-c3)]">{project.description}</p>
           </div>
 
           <div className="mt-8 flex flex-wrap items-center gap-x-8 gap-y-6">
@@ -193,10 +199,10 @@ const ProjectPage = () => {
           </dl>
         </section>
 
-        {/* Write-up beside the images; images first on phones */}
+        {/* Write-up beside the images (on phones they sit under the title) */}
         <section className="container mx-auto px-5 sm:px-8 mt-14 md:mt-20 grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] gap-12 lg:gap-16">
           {frames.length > 0 && (
-            <div className="lg:order-2 lg:sticky lg:top-24 self-start min-w-0">
+            <div className="hidden lg:block lg:order-2 lg:sticky lg:top-24 self-start min-w-0">
               <Gallery key={project.id} frames={frames} title={withoutCompany(project.title)} />
             </div>
           )}

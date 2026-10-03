@@ -636,6 +636,7 @@ All colors MUST be HSL.
 /* ------------------------------------------------------------------ */
 
 :root {
+  color-scheme: dark; /* already dark: opt out of forced dark modes */
   --h-top: #0B5BD9;
   --h-mid: #0842B0;
   --h-deep: #052C7E;
@@ -1038,7 +1039,7 @@ html[data-quality="0"] .ocean-layer { display: none; }
 /* ---- Phones ---- */
 @media (max-width: 639px) {
   .ai-drop-head { flex-direction: column; align-items: flex-start; gap: 1.25rem; padding: 1.75rem 0; }
-  .p-logo { height: 4rem !important; width: auto; max-width: 60vw; align-self: flex-start; } /* above the title, not beside it */
+  .p-logo { height: 2.75rem !important; width: auto; max-width: 50vw; align-self: flex-start; } /* above the title, not beside it */
   .p-next-link { margin-left: 0; }
 }
 .h-pill { white-space: nowrap; }
