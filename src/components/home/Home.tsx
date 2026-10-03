@@ -8,25 +8,33 @@ import { ElementMarquee } from '@/components/portfolio/ElementMarquee';
 import { HomeHero } from './HomeHero';
 import { ProjectGrid } from './ProjectGrid';
 
-// How long the outgoing cards take to be covered (see .w-card in index.css).
-const LEAVE_MS = 380;
+// Length of the grid wipe (keep in sync with .g-old in index.css).
+const WIPE_MS = 620;
 
 export const Home = () => {
   const projects = PROJECTS;
-  // `category` follows the pills at once; `shown` is what the grid holds,
-  // switched once the old cards have been slashed out.
+  // `category` follows the pills at once. On a change, the grid it had
+  // (`prev`) stays on top of the new one and is wiped away by a slanted
+  // edge, then the wrapper eases to the new height.
   const [category, setCategory] = useState('all');
-  const [shown, setShown] = useState('all');
-  const [leaving, setLeaving] = useState(false);
-  const swapTimer = useRef(0);
-  useEffect(() => () => clearTimeout(swapTimer.current), []);
+  const [prev, setPrev] = useState<string | null>(null);
+  const [minH, setMinH] = useState<number | undefined>(undefined);
+  const [switched, setSwitched] = useState(false);
+  const swapRef = useRef<HTMLDivElement>(null);
+  const timers = useRef<number[]>([]);
+  useEffect(() => () => timers.current.forEach(clearTimeout), []);
   const pick = (id: string) => {
     if (id === category) return;
     setCategory(id);
-    clearTimeout(swapTimer.current);
-    if (prefersReducedMotion()) { setShown(id); return; }
-    setLeaving(true);
-    swapTimer.current = window.setTimeout(() => { setShown(id); setLeaving(false); }, LEAVE_MS);
+    if (prefersReducedMotion()) return;
+    timers.current.forEach(clearTimeout);
+    setSwitched(true);
+    setPrev(category);
+    setMinH(swapRef.current?.offsetHeight);
+    timers.current = [
+      window.setTimeout(() => { setPrev(null); setMinH(0); }, WIPE_MS),
+      window.setTimeout(() => setMinH(undefined), WIPE_MS + 500),
+    ];
   };
 
   // Cream highlight that slides to the selected pill.
@@ -58,10 +66,13 @@ export const Home = () => {
 
   const available = useMemo(() => new Set(projects.flatMap(p => p.category ?? [])), [projects]);
   const count = (id: string) => (id === 'all' ? projects.length : projects.filter(p => p.category?.includes(id)).length);
-  const filtered = useMemo(
-    () => (shown === 'all' ? projects : projects.filter(p => p.category?.includes(shown))),
-    [projects, shown],
+  const inCategory = useCallback(
+    (id: string) => (id === 'all' ? projects : projects.filter(p => p.category?.includes(id))),
+    [projects],
   );
+  // Both grids keep their keys, so the old one is not remounted when it
+  // moves on top.
+  const layers = useMemo(() => (prev && prev !== category ? [category, prev] : [category]), [category, prev]);
   const tabs = CATEGORIES.filter(c => c.id === 'all' || available.has(c.id));
   const active = CATEGORIES.find(c => c.id === category) ?? CATEGORIES[0];
 
@@ -105,8 +116,13 @@ export const Home = () => {
         </div>
 
         <div className="mt-16">
-          <div data-leaving={leaving || undefined}>
-            <ProjectGrid key={shown} projects={filtered} />
+          <div ref={swapRef} className="g-swap" data-switched={switched || undefined} data-wiping={prev ? 'true' : undefined} style={{ minHeight: minH, ['--h' as string]: minH ? `${minH}px` : undefined, ['--lean' as string]: minH ? `${Math.round(minH * 0.32)}px` : undefined }}>
+            {layers.map(id => (
+              <div key={id} className={id === prev ? 'g-layer g-old' : 'g-layer'} aria-hidden={id === prev || undefined}>
+                <ProjectGrid projects={inCategory(id)} />
+              </div>
+            ))}
+            {prev && <span className="g-edge" aria-hidden="true" />}
           </div>
         </div>
       </section>

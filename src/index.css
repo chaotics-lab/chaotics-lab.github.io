@@ -1045,23 +1045,27 @@ All colors MUST be HSL.
 .tap-ripple::after { border-width: 1.5px; animation-delay: 110ms; }
 @keyframes tap-ring { from { transform: scale(0.15); opacity: 0.9; } to { transform: scale(1.5); opacity: 0; } }
 /* Cards rise in when the grid mounts or the filter changes */
-/* Cards slash in: a slanted cream bar sits over each image and peels off
-   to the right while the text slides in, one card after another. When the
-   filter changes, the bars sweep back in from the left over the old cards
-   (Home's LEAVE_MS waits for that) before the new set arrives. */
-.w-frame::after {
-  content: ""; position: absolute; inset: -3% -6%; z-index: 1; pointer-events: none;
-  background: var(--h-cream); transform: skewX(-18deg) scaleX(0);
-}
-.w-card .w-frame::after { animation: w-bar-out 420ms cubic-bezier(.7,0,.3,1) calc(80ms + var(--i, 0) * 55ms) both; }
-.w-card .w-labelwrap { animation: w-text-in 520ms cubic-bezier(.2,.8,.2,1) calc(180ms + var(--i, 0) * 55ms) backwards; }
-@keyframes w-bar-out { from { transform: skewX(-18deg) scaleX(1); transform-origin: right; } to { transform: skewX(-18deg) scaleX(0); transform-origin: right; } }
-@keyframes w-text-in { from { opacity: 0; transform: translateX(-24px); } to { opacity: 1; transform: none; } }
+.w-card { animation: w-in 560ms cubic-bezier(.2,.8,.2,1) calc(var(--i, 0) * 60ms) backwards; }
+@keyframes w-in { from { opacity: 0; transform: translateY(36px); } to { opacity: 1; transform: none; } }
 
-[data-leaving] .w-frame::after { animation: w-bar-in 240ms cubic-bezier(.7,0,.3,1) calc(min(var(--i, 0), 6) * 22ms) both; }
-[data-leaving] .w-labelwrap { animation: w-text-out 200ms ease-in calc(min(var(--i, 0), 6) * 22ms) both; }
-@keyframes w-bar-in { from { transform: skewX(-18deg) scaleX(0); transform-origin: left; } to { transform: skewX(-18deg) scaleX(1); transform-origin: left; } }
-@keyframes w-text-out { to { opacity: 0; transform: translateX(24px); } }
+/* Filter change: the old grid sits on top of the new one and is cut away
+   by one slanted edge sweeping left to right, with a cream slash riding
+   the edge, and the new grid is clipped to the other side of it. --e is
+   the edge's x at the top; it leans back by --lean for every --h + 240px
+   down (--h is the old grid's height; Home sets both so the slant stays
+   near 18 degrees). The --far-* point carries the edge on below --h. After
+   the first switch, cards no longer play w-in. */
+@property --e { syntax: "<length-percentage>"; inherits: false; initial-value: 0px; }
+.g-swap { position: relative; transition: min-height 450ms cubic-bezier(.65,0,.35,1); --lean: 300px; }
+.g-swap[data-switched] .w-card { animation: none; }
+.g-old, .g-edge { position: absolute; inset: 0; pointer-events: none; }
+.g-swap { --far-y: calc(var(--h, 100%) * 10 + 2280px); }
+.g-swap > * { --far-x: calc(var(--e) - var(--lean) * 10); } /* here, where --e animates */
+.g-old { z-index: 2; clip-path: polygon(var(--e) -120px, calc(100% + 400px) -120px, calc(100% + 400px) var(--far-y), var(--far-x) var(--far-y)); }
+.g-edge { z-index: 3; background: var(--h-cream); clip-path: polygon(calc(var(--e) - 22px) -120px, var(--e) -120px, var(--far-x) var(--far-y), calc(var(--far-x) - 22px) var(--far-y)); }
+.g-swap[data-wiping] > .g-layer:not(.g-old) { clip-path: polygon(-400px -120px, var(--e) -120px, var(--far-x) var(--far-y), -99999px var(--far-y)); }
+.g-old, .g-edge, .g-swap[data-wiping] > .g-layer { animation: g-wipe 620ms cubic-bezier(.65,0,.35,1) both; }
+@keyframes g-wipe { from { --e: 0px; } to { --e: calc(100% + var(--lean) + 30px); } }
 
 /* Filter pills: the selected look rides on a sliding blob */
 .h-pill-blob {
@@ -1070,7 +1074,7 @@ All colors MUST be HSL.
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .w-frame::after, .w-labelwrap, .g-fill[data-run], .h-line > span, .h-marquee, .h-swap-in, .p-logo, .pt-page, .h-bob, .h-bob-up, .w-card { animation: none !important; }
+  .g-fill[data-run], .h-line > span, .h-marquee, .h-swap-in, .p-logo, .pt-page, .h-bob, .h-bob-up, .w-card { animation: none !important; }
   .pt { display: none; }
   .w-arrow, .w-rule > span, .h-swap > span, .h-btn, .h-pill, .s-nav-blob, .h-pill-blob, .s-circle, .g-track, .g-arrow, .p-next-arrow, .ai-drop-body, .ai-drop-item, .ai-drop-toggle, .ai-drop-title, .s-icon { transition: none; }
   .w-cursor { display: none; }
