@@ -106,8 +106,31 @@ export const OceanLayer = () => {
     const glints: Glint[] = [];
     let glintClock = 0;
 
+    // Nothing is drawn above the black element band: clip to the area under
+    // its slanted bottom edge. Pages without the band draw everywhere.
+    let band: HTMLElement | null = null;
+    const clipBelowBand = () => {
+      if (!band?.isConnected) band = document.querySelector<HTMLElement>('[data-ocean-top]');
+      if (!band) return;
+      const r = band.getBoundingClientRect();
+      const a = (-2 * Math.PI) / 180; // matches the band's -rotate-2
+      const h = band.offsetHeight / 2;
+      const mx = r.left + r.width / 2 - h * Math.sin(a);
+      const my = r.top + r.height / 2 + h * Math.cos(a);
+      const yAt = (x: number) => my + (x - mx) * Math.tan(a);
+      ctx.beginPath();
+      ctx.moveTo(0, yAt(0));
+      ctx.lineTo(vw, yAt(vw));
+      ctx.lineTo(vw, vh);
+      ctx.lineTo(0, vh);
+      ctx.closePath();
+      ctx.clip();
+    };
+
     const off = onTick((t, dt) => {
       ctx.clearRect(0, 0, vw, vh);
+      ctx.save();
+      clipBelowBand();
 
       // Icons sink, sway and tumble, wrap back to the top of the ocean at
       // the bottom, and drift aside from the cursor.
@@ -191,6 +214,7 @@ export const OceanLayer = () => {
         ctx.fill();
       }
       ctx.globalAlpha = 1;
+      ctx.restore();
     });
 
     return () => {

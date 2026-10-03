@@ -726,6 +726,14 @@ All colors MUST be HSL.
 /* ---- Ticker (element band) ---- */
 .h-marquee { display: flex; width: max-content; animation: h-marquee 38s linear infinite; }
 @keyframes h-marquee { to { transform: translateX(-50%); } }
+/* Element picker in the band: slows down under the cursor so the names are
+   easy to hit; the hovered and the active element take their own colour. */
+.e-band:hover .h-marquee { animation-play-state: paused; }
+.e-pick { color: var(--h-cream); cursor: pointer; transition: color 0.2s; }
+.e-pick .e-tile { transition: transform 0.25s cubic-bezier(0.3, 1.6, 0.5, 1); }
+.e-pick:hover, .e-pick[aria-pressed="true"] { color: var(--el); }
+.e-pick:hover .e-tile { transform: translateY(-3px) rotate(-6deg); }
+.e-pick:focus-visible { outline: 2px solid var(--el); outline-offset: -4px; }
 .e-tile { position: relative; isolation: isolate; display: grid; place-items: center; }
 .e-tile > svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
 .e-tile-shadow { z-index: -2; fill: var(--h-ink); transform: translate(var(--sh, 6px), var(--sh, 6px)); }
