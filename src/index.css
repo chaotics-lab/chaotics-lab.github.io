@@ -1057,11 +1057,9 @@ html[data-quality="0"] .ocean-layer { display: none; }
 .pt-fade[data-phase="cover"] { animation: pt-fade-in 160ms ease-out both; }
 .pt-fade[data-phase="reveal"] { animation: pt-fade-in 220ms ease-in reverse both; }
 @keyframes pt-fade-in { from { opacity: 0; } to { opacity: 1; } }
-/* Zoom variant (card -> project): the page zooms into the card (from JS)
-   while this wash of the sea's front colour takes over the screen; the sea
-   layers then take over from it and leave upward. */
-.pt-zoom { position: absolute; inset: 0; background: var(--tint); animation: pt-zoom-tint 380ms cubic-bezier(.3,0,.5,1) 60ms both; }
-@keyframes pt-zoom-tint { from { opacity: 0; } to { opacity: 1; } }
+/* Blot variant (card -> project): each layer's wavy clip path is set per
+   frame from PageTransition.tsx. */
+.pt-blot { position: absolute; inset: 0; }
 /* Slash variant: wide slanted bands cut in from the right, then carry on
    off to the left, front band first. The front band carries the label. */
 .pts-band {
@@ -1095,6 +1093,19 @@ html[data-quality="0"] .ocean-layer { display: none; }
 @keyframes pt-hcover { from { transform: translateX(-110%); } to { transform: none; } }
 @keyframes pt-hreveal { from { transform: none; } to { transform: translateX(110%); } }
 .f-sweep { z-index: 60; } /* filter sweep: over the page and header, under the Projects title and pills (z 61) */
+/* Its bands: chevrons with the spike in the middle of the leading edge and
+   the same notch at the back, crossing left to right (data-dir="left"
+   mirrors it). --s is the spike's depth. */
+.f-chev {
+  --s: min(22vh, 18vw);
+  position: absolute; top: 0; bottom: 0; left: calc(-1 * var(--s)); width: calc(100vw + 2 * var(--s));
+  clip-path: polygon(0 0, calc(100% - var(--s)) 0, 100% 50%, calc(100% - var(--s)) 100%, 0 100%, var(--s) 50%);
+  transform: translateX(-100%);
+}
+.f-sweep[data-dir="left"] { transform: scaleX(-1); }
+.f-sweep[data-phase="cover"] .f-chev { animation: pt-hcover 260ms cubic-bezier(.7,0,.3,1) var(--in) both; }
+.f-sweep[data-phase="reveal"] .f-chev { animation: f-chev-out 300ms cubic-bezier(.7,0,.3,1) var(--out) both; }
+@keyframes f-chev-out { from { transform: none; } to { transform: translateX(100%); } }
 .f-hold[data-swapped] .w-card { animation: none; } /* swapped in under the sea: shown as-is */
 .pt-page { animation: pt-fade 380ms ease-out both; }
 @keyframes pt-fade { from { opacity: 0; } to { opacity: 1; } }

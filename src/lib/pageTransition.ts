@@ -5,17 +5,14 @@ import { createContext, useContext } from 'react';
 // band last), with `label` written on the front band. Used between projects.
 // dir (sea only): 'up' (default) rises from the bottom, 'down' pours in from
 // the top, 'right' / 'left' sweep sideways in that direction.
-// 'zoom': the page content `zoomEl` zooms into `origin` (px in its own box)
-// with a turn while `tint` washes over the screen; then the sea (already
-// covering) leaves upward.
+// 'blot': wavy blots in `colors` (back to front) grow from `origin` (screen
+// px) over the screen, then open from the middle onto the new page.
 export type TransitionOpts = {
-  kind?: 'sea' | 'slash' | 'zoom' | 'fade';
+  kind?: 'sea' | 'slash' | 'blot' | 'fade';
   dir?: 'up' | 'down' | 'left' | 'right';
   colors?: [string, string, string];
   label?: string;
-  zoomEl?: HTMLElement;
   origin?: { x: number; y: number };
-  tint?: string;
 };
 
 type PageTransition = {

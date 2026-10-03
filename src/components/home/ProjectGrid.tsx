@@ -39,19 +39,16 @@ export const ProjectGrid = ({ projects }: { projects: ProjectData[] }) => {
   );
 };
 
-// Clicking a card zooms the whole page into it while the project's deep
-// colour washes over, which the sea then carries away (PageTransition 'zoom').
-const zoomInto = (p: ProjectData): TransitionOpts => {
+// Clicking a card: blots in the project's colours grow from its picture
+// (PageTransition 'blot').
+const blotFrom = (p: ProjectData): TransitionOpts => {
   const frame = document.querySelector<HTMLElement>(`[data-wcard][href="/project/${p.id}"] [data-frame]`);
-  const main = frame?.closest('main') ?? undefined;
   const r = frame?.getBoundingClientRect();
-  const m = main?.getBoundingClientRect();
   const pal = projectPalette((p as { themeColors?: string[] }).themeColors);
   return {
-    kind: 'zoom',
-    zoomEl: main,
-    origin: r && m ? { x: r.left + r.width / 2 - m.left, y: r.top + r.height / 2 - m.top } : undefined,
-    tint: pal?.deep,
+    kind: 'blot',
+    origin: r ? { x: r.left + r.width / 2, y: r.top + r.height / 2 } : undefined,
+    colors: pal ? ['var(--h-cream)', pal.c1, pal.deep] : undefined,
   };
 };
 
@@ -61,7 +58,7 @@ const ProjectCard = ({ p, i }: { p: ProjectData & { showGithubStats?: boolean };
   const year = p.date ? new Date(p.date).getFullYear() : null;
 
   return (
-    <TransitionLink to={`/project/${p.id}`} transition={() => zoomInto(p)} className="w-card" data-wcard data-img={p.imageUrl ?? ''} style={{ ['--i' as string]: Math.min(i, 8) }}>
+    <TransitionLink to={`/project/${p.id}`} transition={() => blotFrom(p)} className="w-card" data-wcard data-img={p.imageUrl ?? ''} style={{ ['--i' as string]: Math.min(i, 8) }}>
       <div className="w-frame" data-frame>
         <canvas
           className="w-canvas"

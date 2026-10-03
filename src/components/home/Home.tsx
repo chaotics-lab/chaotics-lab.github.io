@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { prefersReducedMotion } from '@/lib/ticker';
-import { WAVE_V } from '@/lib/wave';
 import { useLocation } from 'react-router-dom';
 import { CATEGORIES } from '@/config/categories';
 import { PROJECTS } from '@/lib/projects';
@@ -18,9 +17,9 @@ import { ProjectGrid } from './ProjectGrid';
 //      short to stay at the same scroll position. The reveal waits until
 //      the new cards on screen have their images (at most READY_MAX_MS),
 //   3. the sea leaves (SWEEP_REVEAL_MS).
-// The sea sweeps sideways, against the way the pill highlight moves: to the
-// left when the new category is to the right of the old one, else right.
-// Same layers and timings as .pt-hlayer in index.css.
+// Three chevron bands sweep sideways (spike first, .f-chev in index.css),
+// against the way the pill highlight moves: to the left when the new
+// category is to the right of the old one, else right.
 const SWEEP_COVER_MS = 260 + 2 * 45;
 const SWEEP_REVEAL_MS = 300 + 2 * 45;
 const READY_MAX_MS = 600;
@@ -169,15 +168,7 @@ export const Home = () => {
       {sweep && (
         <div className="pt f-sweep" data-phase={sweep} data-dir={sweepDir} aria-hidden="true">
           {SWEEP_LAYERS.map((color, i) => (
-            <div
-              key={color}
-              className="pt-hlayer"
-              style={{ color, ['--in' as string]: `${i * 45}ms`, ['--out' as string]: `${(SWEEP_LAYERS.length - 1 - i) * 45}ms`, ['--drift' as string]: `${-i * 0.4}s` }}
-            >
-              <div className="pt-hedge pt-hflip"><svg className="pt-hwave" viewBox="0 0 60 2880" preserveAspectRatio="none"><path d={WAVE_V} fill="currentColor" /></svg></div>
-              <div className="pt-hbody" />
-              <div className="pt-hedge"><svg className="pt-hwave" viewBox="0 0 60 2880" preserveAspectRatio="none"><path d={WAVE_V} fill="currentColor" /></svg></div>
-            </div>
+            <div key={color} className="f-chev" style={{ background: color, ['--in' as string]: `${i * 45}ms`, ['--out' as string]: `${(SWEEP_LAYERS.length - 1 - i) * 45}ms` }} />
           ))}
         </div>
       )}
