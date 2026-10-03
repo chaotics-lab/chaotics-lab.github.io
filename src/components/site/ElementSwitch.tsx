@@ -23,7 +23,11 @@ export const ElementSwitch = () => {
           aria-pressed={active === e.id}
           aria-label={`${e.name} colour scheme`}
           title={e.name}
-          onClick={() => { if (e.id !== currentElement()) dive(() => applyTheme(e.id), { kind: 'element', element: e.id }); }}
+          onClick={ev => {
+            if (e.id === currentElement()) return;
+            const r = ev.currentTarget.getBoundingClientRect();
+            dive(() => applyTheme(e.id), { kind: 'element', element: e.id, origin: { x: r.left + r.width / 2, y: r.top + r.height / 2 } });
+          }}
         >
           <ElementGlyph id={e.id} size={20} className="s-icon" />
         </button>

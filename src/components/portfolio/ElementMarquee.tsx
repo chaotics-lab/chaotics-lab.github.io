@@ -66,9 +66,11 @@ export const ElementMarquee = () => {
     if (d.moved > DRAG_PX) motion.current.fling = Math.max(-2500, Math.min(2500, d.vel));
   };
 
-  const pick = (id: string) => {
+  const pick = (id: string, from: HTMLElement) => {
     if (drag.current.moved > DRAG_PX) return; // that was a drag, not a click
-    if (id !== currentElement()) dive(() => applyTheme(id), { kind: 'element', element: id });
+    if (id === currentElement()) return;
+    const r = (from.querySelector('.e-tile') ?? from).getBoundingClientRect(); // the card flies out of this icon
+    dive(() => applyTheme(id), { kind: 'element', element: id, origin: { x: r.left + r.width / 2, y: r.top + r.height / 2 } });
   };
 
   return (
@@ -89,7 +91,7 @@ export const ElementMarquee = () => {
               <button
                 key={`${copy}-${i}`}
                 type="button"
-                onClick={() => pick(e.id)}
+                onClick={ev => pick(e.id, ev.currentTarget)}
                 tabIndex={copy === 0 && i < ELEMENTS.length ? 0 : -1}
                 aria-pressed={active === e.id}
                 aria-label={`${e.name} colour scheme`}

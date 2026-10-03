@@ -5,14 +5,16 @@ import { prefersReducedMotion } from '@/lib/ticker';
 import { WAVE, WAVE_V } from '@/lib/wave';
 import { THEMES } from '@/config/themes';
 import { ELEMENTS } from '@/config/elements';
-import { IconTile } from '@/components/portfolio/IconTile';
+import { IconTile, Tile } from '@/components/portfolio/IconTile';
 
 // P3R-style page changes. 'sea': three layers of sea (cyan, blue, deep
 // blue) rise over the screen with drifting wave edges, the page switches
 // underneath, then they leave through the top in reverse order. 'slash':
 // three slanted bands cut in from the right and carry on off to the left.
-// 'element': the slash, faster, in the picked element's colours; the front
-// band stamps its icon tile and name. The scheme swaps while it covers.
+// 'element': the element's card (its icon on the cream tile) flies out of
+// the clicked icon to the middle, flipping over as it grows, while quicker
+// blots in the element's colours burst from the same point; the scheme swaps
+// while they cover; then the card spins away and the blots open.
 // 'blot': Persona 3 Reload's menu cut. Three blots (circles with a wavy,
 // slowly turning edge) grow one after the other from the clicked point and
 // cover the screen; the page switches; then a wavy hole grows from the
@@ -21,18 +23,19 @@ import { IconTile } from '@/components/portfolio/IconTile';
 // (assets/shaders/blot_cut_mask.gdshader): radius progress * (R - amp *
 // sin(lobes * (angle - progress * turn))), with R reaching the far corner.
 // Keep the timings in sync with .pt-layer / .pts-band in index.css.
-const BLOT_IN = 320, BLOT_OUT = 380, BLOT_GAP = 75; // ms per blot, and between them
+const BLOT = { in: 320, out: 380, gap: 75 }; // ms per blot, and between them
+const EL_BLOT = { in: 260, out: 300, gap: 50 }; // the element switch's, quicker
 const TIMING = {
   sea: { cover: 260 + 2 * 45, hold: 40, reveal: 300 + 2 * 45 },
   slash: { cover: 280 + 2 * 60, hold: 320, reveal: 320 + 2 * 60 }, // hold: time to read the title
-  blot: { cover: BLOT_GAP * 2 + BLOT_IN, hold: 120, reveal: BLOT_GAP * 2 + BLOT_OUT },
-  fade: { cover: 160, hold: 30, reveal: 220 },
-  element: { cover: 170 + 2 * 40, hold: 190, reveal: 220 + 2 * 40 }, // .pt-el: quick, a beat to see the icon // minimal quality: one plain fade (.pt-fade)
+  blot: { cover: BLOT.gap * 2 + BLOT.in, hold: 120, reveal: BLOT.gap * 2 + BLOT.out },
+  fade: { cover: 160, hold: 30, reveal: 220 }, // minimal quality: one plain fade (.pt-fade)
+  element: { cover: EL_BLOT.gap * 2 + EL_BLOT.in, hold: 170, reveal: EL_BLOT.gap * 2 + EL_BLOT.out }, // hold: a beat on the card
 };
 
 const LAYERS = ['var(--h-c1)', 'var(--h-top)', 'var(--h-deep)'];
 const SLASH: [string, string, string] = ['var(--h-c1)', 'var(--h-top)', 'var(--h-deep)'];
-const BLOT: [string, string, string] = ['var(--h-cream)', 'var(--h-c1)', 'var(--h-deep)'];
+const BLOT_COLORS: [string, string, string] = ['var(--h-cream)', 'var(--h-c1)', 'var(--h-deep)'];
 
 // The blot's outline as an SVG path in screen px: a wavy circle around
 // (cx, cy) at `k` (0..1) of the size that covers the screen, or that circle
@@ -71,11 +74,12 @@ export const PageTransition = ({ children }: { children: ReactNode }) => {
     const t = TIMING[o.kind ?? 'sea'];
     setOpts(o);
     setPhase('cover');
-    if (o.kind === 'blot') runBlots('cover', o.origin);
+    const bt = o.kind === 'element' ? EL_BLOT : BLOT;
+    if (o.kind === 'blot' || o.kind === 'element') runBlots('cover', bt, o.origin);
     timers.current.push(window.setTimeout(() => {
       swap();
       setPhase('reveal');
-      if (o.kind === 'blot') runBlots('reveal');
+      if (o.kind === 'blot' || o.kind === 'element') runBlots('reveal', bt);
       timers.current.push(window.setTimeout(() => {
         setPhase('idle');
         busy.current = false;
@@ -89,7 +93,7 @@ export const PageTransition = ({ children }: { children: ReactNode }) => {
   // Blots: the clip path of each layer, set every frame.
   const blots = useRef<(HTMLDivElement | null)[]>([]);
   const blotRaf = useRef(0);
-  const runBlots = (step: 'cover' | 'reveal', at?: { x: number; y: number }) => {
+  const runBlots = (step: 'cover' | 'reveal', bt: typeof BLOT, at?: { x: number; y: number }) => {
     cancelAnimationFrame(blotRaf.current);
     const w = window.innerWidth, h = window.innerHeight;
     let start = -1; // from the first frame the layers are there (they mount with the phase)
@@ -102,7 +106,7 @@ export const PageTransition = ({ children }: { children: ReactNode }) => {
       blots.current.forEach((el, i) => {
         if (!el) return;
         // cover: back to front (cream first); reveal: the front layer opens first
-        const delay = (step === 'cover' ? i : 2 - i) * BLOT_GAP, dur = step === 'cover' ? BLOT_IN : BLOT_OUT;
+        const delay = (step === 'cover' ? i : 2 - i) * bt.gap, dur = step === 'cover' ? bt.in : bt.out;
         const k = Math.min(1, Math.max(0, (ms - delay) / dur));
         if (k < 1) running = true;
         el.style.clipPath = step === 'cover' ? blotPath(cx, cy, easeOut(k) * (k < 1 ? 1 : 1.02), false, w, h) : blotPath(cx, cy, easeInOut(k) * 1.02, true, w, h);
@@ -159,25 +163,29 @@ export const PageTransition = ({ children }: { children: ReactNode }) => {
       )}
       {opts.kind === 'element' && phase !== 'idle' && (() => {
         const pal = THEMES[opts.element ?? ''] ?? THEMES.aqua, info = ELEMENTS.find(e => e.id === opts.element);
+        const w = window.innerWidth, h = window.innerHeight, o = opts.origin ?? { x: w / 2, y: h / 2 };
         return (
-          <div className="pt pt-el" data-phase={phase} aria-hidden="true">
-            {[pal.c1, pal.top, pal.deep].map((color, i) => (
-              <div key={i} className="pts-band" style={{ background: color, ['--in' as string]: `${i * 40}ms`, ['--out' as string]: `${(2 - i) * 40}ms` }}>
-                {i === 2 && info && (
-                  <div className="pts-label pte-label">
-                    <IconTile id={info.id} shadow="8px" className="pte-icon" />
-                    <span className="h-display text-[clamp(3rem,10vw,8rem)]">{info.name}</span>
-                  </div>
-                )}
-              </div>
+          <div className="pt" data-phase={phase} aria-hidden="true">
+            {['var(--h-cream)', pal.c1, pal.deep].map((color, i) => (
+              <div key={i} ref={el => { blots.current[i] = el; }} className="pt-blot" style={{ background: color, clipPath: 'circle(0)' }} />
             ))}
+            {/* the element's card flies out of the clicked icon, flipping over */}
+            {info && (
+              <div className="pte-stage" style={{ ['--dx' as string]: `${o.x - w / 2}px`, ['--dy' as string]: `${o.y - h / 2}px` }}>
+                <div className="pte-card">
+                  <IconTile id={info.id} shadow="10px" className="pte-face" />
+                  <Tile shadow="10px" className="pte-face pte-back" />
+                </div>
+                <span className="pte-name h-display">{info.name}</span>
+              </div>
+            )}
           </div>
         );
       })()}
       {opts.kind === 'fade' && phase !== 'idle' && <div className="pt pt-fade" data-phase={phase} aria-hidden="true" />}
       {opts.kind === 'blot' && phase !== 'idle' && (
         <div className="pt" data-phase={phase} aria-hidden="true">
-          {(opts.colors ?? BLOT).map((color, i) => (
+          {(opts.colors ?? BLOT_COLORS).map((color, i) => (
             <div key={i} ref={el => { blots.current[i] = el; }} className="pt-blot" style={{ background: color, clipPath: 'circle(0)' }} />
           ))}
         </div>

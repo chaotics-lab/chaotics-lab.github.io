@@ -1079,15 +1079,24 @@ html[data-quality="0"] .ocean-layer { display: none; }
 .pt[data-phase="cover"] .pts-label { animation: pts-label 380ms cubic-bezier(.2,.8,.2,1) 120ms both; }
 @keyframes pts-label { from { opacity: 0; translate: 6rem 0; } to { opacity: 1; translate: 0 0; } }
 .pts-label > .h-caps { color: var(--h-cream); }
-/* Element variant: the slash, faster; the icon tile is stamped on (pops in
-   with a turn) and the name slides in beside it */
-.pt-el[data-phase="cover"] .pts-band { animation-duration: 170ms; }
-.pt-el[data-phase="reveal"] .pts-band { animation-duration: 220ms; }
-.pte-label { flex-direction: row; justify-content: center; gap: clamp(1rem, 3vw, 2.5rem); }
-.pte-icon { width: clamp(4.5rem, 11vw, 9rem); }
-.pt-el[data-phase="cover"] .pts-label { animation: pts-label 260ms cubic-bezier(.2,.8,.2,1) 90ms both; }
-.pt-el[data-phase="cover"] .pte-icon { animation: pte-stamp 340ms cubic-bezier(.34,1.56,.64,1) 110ms both; }
-@keyframes pte-stamp { from { opacity: 0; transform: scale(0.3) rotate(-35deg); } to { opacity: 1; transform: rotate(-6deg); } }
+/* Element variant: blots (above) plus the element's card. The card starts
+   at the clicked icon (--dx, --dy from the middle), small and turned, and
+   lands in the middle after a flip and a half; it spins away on the reveal. */
+.pte-stage { position: absolute; left: 50%; top: 50%; display: flex; flex-direction: column; align-items: center; gap: 1rem; transform: translate(-50%, -50%); perspective: 900px; }
+.pte-card { position: relative; width: clamp(9rem, 32vmin, 18rem); aspect-ratio: 1; transform-style: preserve-3d; }
+.pte-face { position: absolute !important; inset: 0; width: 100%; backface-visibility: hidden; }
+.pte-back { transform: rotateY(180deg); }
+.pte-name { font-size: clamp(2rem, 6vmin, 4rem); color: #fff; }
+.pt[data-phase="cover"] .pte-card { animation: pte-fly 420ms cubic-bezier(.2,.9,.25,1.15) both; }
+.pt[data-phase="cover"] .pte-name { animation: pts-label 260ms cubic-bezier(.2,.8,.2,1) 260ms both; }
+.pt[data-phase="reveal"] .pte-card { animation: pte-away 260ms cubic-bezier(.5,0,.75,0) both; }
+.pt[data-phase="reveal"] .pte-name { animation: pte-name-out 200ms ease-in both; }
+@keyframes pte-fly {
+  from { transform: translate(var(--dx), var(--dy)) scale(0.18) rotateY(-540deg) rotate(-25deg); }
+  to { transform: rotate(-6deg); }
+}
+@keyframes pte-away { from { transform: rotate(-6deg); } to { transform: scale(0) rotate(160deg); opacity: 0; } }
+@keyframes pte-name-out { to { opacity: 0; translate: 0 1rem; } }
 /* Sideways sea (filter change, back to the projects): layers with wavy
    left/right edges cross the screen left to right; data-dir="left"
    mirrors the whole thing. */
