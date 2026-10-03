@@ -835,6 +835,11 @@ All colors MUST be HSL.
   .s-nav-item .s-nav-label { display: inline-block; }
 }
 .s-nav-item[data-on="true"] { color: var(--h-ink); }
+/* Element switch (footer): icon-only header items; hover and the active
+   one lean towards the element's colour */
+.s-el { padding: 0.5rem; border-radius: 9999px; transition: color 220ms ease, background-color 220ms ease; }
+.s-el:hover, .s-el:focus-visible { color: color-mix(in oklab, var(--h-c3) 45%, var(--el)); background: color-mix(in oklab, var(--el) 18%, transparent); outline: none; }
+.s-el[aria-pressed="true"] { color: color-mix(in oklab, var(--h-c3) 30%, var(--el)); background: color-mix(in oklab, var(--el) 26%, transparent); }
 /* Back-to-top pill: one header-style item; the cream fill appears on hover */
 .s-top {
   position: fixed; right: 1rem; bottom: 1rem; z-index: 50;

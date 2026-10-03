@@ -77,16 +77,17 @@ const ProjectCard = ({ p, i }: { p: ProjectData & { showGithubStats?: boolean };
             <ArrowDownRight className="w-arrow" weight="bold" />
           </div>
           <p className="mt-2 flex-1 leading-relaxed text-[var(--h-c3)]">{p.description}</p>
+          {/* GitHub stats sit just above the rule */}
+          {p.showGithubStats && (stars !== null || stats) && (
+            <span className="mt-3 flex flex-wrap items-center gap-2">
+              {stars !== null && <GithubStarsBadge stars={stars} />}
+              <GithubDownloadsBadge downloads={stats ? stats.total_downloads + stats.unique_cloners : null} />
+            </span>
+          )}
           <span className="w-rule"><span /></span>
           <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-[var(--h-c2)]">
             <span className="h-caps text-[0.62rem]">{[categoryLabel(p.category?.[0]), year].filter(Boolean).join(' · ')}</span>
             {p.AIUsed && <AITag value={parseInt(p.AIUsed, 10)} className="ml-auto" />}
-            {p.showGithubStats && (
-              <span className="flex items-center gap-2">
-                {stars !== null && <GithubStarsBadge stars={stars} />}
-                <GithubDownloadsBadge downloads={stats ? stats.total_downloads + stats.unique_cloners : null} />
-              </span>
-            )}
           </div>
         </div>
       </div>

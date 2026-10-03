@@ -1,6 +1,7 @@
 import { ArrowUp, ArrowUpRight } from '@phosphor-icons/react';
 import { TOP_RUN, useDiveScroll } from '@/lib/diveScroll';
 import { SOCIALS, isExternal } from './links';
+import { ElementSwitch } from './ElementSwitch';
 
 export const SiteFooter = () => {
   const scrollTo = useDiveScroll();
@@ -8,6 +9,7 @@ export const SiteFooter = () => {
   <footer className="relative mt-28">
     <div className="container mx-auto px-5 sm:px-8">
       <div className="py-8 border-t-[1.5px] border-[var(--h-c2)]/20 flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div className="flex flex-wrap items-center gap-3">
         <nav className="flex flex-wrap gap-3" aria-label="Contact">
           {SOCIALS.map(({ name, url, icon: Icon }) => (
             <a
@@ -26,6 +28,8 @@ export const SiteFooter = () => {
             </a>
           ))}
         </nav>
+        <ElementSwitch />
+        </div>
         <div className="flex items-center justify-between md:justify-end gap-6 text-sm text-[var(--h-c2)]">
           <span>© {new Date().getFullYear()} Lox</span>
           {/* the floating back-to-top pill (ScrollTop) docks onto this one */}
