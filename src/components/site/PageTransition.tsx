@@ -8,10 +8,13 @@ import { WAVE, WAVE_V } from '@/lib/wave';
 // blue) rise over the screen with drifting wave edges, the page switches
 // underneath, then they leave through the top in reverse order. 'slash':
 // three slanted bands cut in from the right and carry on off to the left.
+// 'zoom': a card's image grows to fill the screen with a turn and tints to
+// the sea's front colour; the page switches; the sea then leaves upward.
 // Keep the timings in sync with .pt-layer / .pts-band in index.css.
 const TIMING = {
   sea: { cover: 260 + 2 * 45, hold: 40, reveal: 300 + 2 * 45 },
   slash: { cover: 280 + 2 * 60, hold: 320, reveal: 320 + 2 * 60 }, // hold: time to read the title
+  zoom: { cover: 560, hold: 40, reveal: 300 + 2 * 45 }, // cover: .pt-zoom
 };
 
 const LAYERS = ['var(--h-c1)', 'var(--h-top)', 'var(--h-deep)'];
@@ -84,6 +87,21 @@ export const PageTransition = ({ children }: { children: ReactNode }) => {
           ))}
         </div>
       )}
+      {opts.kind === 'zoom' && phase === 'cover' && opts.rect && (
+        <div className="pt pt-zoom-wrap" data-phase="cover" aria-hidden="true">
+          <div
+            className="pt-zoom"
+            style={{
+              ['--x' as string]: `${opts.rect.x}px`,
+              ['--y' as string]: `${opts.rect.y}px`,
+              ['--w' as string]: `${opts.rect.w}px`,
+              ['--h' as string]: `${opts.rect.h}px`,
+              ['--tint' as string]: opts.tint ?? 'var(--h-deep)',
+              backgroundImage: opts.src ? `url("${opts.src}")` : undefined,
+            }}
+          />
+        </div>
+      )}
       {/* sideways sea (dir left/right), same layers as the filter sweep */}
       <div className="pt" data-phase={opts.kind !== 'slash' && sideways ? phase : 'idle'} data-dir={opts.dir} aria-hidden="true">
         {LAYERS.map((color, i) => (
@@ -98,7 +116,7 @@ export const PageTransition = ({ children }: { children: ReactNode }) => {
           </div>
         ))}
       </div>
-      <div className="pt" data-phase={opts.kind === 'slash' || sideways ? 'idle' : phase} data-dir={opts.dir ?? 'up'} aria-hidden="true">
+      <div className="pt" data-phase={opts.kind === 'slash' || sideways || (opts.kind === 'zoom' && phase === 'cover') ? 'idle' : phase} data-dir={opts.dir ?? 'up'} aria-hidden="true">
         {LAYERS.map((color, i) => (
           <div
             key={color}

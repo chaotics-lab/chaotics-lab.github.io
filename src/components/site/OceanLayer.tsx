@@ -13,10 +13,12 @@ import { currentIcon, onThemeChange } from '@/lib/theme';
 // fraction of the page height. Things further away (smaller z) move
 // slower with the scroll.
 
-type Icon = { img: HTMLCanvasElement | null; u: number; x: number; z: number; vu: number; phase: number; tumble: number; nx: number };
+type Icon = { img: HTMLCanvasElement | null; u: number; x: number; z: number; vu: number; phase: number; tumble: number; nx: number; dim: number; check: number; over?: boolean };
 type Speck = { u: number; x: number; z: number; size: number; rot: number; spin: number; phase: number; freq: number; rise: number; main: boolean; id: string };
 
 const rand = (a: number, b: number) => a + Math.random() * (b - a);
+// Things an icon dims behind.
+const TEXTY = 'p, h1, h2, h3, h4, li, dt, dd, blockquote, pre, table, .h-pill, .w-label';
 const TOP = 0.12; // the ocean starts below the hero
 const MAX_TILT = (120 * Math.PI) / 180; // icons never turn further than this either way
 
@@ -95,6 +97,8 @@ export const OceanLayer = () => {
       phase: rand(0, Math.PI * 2),
       tumble: rand(0.35, 1),
       nx: 0,
+      dim: 1,
+      check: Math.floor(Math.random() * 12),
     }));
     const slots = [...icons];
     let assigned = currentIcon();
@@ -178,9 +182,16 @@ export const OceanLayer = () => {
         }
         ic.nx *= 0.97;
         const fade = Math.max(0, Math.min(1, (ic.u - TOP) / 0.04, (1.02 - ic.u) / 0.04));
+        // Fainter while behind text (checked every dozen frames or so).
+        if (--ic.check <= 0) {
+          ic.check = 12;
+          const under = document.elementFromPoint(base + ic.nx, y);
+          ic.over = !!under?.closest(TEXTY);
+        }
+        ic.dim += ((ic.over ? 0.35 : 1) - ic.dim) * Math.min(1, dt * 4);
         const size = 18 + ic.z * 46;
         ctx.save();
-        ctx.globalAlpha = iconAlpha * fade * (ic.z < 0.5 ? 0.22 : 0.3 + ic.z * 0.45);
+        ctx.globalAlpha = iconAlpha * ic.dim * fade * (ic.z < 0.5 ? 0.22 : 0.3 + ic.z * 0.45);
         ctx.translate(base + ic.nx, y);
         // Two slow swings mixed together, so the tumble never repeats
         // exactly but always stays within +-120 degrees.

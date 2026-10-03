@@ -1029,6 +1029,21 @@ All colors MUST be HSL.
 .pt[data-dir="down"][data-phase="reveal"] .pt-layer { animation-name: pt-reveal-down; }
 @keyframes pt-cover-down { from { transform: translateY(-110%); } to { transform: none; } }
 @keyframes pt-reveal-down { from { transform: none; } to { transform: translateY(110%); } }
+/* Zoom variant (card -> project): the card's image grows from its spot to
+   past the screen edges with a turn, then the sea's front colour washes
+   over it; the sea layers take over from there and leave upward. */
+.pt-zoom {
+  position: absolute; left: var(--x); top: var(--y); width: var(--w); height: var(--h);
+  background: var(--tint) center / cover no-repeat;
+  animation: pt-zoom 560ms cubic-bezier(.76,0,.24,1) both;
+}
+.pt-zoom::after { content: ""; position: absolute; inset: 0; background: var(--tint); animation: pt-zoom-tint 560ms ease-in both; }
+@keyframes pt-zoom {
+  from { left: var(--x); top: var(--y); width: var(--w); height: var(--h); transform: rotate(0deg); }
+  55% { transform: rotate(-5deg); }
+  to { left: -15vw; top: -15vh; width: 130vw; height: 130vh; transform: rotate(0deg); }
+}
+@keyframes pt-zoom-tint { 0%, 45% { opacity: 0; } to { opacity: 1; } }
 /* Slash variant: wide slanted bands cut in from the right, then carry on
    off to the left, front band first. The front band carries the label. */
 .pts-band {

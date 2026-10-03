@@ -7,8 +7,9 @@ import { useGithubStars } from '@/hooks/useGithubStars';
 import { useGithubStats } from '@/hooks/useGithubStats';
 import { docOffset, lerp, onTick, pointer, prefersReducedMotion, smoothstep } from '@/lib/ticker';
 import { AITag } from './AITag';
-import { themeRgb } from '@/lib/theme';
+import { projectPalette, themeRgb } from '@/lib/theme';
 import { TransitionLink } from '@/components/site/TransitionLink';
+import type { TransitionOpts } from '@/lib/pageTransition';
 
 // Each card image is painted on a canvas in thin rows. Every row sits on a
 // curved sheet (sine ripple + cursor bulge + a curl near the top of the
@@ -37,13 +38,27 @@ export const ProjectGrid = ({ projects }: { projects: ProjectData[] }) => {
   );
 };
 
+// Clicking a card zooms its image up to the screen, tinted to the project's
+// deep colour, which the sea then carries away (see PageTransition 'zoom').
+const zoomInto = (p: ProjectData): TransitionOpts => {
+  const frame = document.querySelector<HTMLElement>(`[data-wcard][href="/project/${p.id}"] [data-frame]`);
+  const r = frame?.getBoundingClientRect();
+  const pal = projectPalette((p as { themeColors?: string[] }).themeColors);
+  return {
+    kind: 'zoom',
+    rect: r ? { x: r.left, y: r.top, w: r.width, h: r.height } : undefined,
+    src: p.imageUrl ? `${p.imageUrl}/thumb-1.webp` : undefined,
+    tint: pal?.deep,
+  };
+};
+
 const ProjectCard = ({ p, i }: { p: ProjectData & { showGithubStats?: boolean }; i: number }) => {
   const stars = useGithubStars(p.githubUrl, p.showGithubStats);
   const stats = useGithubStats(p.showGithubStats);
   const year = p.date ? new Date(p.date).getFullYear() : null;
 
   return (
-    <TransitionLink to={`/project/${p.id}`} className="w-card" data-wcard data-img={p.imageUrl ?? ''} style={{ ['--i' as string]: Math.min(i, 8) }}>
+    <TransitionLink to={`/project/${p.id}`} transition={() => zoomInto(p)} className="w-card" data-wcard data-img={p.imageUrl ?? ''} style={{ ['--i' as string]: Math.min(i, 8) }}>
       <div className="w-frame" data-frame>
         <canvas
           className="w-canvas"
