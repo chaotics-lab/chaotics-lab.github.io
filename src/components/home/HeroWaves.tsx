@@ -200,8 +200,10 @@ export const HeroWaves = () => {
           y += S.zig * (5 * ((i + zapShift + n) % 2 ? 1 : -1) * (0.75 + 0.25 * jitter[i]) + 2.5 * jitter[i]);
           // Volta: shock waves
           if (S.volt > 0.01) y += S.volt * shockAt(i, n);
-          // Gaia: the water trembles near the pointer, like an earthquake
-          if (S.earth > 0.01 && near[i] > 0.01) y += S.earth * near[i] * 4.5 * Math.sin(t * 61 + i * 1.7 + n) * Math.sin(t * 23 + n * 2.1);
+          // Gaia: the water shakes near the pointer, like an earthquake: a
+          // quick, small shake in step across the area (so it spreads evenly
+          // both ways), fading with distance; two frequencies keep it rough.
+          if (S.earth > 0.01 && near[i] > 0.01) y += S.earth * near[i] * 2.2 * (Math.sin(t * 140 + n) + 0.5 * Math.sin(t * 233 + n * 2)) / 1.5;
           // Aero: wind chop.
           y += S.storm * gust * (5 * Math.sin(kx * 0.05 + t * 2.6 + n) + 3.5 * Math.sin(kx * 0.083 - t * 3.1));
           // Aero: crests pulled together into sharp peaks (Gerstner-style;
