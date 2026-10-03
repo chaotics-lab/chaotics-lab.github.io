@@ -9,20 +9,21 @@ import { ElementMarquee } from '@/components/portfolio/ElementMarquee';
 import { HomeHero } from './HomeHero';
 import { ProjectGrid } from './ProjectGrid';
 
-// Filter change: two sea layers rise from the bottom of the screen to the
-// top of the cards, the grid swaps underneath (the page shrinks or grows
-// out of sight), then they carry on up and out. Same layers and timings as
-// the page transition (.pt-layer in index.css), clipped to the card area.
-const SWEEP_COVER_MS = 260 + 45;
-const SWEEP_REVEAL_MS = 300 + 45;
-const SWEEP_LAYERS = ['var(--h-c1)', 'var(--h-mid)'];
+// Filter change: the sea transition over the whole page, with the
+// "Projects" title and the pills kept above it. The grid swaps while the
+// page is covered; its old height is held and then eased away, so the page
+// doesn't jump. Same layers and timings as .pt-layer in index.css.
+const SWEEP_COVER_MS = 260 + 2 * 45;
+const SWEEP_REVEAL_MS = 300 + 2 * 45;
+const SWEEP_LAYERS = ['var(--h-c1)', 'var(--h-top)', 'var(--h-deep)'];
 
 export const Home = () => {
   const projects = PROJECTS;
   // `category` follows the pills at once, `shown` is what the grid holds.
   const [category, setCategory] = useState('all');
   const [shown, setShown] = useState('all');
-  const [sweep, setSweep] = useState<{ top: number; phase: 'cover' | 'reveal' } | null>(null);
+  const [sweep, setSweep] = useState<'cover' | 'reveal' | null>(null);
+  const [holdH, setHoldH] = useState<number | undefined>(undefined);
   const gridRef = useRef<HTMLDivElement>(null);
   const timers = useRef<number[]>([]);
   useEffect(() => () => timers.current.forEach(clearTimeout), []);
@@ -31,11 +32,15 @@ export const Home = () => {
     setCategory(id);
     timers.current.forEach(clearTimeout);
     if (prefersReducedMotion()) { setShown(id); return; }
-    const top = Math.max(0, (gridRef.current?.getBoundingClientRect().top ?? 0) - 32);
-    setSweep({ top, phase: 'cover' });
+    setSweep('cover');
     timers.current = [
-      window.setTimeout(() => { setShown(id); setSweep({ top, phase: 'reveal' }); }, SWEEP_COVER_MS + 30),
-      window.setTimeout(() => setSweep(null), SWEEP_COVER_MS + 30 + SWEEP_REVEAL_MS),
+      window.setTimeout(() => {
+        setHoldH(gridRef.current?.offsetHeight);
+        setShown(id);
+        setSweep('reveal');
+      }, SWEEP_COVER_MS + 40),
+      window.setTimeout(() => { setSweep(null); setHoldH(0); }, SWEEP_COVER_MS + 40 + SWEEP_REVEAL_MS),
+      window.setTimeout(() => setHoldH(undefined), SWEEP_COVER_MS + 40 + SWEEP_REVEAL_MS + 600),
     ];
   };
 
@@ -88,8 +93,8 @@ export const Home = () => {
 
       <section id="projects" className="pt-24 md:pt-32 scroll-mt-4">
         <div className="container mx-auto px-5 sm:px-8 text-center">
-          <h2 className="h-display text-[clamp(3.4rem,9vw,8rem)]">Projects</h2>
-          <div ref={tabsRef} className="relative mt-8 inline-flex flex-wrap justify-center gap-2" role="tablist" aria-label="Filter projects">
+          <h2 className="relative z-[61] h-display text-[clamp(3.4rem,9vw,8rem)]">Projects</h2>
+          <div ref={tabsRef} className="relative z-[61] mt-8 inline-flex flex-wrap justify-center gap-2" role="tablist" aria-label="Filter projects">
             {blob && (
               <span
                 className="h-pill-blob"
@@ -115,14 +120,14 @@ export const Home = () => {
         </div>
 
         <div className="mt-16">
-          <div ref={gridRef}>
+          <div ref={gridRef} className="f-hold" style={{ minHeight: holdH }}>
             <ProjectGrid key={shown} projects={filtered} />
           </div>
         </div>
       </section>
 
       {sweep && (
-        <div className="pt f-sweep" data-phase={sweep.phase} style={{ top: sweep.top }} aria-hidden="true">
+        <div className="pt f-sweep" data-phase={sweep} aria-hidden="true">
           {SWEEP_LAYERS.map((color, i) => (
             <div
               key={color}
