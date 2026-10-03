@@ -29,6 +29,7 @@
   <figure class="el-pyra"><canvas data-fx="pyraLamp"></canvas><figcaption><b>Pyra C</b> · lava lamp (ge1doot)</figcaption></figure>
   <figure class="el-pyra"><canvas data-fx="pyraHeat"></canvas><figcaption><b>Pyra D</b> · lamp with heat (hover)</figcaption></figure>
   <figure class="el-aero"><canvas data-fx="aeroStorm"></canvas><figcaption><b>Aero C</b> · eye of the storm (hover, click)</figcaption></figure>
+  <figure class="el-aero"><canvas data-fx="aeroField"></canvas><figcaption><b>Aero D</b> · storm over a field (hover, click)</figcaption></figure>
   <figure class="el-cryo"><canvas data-fx="cryoFrost"></canvas><figcaption><b>Cryo B</b> · frost (hover melts, click)</figcaption></figure>
   <figure class="el-gaia"><canvas data-fx="gaiaStars"></canvas><figcaption><b>Gaia B</b> · sea of stars (hover, click)</figcaption></figure>
   <figure class="el-flora"><canvas data-fx="floraCoral"></canvas><figcaption><b>Flora B</b> · flower coral (move to draw)</figcaption></figure>
@@ -901,6 +902,83 @@ FX.aeroStorm = () => {
       }
       g.lineCap = 'round';
       paths.forEach((pa, i) => { g.strokeStyle = `rgba(255,255,255,${0.15 + 0.75 * (i + 1) / BANDS})`; g.lineWidth = 0.6 + i * 0.35; g.stroke(pa); });
+    },
+  };
+};
+
+// ---- AERO D: storm over a field (after the "Gates storm" pen). Instead of the pen's looping clip-path
+// grass, gusts travel: a noise field scrolled to the right sets how hard the wind blows at each x, so
+// you see each gust roll across the blades. Blades are two curves from a base to a bent tip (the
+// procedural-grass trick), in two layers, one fill each. Kelp palms rock and their fronds flutter
+// harder in a gust; wind streaks (the pen's dashes) and a few leaves speed up with the wind; the pen's
+// double lightning flicker comes at random. The pointer pushes the grass aside; a click is a big gust.
+FX.aeroField = () => {
+  let blades = null, palms = [], streaks = [], leaves = [], t = 0, W = 0, H = 0, ptr = null, burst = 0, flash = 0, nextFlash = 2, flick = 0;
+  const gustAt = (x, t) => Math.max(0, 0.35 + 0.65 * noise(x * 0.004 - t * 0.55, t * 0.07) + burst * Math.exp(-(((x - burstX(t)) / 120) ** 2)));
+  let bt = -9; const burstX = t => (t - bt) * 520 - 100;
+  const setup = (w, h) => {
+    blades = [0, 1].map(layer => [...Array(Math.round(w / (layer ? 3.2 : 4.5)))].map(() => ({ x: rnd(-10, w + 10), len: rnd(h * 0.08, h * (layer ? 0.24 : 0.32)), wb: rnd(1.2, 2.6), ph: rnd(0, TAU) })));
+    palms = [...Array(Math.max(2, Math.round(w / 200)))].map((_, i, a) => ({ x: (i + 0.5 + rnd(-0.3, 0.3)) * (w / a.length), len: h * rnd(0.45, 0.7), ph: rnd(0, TAU), fronds: 7, fl: [...Array(7)].map(() => rnd(0.24, 0.32)) }));
+    streaks = [...Array(Math.round(w / 14))].map(() => ({ x: rnd(0, w), y: rnd(h * 0.05, h * 0.85), len: rnd(20, 80), sp: rnd(0.6, 1.4) }));
+    leaves = [...Array(Math.round(w / 40))].map(() => ({ x: rnd(0, w), y: rnd(h * 0.3, h), r: rnd(0, TAU), s: rnd(3, 6), ph: rnd(0, TAU) }));
+  };
+  const blade = (pa, x, h, len, wb, lean) => {
+    const a = lean * 1.25, tx = x + Math.sin(a) * len, ty = h - Math.cos(a) * len, cx = x + Math.sin(a * 0.45) * len * 0.55, cy = h - len * 0.6;
+    pa.moveTo(x - wb, h); pa.quadraticCurveTo(cx - wb * 0.5, cy, tx, ty); pa.quadraticCurveTo(cx + wb * 0.5, cy, x + wb, h); pa.closePath();
+  };
+  return {
+    click: () => { burst = 1.4; bt = t; },
+    move: (x, y) => { ptr = x == null ? null : { x, y }; },
+    draw(g, w, h, dt) {
+      t += dt;
+      if (W !== w || H !== h) { W = w; H = h; setup(w, h); }
+      burst *= Math.pow(0.5, dt);
+      // lightning: a quick double flicker every few seconds
+      if ((nextFlash -= dt) <= 0) { nextFlash = rnd(2.5, 7); flash = 1; flick = 0.12; }
+      if (flick > 0 && (flick -= dt) <= 0 && flash < 0.6) flash = 0.8;
+      flash *= Math.pow(0.004, dt);
+      if (flash > 0.02) { g.fillStyle = `rgba(255,255,255,${0.1 * flash})`; g.fillRect(0, 0, w, h); }
+      // kelp palms: a trunk that rocks with the wind at its x, fronds flapping faster when it blows
+      g.lineCap = 'round'; g.lineJoin = 'round';
+      const trunks = new Path2D(), fronds = new Path2D();
+      for (const p of palms) {
+        const gw = gustAt(p.x, t), rock = 0.12 + 0.18 * gw + 0.04 * Math.sin(t * 2.2 + p.ph);
+        const tx = p.x + Math.sin(rock) * p.len, ty = h - Math.cos(rock) * p.len;
+        trunks.moveTo(p.x, h + 4); trunks.quadraticCurveTo(p.x + Math.sin(rock * 0.4) * p.len * 0.5, h - p.len * 0.55, tx, ty);
+        for (let i = 0; i < p.fronds; i++) {
+          const base = (i / (p.fronds - 1) - 0.5) * 2.4 + rock * 1.5, flap = Math.sin(t * (6 + 14 * gw) + i * 1.7 + p.ph) * 0.12 * (0.4 + gw), a = -Math.PI / 2 + base + flap + gw * 0.5;
+          const L = p.len * p.fl[i], ex = tx + Math.cos(a) * L, ey = ty + Math.sin(a) * L + L * 0.35, mx = tx + Math.cos(a) * L * 0.5, my = ty + Math.sin(a) * L * 0.5 - L * 0.12;
+          fronds.moveTo(tx, ty); fronds.quadraticCurveTo(mx, my, ex, ey);
+        }
+      }
+      g.strokeStyle = 'rgba(255,255,255,0.55)'; g.lineWidth = 2.2; g.stroke(trunks);
+      g.lineWidth = 1.2; g.stroke(fronds);
+      // grass: back layer fainter, front brighter; the lean follows the gust at each blade
+      blades.forEach((layer, li) => {
+        const pa = new Path2D();
+        for (const b of layer) {
+          let lean = 0.15 + 0.55 * gustAt(b.x + li * 40, t) + 0.05 * Math.sin(t * 7 + b.ph) * gustAt(b.x, t);
+          if (ptr && Math.abs(ptr.x - b.x) < 60 && ptr.y > h - b.len * 1.5) lean += Math.sign(b.x - ptr.x || 1) * (1 - Math.abs(ptr.x - b.x) / 60) * 0.6;
+          blade(pa, b.x, h + 2, b.len, b.wb, lean);
+        }
+        g.fillStyle = `rgba(255,255,255,${li ? 0.4 : 0.18})`; g.fill(pa);
+      });
+      // wind streaks and leaves, faster in a gust
+      const sp = new Path2D();
+      for (const s of streaks) {
+        const gw = gustAt(s.x, t); s.x += (220 + 700 * gw) * s.sp * dt;
+        if (s.x - s.len > w) { s.x = -rnd(0, 100); s.y = rnd(h * 0.05, h * 0.85); }
+        if (gw > 0.45) { sp.moveTo(s.x - s.len * gw, s.y); sp.lineTo(s.x, s.y); }
+      }
+      g.strokeStyle = 'rgba(255,255,255,0.3)'; g.lineWidth = 1; g.stroke(sp);
+      const lp = new Path2D();
+      for (const l of leaves) {
+        const gw = gustAt(l.x, t); l.x += (60 + 380 * gw) * dt; l.y += Math.sin(t * 3 + l.ph) * 30 * dt - (gw - 0.5) * 20 * dt; l.r += (2 + 8 * gw) * dt;
+        if (l.x > w + 10) { l.x = -10; l.y = rnd(h * 0.3, h); }
+        const c = Math.cos(l.r) * l.s, s2 = Math.sin(l.r) * l.s * 0.4;
+        lp.moveTo(l.x - c, l.y - s2); lp.lineTo(l.x + c, l.y + s2);
+      }
+      g.strokeStyle = 'rgba(255,255,255,0.7)'; g.lineWidth = 1.6; g.stroke(lp);
     },
   };
 };
