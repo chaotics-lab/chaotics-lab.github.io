@@ -11,15 +11,50 @@ const W = 1000;
 const H = 300;
 const NODES = 72;
 const EDGE = 60; // nodes run this far past both sides, so shifted ends stay hidden
-// One petal, in screen px around its centre (HeroWaves undoes the SVG's
-// stretch before drawing it).
-const PETAL = 'M0 -7 C 5 -5, 6 2, 0 7 C -6 2, -5 -5, 0 -7 Z';
-
 const LAYERS = [
   { base: 95, a: [18, 8], k: [0.007, 0.017], w: [0.45, -0.7], stir: 0.15, phase: 0 },
   { base: 150, a: [14, 7], k: [0.009, 0.021], w: [-0.6, 0.9], stir: 0.35, phase: 2.1 },
   { base: 205, a: [11, 6], k: [0.011, 0.026], w: [0.8, -1.1], stir: 0.7, phase: 4.2 },
 ];
+
+// Icon particles. Each element that has them gets a pool per depth plane:
+// plane k is drawn just behind wave layer k (0 = farthest), so the icons
+// pop out between the waves. Farther planes: smaller, fainter, slower.
+const KINDS = ['flora', 'aero', 'cryo', 'pyra', 'aqua', 'gaia'] as const;
+type Kind = (typeof KINDS)[number];
+const POOL: Record<Kind, [number, number, number]> = {
+  flora: [4, 5, 7],
+  aero: [5, 6, 9],
+  cryo: [6, 7, 9],
+  pyra: [10, 12, 16],
+  aqua: [10, 12, 16],
+  gaia: [4, 5, 6],
+};
+const PLANE_SIZE = [0.45, 0.65, 1];
+const PLANE_ALPHA = [0.35, 0.6, 0.95];
+const PLANE_SPEED = [0.55, 0.75, 1];
+
+// Element icon turned into a white silhouette, as a data URL. For Aqua only
+// the big drop is kept (the small one is cut off).
+function whiteIcon(id: Kind, done: (url: string) => void) {
+  const img = new Image();
+  img.onload = () => {
+    const c = document.createElement('canvas');
+    c.width = c.height = 96;
+    const g = c.getContext('2d');
+    if (!g) return;
+    if (id === 'aqua') {
+      const w = (390 / 512) * 96;
+      g.drawImage(img, 0, 0, 390 * (img.naturalWidth / 512), img.naturalHeight, (96 - w) / 2, 0, w, 96);
+      g.clearRect((96 - w) / 2 + (368 / 390) * w, (125 / 512) * 96, 96, (205 / 512) * 96);
+    } else g.drawImage(img, 0, 0, 96, 96);
+    g.globalCompositeOperation = 'source-in';
+    g.fillStyle = '#fff';
+    g.fillRect(0, 0, 96, 96);
+    done(c.toDataURL());
+  };
+  img.src = `/${id}.png`;
+}
 
 export const HeroWaves = () => {
   const wrapRef = useRef<HTMLDivElement>(null);
@@ -32,19 +67,33 @@ export const HeroWaves = () => {
     const fills = [...svg.querySelectorAll<SVGPathElement>('[data-fill]')];
     const stops = [...svg.querySelectorAll<SVGStopElement>('stop[data-op]')];
     const crest = svg.querySelector<SVGPathElement>('[data-crest]')!;
-    const spray = [...svg.querySelectorAll<SVGEllipseElement>('[data-spray]')];
-    const petalEls = [...svg.querySelectorAll<SVGPathElement>('[data-petal]')];
+    // els[kind][plane] = the <image> pool for that kind on that plane
+    const els = Object.fromEntries(KINDS.map(k => [k, [0, 1, 2].map(pl => [...svg.querySelectorAll<SVGImageElement>(`[data-p="${k}${pl}"]`)])])) as Record<Kind, SVGImageElement[][]>;
+    KINDS.forEach(k => whiteIcon(k, url => els[k].flat().forEach(el => el.setAttribute('href', url))));
     const h = new Float32Array(NODES);
     const v = new Float32Array(NODES);
+    const v_ = v; // spring velocities, for rain landing on the front layer
     const xs = new Float32Array(NODES);
     const ys = new Float32Array(NODES);
-    const frontX = new Float32Array(NODES);
-    const frontY = new Float32Array(NODES);
-    // Volta: per-node jitter and the phase of the crawling teeth, both
-    // refreshed at ~14 Hz like a flickering current.
+    // every layer's top edge, for particles riding it (2 = front)
+    const layerX = [0, 1, 2].map(() => new Float32Array(NODES));
+    const layerY = [0, 1, 2].map(() => new Float32Array(NODES));
+    // Volta: per-node jitter and the phase of the crawling teeth, refreshed
+    // a few times a second, and shocks that jolt the water at random spots.
     const jitter = new Float32Array(NODES);
     let zapShift = 0;
     let flick = 0;
+    type Shock = { j: number; amp: number; age: number };
+    const shocks: Shock[] = [];
+    const shockAt = (i: number) => {
+      let y = 0;
+      for (const k of shocks) {
+        // a jagged burst: alternate nodes kick opposite ways around the hit
+        const near = Math.exp(-((i - k.j) ** 2) / 10);
+        y += k.amp * Math.exp(-k.age * 3.5) * Math.cos(k.age * 20) * near * (i % 2 ? 1 : -0.7);
+      }
+      return y;
+    };
 
     let box = docOffset(wrap);
     const measure = () => { box = docOffset(wrap); };
@@ -106,8 +155,8 @@ export const HeroWaves = () => {
           y += S.fluid * 0.4 * L.a[0] * Math.sin(kx * L.k[0] * 2.7 - t * L.w[0] * 1.9 + L.phase * 2);
           // Cryo / Gaia: slow lumps.
           y += S.lumps * (4 * Math.sin(kx * 0.09 + t * 0.12 + n) + 3 * Math.sin(kx * 0.153 - t * 0.08 + n * 2));
-          // Volta: zigzag teeth that crawl along, plus a jittery spark.
-          y += S.zig * (5 * ((i + zapShift + n) % 2 ? 1 : -1) * (0.75 + 0.25 * jitter[i]) + 2.5 * jitter[i]);
+          // Volta: zigzag teeth that crawl along, a jittery spark, shocks.
+          y += S.zig * (5 * ((i + zapShift + n) % 2 ? 1 : -1) * (0.75 + 0.25 * jitter[i]) + 2.5 * jitter[i] + shockAt(i) * (0.4 + 0.3 * n));
           // Aero: wind chop.
           y += S.storm * gust * (5 * Math.sin(kx * 0.05 + t * 2.6 + n) + 3.5 * Math.sin(kx * 0.083 - t * 3.1));
           // Aero: crests pulled together into sharp peaks (Gerstner-style;
@@ -117,11 +166,9 @@ export const HeroWaves = () => {
         }
         const top = curve(S.zig > 0.5);
         fills[n].setAttribute('d', `${top} L${W} ${H} L0 ${H} Z`);
-        if (n === LAYERS.length - 1) {
-          crest.setAttribute('d', top);
-          frontX.set(xs);
-          frontY.set(ys);
-        }
+        layerX[n].set(xs);
+        layerY[n].set(ys);
+        if (n === LAYERS.length - 1) crest.setAttribute('d', top);
       });
       // Volta: the crest burns brighter and flickers. Aero: white caps.
       crest.style.stroke = S.zig > 0.5 ? 'var(--h-c1)' : S.storm > 0.5 ? '#fff' : 'var(--h-c3)';
@@ -129,63 +176,160 @@ export const HeroWaves = () => {
       crest.setAttribute('stroke-width', String(1.5 + S.zig + S.storm * gust));
     };
 
-    // Height of the front surface at x (viewBox units) and its slope.
-    const surface = (x: number) => {
+    // Height of layer k's surface at x (viewBox units) and its slope.
+    const surface = (k: number, x: number) => {
+      const X = layerX[k];
+      const Y = layerY[k];
       let i = 0;
-      while (i < NODES - 2 && frontX[i + 1] < x) i++;
-      const span = frontX[i + 1] - frontX[i] || 1;
-      const k = Math.min(1, Math.max(0, (x - frontX[i]) / span));
-      return { y: frontY[i] + (frontY[i + 1] - frontY[i]) * k, slope: (frontY[i + 1] - frontY[i]) / span };
+      while (i < NODES - 2 && X[i + 1] < x) i++;
+      const span = X[i + 1] - X[i] || 1;
+      const f = Math.min(1, Math.max(0, (x - X[i]) / span));
+      return { y: Y[i] + (Y[i + 1] - Y[i]) * f, slope: (Y[i + 1] - Y[i]) / span };
     };
 
-    // Aero: spray torn off the crests by the wind.
-    type Drop = { x: number; y: number; vx: number; vy: number; age: number; life: number; r: number };
-    const drops: Drop[] = [];
-    // Flora: petals riding the front surface.
-    const petals = petalEls.map((_, i) => ({ u: i / petalEls.length + Math.random() * 0.05, speed: 0.008 + Math.random() * 0.01, phase: Math.random() * 6.3, size: 0.8 + Math.random() * 0.5 }));
+    // Particles keep x/y in viewBox units; sizes and speeds are in screen px
+    // and converted with the SVG's current stretch (sx, sy).
+    type P = { x: number; y: number; vx: number; vy: number; rot: number; spin: number; size: number; age: number; life: number; phase: number };
+    const rnd = (a: number, b: number) => a + Math.random() * (b - a);
+    const live: Record<Kind, P[][]> = Object.fromEntries(KINDS.map(k => [k, [[], [], []]])) as Record<Kind, P[][]>;
+    // the ones that always exist (Flora, Cryo, Gaia)
+    [0, 1, 2].forEach(pl => {
+      live.flora[pl] = els.flora[pl].map((_, i, a) => ({ x: ((i + rnd(0.1, 0.9)) / a.length) * W, y: 0, vx: rnd(3, 8), vy: 0, rot: rnd(0, 360), spin: rnd(-6, 6), size: rnd(16, 28), age: 0, life: 1, phase: rnd(0, 6.3) }));
+      live.cryo[pl] = els.cryo[pl].map(() => ({ x: rnd(0, W), y: rnd(8, 60), vx: rnd(-6, 6), vy: rnd(3, 9), rot: rnd(0, 360), spin: rnd(-25, 25), size: rnd(8, 16), age: 0, life: 1, phase: rnd(0, 6.3) }));
+      live.gaia[pl] = els.gaia[pl].map((_, i, a) => ({ x: ((i + rnd(0.15, 0.85)) / a.length) * W, y: 0, vx: 0, vy: 0, rot: rnd(-10, 10), spin: 0, size: rnd(22, 34), age: 0, life: 1, phase: rnd(0, 6.3) }));
+    });
+    const nextBurst = [rnd(0.5, 2), rnd(1, 3), rnd(1.5, 4)];
+    const rainClock = [0, 0, 0];
+
+    const place = (el: SVGImageElement, x: number, y: number, rot: number, size: number, alpha: number, sx: number, sy: number) => {
+      el.setAttribute('transform', `translate(${x.toFixed(1)} ${y.toFixed(1)}) scale(${(1 / sx).toFixed(4)} ${(1 / sy).toFixed(4)}) rotate(${rot.toFixed(1)})`);
+      el.setAttribute('x', (-size / 2).toFixed(1));
+      el.setAttribute('y', (-size / 2).toFixed(1));
+      el.setAttribute('width', size.toFixed(1));
+      el.setAttribute('height', size.toFixed(1));
+      el.setAttribute('opacity', alpha.toFixed(2));
+    };
+    const hidden = new Set<Kind>();
+    const hide = (k: Kind) => {
+      if (hidden.has(k)) return;
+      els[k].flat().forEach(el => el.setAttribute('opacity', '0'));
+      hidden.add(k);
+    };
+    // Draws the live particles of a spawned kind, hides the unused images.
+    const show = (k: Kind, pl: number, pose: (p: P) => [number, number, number, number, number], sx: number, sy: number) => {
+      els[k][pl].forEach((el, i) => {
+        const p = live[k][pl][i];
+        if (!p) { el.setAttribute('opacity', '0'); return; }
+        const [x, y, rot, size, alpha] = pose(p);
+        place(el, x, y, rot, size, alpha, sx, sy);
+      });
+    };
 
     const fx = (dt: number, t: number) => {
       const sx = box.w / W || 1;
       const sy = box.h / H || 1;
       const S = style;
-      // spawn spray at steep crests during gusts
-      if (S.storm > 0.05) {
-        for (let i = 2; i < NODES - 2; i++) {
-          if (frontY[i] < frontY[i - 1] && frontY[i] < frontY[i + 1] && Math.random() < S.storm * (0.5 + Math.max(0, gust - 1) * 3) * dt * 6 && drops.length < spray.length) {
-            for (let k = 0; k < 3 && drops.length < spray.length; k++) {
-              drops.push({ x: frontX[i] + k * 4, y: frontY[i], vx: 90 + Math.random() * 120, vy: -(50 + Math.random() * 70), age: 0, life: 0.5 + Math.random() * 0.6, r: 1.6 + Math.random() * 2.2 });
+      const weight: Record<Kind, number> = { flora: S.petals, aero: S.storm, cryo: S.frost, pyra: S.solar, aqua: S.rain, gaia: S.earth };
+      KINDS.forEach(k => { if (weight[k] > 0.01) hidden.delete(k); else if (!live[k].some(a => a.length && (k === 'aero' || k === 'pyra' || k === 'aqua'))) hide(k); });
+
+      for (let pl = 0; pl < 3; pl++) {
+        const f = PLANE_SIZE[pl];
+        const v = PLANE_SPEED[pl];
+        const al = PLANE_ALPHA[pl];
+
+        // Flora: flowers drift right and slowly turn, resting on the water.
+        if (!hidden.has('flora')) els.flora[pl].forEach((el, i) => {
+          const p = live.flora[pl][i];
+          p.x += p.vx * v * dt;
+          if (p.x > W + 40) p.x = -40;
+          p.rot += p.spin * dt;
+          const s = surface(pl, p.x);
+          const size = p.size * f * (1 + 0.04 * Math.sin(t + p.phase));
+          place(el, p.x, s.y - (size * 0.2) / sy + Math.sin(t * 0.8 + p.phase) * 0.5, p.rot + Math.atan(s.slope * sy / sx) * 28, size, S.petals * al, sx, sy);
+        });
+
+        // Cryo: snowflakes hover above the water, sink slowly, turn and
+        // twinkle; they start again higher up when they touch it.
+        if (!hidden.has('cryo')) els.cryo[pl].forEach((el, i) => {
+          const p = live.cryo[pl][i];
+          p.x += (p.vx + Math.sin(t * 0.6 + p.phase) * 4) * v * dt;
+          p.y -= p.vy * v * dt; // height above the surface, px
+          p.rot += p.spin * dt;
+          if (p.y < 2) { p.y = rnd(30, 70); p.x = rnd(0, W); }
+          if (p.x < -20) p.x = W + 20;
+          if (p.x > W + 20) p.x = -20;
+          const s = surface(pl, p.x);
+          const fade = Math.min(1, (p.y - 2) / 12) * (0.55 + 0.45 * Math.sin(t * 2 + p.phase));
+          place(el, p.x, s.y - (p.y * f) / sy, p.rot, p.size * f, S.frost * al * fade, sx, sy);
+        });
+
+        // Gaia: icons rise out of the water, bob a little, and sink back.
+        if (!hidden.has('gaia')) els.gaia[pl].forEach((el, i) => {
+          const p = live.gaia[pl][i];
+          const up = Math.max(0, Math.sin(t * 0.35 * v + p.phase)); // 0 = under water
+          const x = p.x + Math.sin(t * 0.2 + p.phase) * 12;
+          const s = surface(pl, x);
+          const size = p.size * f;
+          place(el, x, s.y + ((1 - up) * size * 0.9 - size * 0.15) / sy, p.rot + 6 * Math.sin(t * 0.5 + p.phase), size, S.earth * al * Math.min(1, up * 3), sx, sy);
+        });
+
+        // Aero: little tornadoes torn off the crests and blown downwind.
+        if (S.storm > 0.05) {
+          const Y = layerY[pl];
+          for (let i = 2; i < NODES - 2; i++) {
+            if (Y[i] < Y[i - 1] && Y[i] < Y[i + 1] && live.aero[pl].length < els.aero[pl].length && Math.random() < S.storm * (0.25 + Math.max(0, gust - 1) * 2) * dt * 2.5) {
+              live.aero[pl].push({ x: layerX[pl][i], y: Y[i], vx: rnd(110, 210) * v, vy: rnd(-45, -15) * v, rot: rnd(-20, 20), spin: rnd(-40, 40), size: rnd(12, 24) * f, age: 0, life: rnd(1.1, 1.9), phase: rnd(0, 6.3) });
             }
           }
         }
+
+        // Pyra: solar flares now and then burst out of the water and throw
+        // icons up on parabolas; they drop back in.
+        if (S.solar > 0.05 && (nextBurst[pl] -= dt) <= 0) {
+          nextBurst[pl] = rnd(1.4, 3.8);
+          const x = rnd(0.08, 0.92) * W;
+          const n = 4 + Math.floor(Math.random() * 4);
+          for (let j = 0; j < n && live.pyra[pl].length < els.pyra[pl].length; j++) {
+            live.pyra[pl].push({ x, y: surface(pl, x).y, vx: rnd(-90, 90) * v, vy: -rnd(150, 260) * v, rot: rnd(0, 360), spin: rnd(-200, 200), size: rnd(16, 28) * f, age: 0, life: 4, phase: 0 });
+          }
+        }
+
+        // Aqua: rain drops fall in at a slant and vanish into the water,
+        // nudging the front surface where they land.
+        if (S.rain > 0.05) {
+          rainClock[pl] += dt * S.rain * (4 + pl * 3);
+          while (rainClock[pl] > 1 && live.aqua[pl].length < els.aqua[pl].length) {
+            rainClock[pl] -= 1;
+            live.aqua[pl].push({ x: rnd(-0.05, 1) * W, y: -10, vx: 40 * v, vy: rnd(260, 360) * v, rot: 0, spin: 0, size: rnd(10, 16) * f, age: 0, life: 3, phase: 0 });
+          }
+          if (rainClock[pl] > 1) rainClock[pl] = 1;
+        }
+
+        // move the spawned ones (velocities in px/s)
+        for (const k of ['aero', 'pyra', 'aqua'] as const) {
+          const list = live[k][pl];
+          for (let i = list.length - 1; i >= 0; i--) {
+            const p = list[i];
+            p.age += dt;
+            const g = k === 'pyra' ? 300 * v : k === 'aero' ? 12 : 0;
+            p.vy += g * dt;
+            p.x += (p.vx * (k === 'aero' ? gust : 1) * dt) / sx;
+            p.y += (p.vy * dt) / sy;
+            p.rot += p.spin * dt;
+            const below = p.y > surface(pl, p.x).y + 2;
+            if (p.age >= p.life || ((k === 'pyra' || k === 'aqua') && p.vy > 0 && below)) {
+              if (k === 'aqua' && pl === 2) {
+                const j = Math.round(((p.x + EDGE) / (W + 2 * EDGE)) * (NODES - 1));
+                if (j >= 0 && j < NODES) v_[j] += 0.35;
+              }
+              list.splice(i, 1);
+            }
+          }
+        }
+        if (!hidden.has('aero')) show('aero', pl, p => { const k = p.age / p.life; return [p.x, p.y, p.rot + 15 * Math.sin(p.age * 6 + p.phase), p.size * (0.6 + 0.6 * Math.sin(Math.PI * k)), Math.sin(Math.PI * k) * S.storm * al]; }, sx, sy);
+        if (!hidden.has('pyra')) show('pyra', pl, p => [p.x, p.y, p.rot, p.size, S.solar * al * Math.min(1, p.age * 6)], sx, sy);
+        if (!hidden.has('aqua')) show('aqua', pl, p => [p.x, p.y, -28 + Math.atan2(-p.vx, p.vy) * 57.3, p.size, S.rain * al], sx, sy);
       }
-      for (let i = drops.length - 1; i >= 0; i--) {
-        const d = drops[i];
-        d.age += dt;
-        if (d.age >= d.life) { drops.splice(i, 1); continue; }
-        d.vy += 170 * dt;
-        d.x += d.vx * dt;
-        d.y += d.vy * dt;
-      }
-      spray.forEach((el, i) => {
-        const d = drops[i];
-        if (!d) { el.setAttribute('opacity', '0'); return; }
-        el.setAttribute('cx', d.x.toFixed(1));
-        el.setAttribute('cy', d.y.toFixed(1));
-        el.setAttribute('rx', (d.r / sx).toFixed(2));
-        el.setAttribute('ry', (d.r / sy).toFixed(2));
-        el.setAttribute('opacity', ((1 - d.age / d.life) * 0.85 * S.storm).toFixed(2));
-      });
-      // petals drift right, bob and turn with the surface
-      petalEls.forEach((el, i) => {
-        const p = petals[i];
-        p.u = (p.u + p.speed * dt) % 1.04;
-        const x = (p.u - 0.02) * W;
-        const s = surface(x);
-        const tilt = Math.atan(s.slope * sy / sx) * 57.3 + 25 * Math.sin(t * 0.9 + p.phase);
-        const y = s.y - 1.5 + Math.sin(t * 1.3 + p.phase) * 1.2;
-        el.setAttribute('transform', `translate(${x.toFixed(1)} ${y.toFixed(1)}) scale(${(1 / sx).toFixed(4)} ${(1 / sy).toFixed(4)}) rotate(${tilt.toFixed(1)}) scale(${p.size.toFixed(2)})`);
-        el.setAttribute('opacity', (S.petals * 0.95).toFixed(2));
-      });
     };
 
     // Spring chain: each node is pulled back to rest and towards its
@@ -209,6 +353,7 @@ export const HeroWaves = () => {
     let lastY = pointer.y;
     let acc = 0;
     let zapClock = 0;
+    let nextShock = 1.5;
     const off = onTick((_t, dt) => {
       if (!visible) return;
       const px = pointer.x - box.x;
@@ -225,11 +370,18 @@ export const HeroWaves = () => {
       const ease = Math.min(1, dt * 3);
       (Object.keys(style) as (keyof WaveStyle)[]).forEach(k => { style[k] += (target[k] - style[k]) * ease; });
       zapClock += dt;
-      if (zapClock > 0.07) {
+      if (zapClock > 0.22) {
         zapClock = 0;
         zapShift++;
         flick = Math.random();
         for (let i = 0; i < NODES; i++) jitter[i] = Math.random() * 2 - 1;
+      }
+      // Volta shocks, every 1.2 to 4 s at a random spot.
+      for (let i = shocks.length - 1; i >= 0; i--) if ((shocks[i].age += dt) > 1.4) shocks.splice(i, 1);
+      if (style.zig > 0.5 && (nextShock -= dt) <= 0) {
+        nextShock = 1.2 + Math.random() * 2.8;
+        shocks.push({ j: 4 + Math.random() * (NODES - 8), amp: (Math.random() < 0.5 ? -1 : 1) * (26 + Math.random() * 16), age: 0 });
+        flick = 1;
       }
       clock += dt * style.speed;
       draw(clock);
@@ -261,17 +413,14 @@ export const HeroWaves = () => {
             <stop offset="1" style={{ stopColor: 'var(--h-deep)' }} stopOpacity="0" />
           </linearGradient>
         </defs>
-        <path data-fill fill="url(#hw-0)" />
-        <path data-fill fill="url(#hw-1)" />
-        <path data-fill fill="url(#hw-2)" />
+        {[0, 1, 2].map(pl => (
+          <g key={pl}>
+            {/* icons of plane pl, behind wave layer pl */}
+            {KINDS.map(k => Array.from({ length: POOL[k][pl] }, (_, i) => <image key={`${k}${i}`} data-p={`${k}${pl}`} opacity="0" />))}
+            <path data-fill fill={`url(#hw-${pl})`} />
+          </g>
+        ))}
         <path data-crest fill="none" style={{ stroke: 'var(--h-c3)' }} strokeOpacity="0.45" strokeWidth="1.5" strokeLinejoin="miter" vectorEffect="non-scaling-stroke" />
-        {/* Aero spray and Flora petals, positioned every frame */}
-        <g style={{ fill: '#fff' }}>
-          {Array.from({ length: 70 }, (_, i) => <ellipse key={i} data-spray opacity="0" />)}
-        </g>
-        <g style={{ fill: 'var(--h-c2)', stroke: 'var(--h-c3)', strokeWidth: 0.8 }}>
-          {Array.from({ length: 11 }, (_, i) => <path key={i} data-petal opacity="0" d={PETAL} vectorEffect="non-scaling-stroke" />)}
-        </g>
       </svg>
     </div>
   );
