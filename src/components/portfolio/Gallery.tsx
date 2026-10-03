@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { ArrowsOut, CaretLeft, CaretRight, X } from '@phosphor-icons/react';
 import { prefersReducedMotion } from '@/lib/ticker';
 
@@ -57,6 +58,44 @@ export const Gallery = ({ frames, title }: { frames: string[]; title: string }) 
   const alt = (i: number) => `${title}, image ${i + 1}`;
   const pad = (n: number) => String(n).padStart(2, '0');
 
+  // progress bars, counter, then the controls as a header-style pill (with
+  // the full-screen button under the inline gallery)
+  const bar = (inline: boolean) => (
+    <div className="g-bar">
+      {count > 1 && (
+        <div className="g-dots">
+          {frames.map((src, i) => (
+            <button
+              key={src}
+              type="button"
+              className="g-dot"
+              aria-current={i === current}
+              aria-label={`Image ${i + 1}`}
+              onClick={() => setCurrent(i)}
+            >
+              <span
+                key={i === current ? `${current}-${auto}` : undefined}
+                className="g-fill"
+                data-run={i === current && auto ? 'true' : undefined}
+                style={{ animationDuration: `${AUTOPLAY_MS}ms` }}
+              />
+            </button>
+          ))}
+        </div>
+      )}
+      {count > 1 && <span className="g-count" aria-live="polite">{pad(current + 1)} <span>/ {pad(count)}</span></span>}
+      <div className="s-nav flex g-ctrl">
+        {count > 1 && (
+          <>
+            <button type="button" className="s-nav-item s-top-item" onClick={() => go(-1)} aria-label="Previous image"><CaretLeft size={16} weight="bold" className="s-icon" /></button>
+            <button type="button" className="s-nav-item s-top-item" onClick={() => go(1)} aria-label="Next image"><CaretRight size={16} weight="bold" className="s-icon" /></button>
+          </>
+        )}
+        {inline && <button type="button" className="s-nav-item s-top-item" onClick={() => setViewer(true)} aria-label="View full screen"><ArrowsOut size={16} weight="bold" className="s-icon" /></button>}
+      </div>
+    </div>
+  );
+
   return (
     <div
       className="g-wrap"
@@ -77,59 +116,40 @@ export const Gallery = ({ frames, title }: { frames: string[]; title: string }) 
         </div>
       </div>
 
-      {/* progress bars, counter, then the controls as a header-style pill */}
-      <div className="g-bar">
-        {count > 1 && (
-          <div className="g-dots">
-            {frames.map((src, i) => (
-              <button
-                key={src}
-                type="button"
-                className="g-dot"
-                aria-current={i === current}
-                aria-label={`Image ${i + 1}`}
-                onClick={() => setCurrent(i)}
-              >
-                <span
-                  key={i === current ? `${current}-${auto}` : undefined}
-                  className="g-fill"
-                  data-run={i === current && auto ? 'true' : undefined}
-                  style={{ animationDuration: `${AUTOPLAY_MS}ms` }}
-                />
-              </button>
-            ))}
-          </div>
-        )}
-        {count > 1 && <span className="g-count" aria-live="polite">{pad(current + 1)} <span>/ {pad(count)}</span></span>}
-        <div className="s-nav flex g-ctrl">
-          {count > 1 && (
-            <>
-              <button type="button" className="s-nav-item s-top-item" onClick={() => go(-1)} aria-label="Previous image"><CaretLeft size={16} weight="bold" className="s-icon" /></button>
-              <button type="button" className="s-nav-item s-top-item" onClick={() => go(1)} aria-label="Next image"><CaretRight size={16} weight="bold" className="s-icon" /></button>
-            </>
-          )}
-          <button type="button" className="s-nav-item s-top-item" onClick={() => setViewer(true)} aria-label="View full screen"><ArrowsOut size={16} weight="bold" className="s-icon" /></button>
-        </div>
-      </div>
+      {bar(true)}
 
-      {viewer && (
-        <div className="p-viewer" role="dialog" aria-modal="true" aria-label="Image viewer" onClick={() => setViewer(false)} {...swipe}>
-          <img src={frames[current]} alt={alt(current)} onClick={e => e.stopPropagation()} />
-          <button type="button" className="s-circle absolute top-4 right-4" onClick={() => setViewer(false)} aria-label="Close">
-            <X size={20} weight="bold" />
-          </button>
-          {count > 1 && (
-            <>
-              <button type="button" className="s-circle absolute left-4 top-1/2 -translate-y-1/2" onClick={e => { e.stopPropagation(); go(-1); }} aria-label="Previous image">
-                <CaretLeft size={20} weight="bold" />
+      {/* Full screen: the page's deep colours, title and close on top, the
+          slides moving sideways like above, the same bars and pill below.
+          Clicking around the image closes it. */}
+      {viewer && createPortal(
+        <div className="g-viewer" role="dialog" aria-modal="true" aria-label={`${title}, images`} onClick={() => setViewer(false)}>
+          <div className="g-v-head" onClick={e => e.stopPropagation()}>
+            <div className="min-w-0">
+              <p className="h-caps text-[0.62rem] text-[var(--h-c2)]">Images</p>
+              <p className="h-display g-v-title">{title}</p>
+            </div>
+            <div className="s-nav flex flex-none">
+              <button type="button" className="s-nav-item s-top-item s-top-wide h-swap-host" onClick={() => setViewer(false)} aria-label="Close">
+                <X size={16} weight="bold" className="s-icon" />
+                <span className="h-swap">
+                  <span>Close</span>
+                  <span className="h-serif text-[1.1rem] leading-[1.05]" aria-hidden="true">Close</span>
+                </span>
               </button>
-              <button type="button" className="s-circle absolute right-4 top-1/2 -translate-y-1/2" onClick={e => { e.stopPropagation(); go(1); }} aria-label="Next image">
-                <CaretRight size={20} weight="bold" />
-              </button>
-              <span className="g-count absolute bottom-5 left-1/2 -translate-x-1/2">{pad(current + 1)} <span>/ {pad(count)}</span></span>
-            </>
-          )}
-        </div>
+            </div>
+          </div>
+          <div className="g-v-stage" {...swipe}>
+            <div className="g-track" style={{ transform: `translateX(${-current * 100}%)` }}>
+              {frames.map((src, i) => (
+                <div key={src} className="g-v-slide" aria-hidden={i !== current}>
+                  <img src={src} alt={alt(i)} draggable={false} onClick={e => e.stopPropagation()} />
+                </div>
+              ))}
+            </div>
+          </div>
+          <div onClick={e => e.stopPropagation()}>{bar(false)}</div>
+        </div>,
+        document.body,
       )}
     </div>
   );

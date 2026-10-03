@@ -987,8 +987,22 @@ html[data-quality="0"] .ocean-layer { display: none; }
 .p-next-title > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .p-next-arrow, .p-prev-arrow { flex: none; transition: transform 350ms cubic-bezier(.2,.8,.2,1); }
 @media (hover: hover) { .p-next-link:hover .p-next-arrow { transform: translateX(0.25rem); } .p-prev-link:hover .p-prev-arrow { transform: translateX(-0.25rem); } }
-.p-viewer { position: fixed; inset: 0; z-index: 70; display: grid; place-items: center; padding: 4.5rem 1rem; background: rgb(var(--h-night-rgb) / 0.96); }
-.p-viewer > img { max-width: 100%; max-height: 100%; object-fit: contain; }
+/* Gallery full screen: the page's deep colours with the same soft light,
+   title and close pill on top, the slides, the bars and pill below */
+.g-viewer {
+  position: fixed; inset: 0; z-index: 95; display: flex; flex-direction: column; gap: clamp(0.75rem, 2vh, 1.25rem);
+  padding: clamp(1rem, 3vw, 2rem) clamp(1rem, 4vw, 3rem);
+  background: radial-gradient(90% 70% at 85% 0%, rgb(var(--h-c2-rgb) / 0.22), transparent 70%), linear-gradient(180deg, var(--h-deep), var(--h-night));
+  animation: g-v-in 240ms ease-out both;
+}
+.g-v-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; }
+.g-v-title { margin-top: 0.3rem; font-size: clamp(1.4rem, 3.2vw, 2.6rem); line-height: 0.95; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.g-v-stage { position: relative; flex: 1; min-height: 0; overflow: hidden; touch-action: pan-y; }
+.g-v-slide { flex: none; width: 100%; height: 100%; display: grid; place-items: center; padding: 0 0.5rem; }
+.g-v-slide img { max-width: 100%; max-height: 100%; object-fit: contain; user-select: none; box-shadow: 0 24px 60px -20px rgb(0 0 0 / 0.6); animation: g-v-pop 340ms cubic-bezier(.2,.8,.2,1) both; }
+.g-viewer .g-bar { margin-top: 0; }
+@keyframes g-v-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes g-v-pop { from { opacity: 0; transform: scale(0.94); } to { opacity: 1; transform: none; } }
 
 /* Write-ups (project markdown) */
 .p-prose { color: var(--h-c3); font-size: 1.05rem; line-height: 1.75; }
@@ -1176,7 +1190,7 @@ html[data-quality="0"] .ocean-layer { display: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .e-hint, .g-fill[data-run], .h-line > span, .h-marquee, .h-swap-in, .p-logo, .pt-page, .h-bob, .h-bob-up, .w-card { animation: none !important; }
+  .e-hint, .g-viewer, .g-v-slide img, .g-fill[data-run], .h-line > span, .h-marquee, .h-swap-in, .p-logo, .pt-page, .h-bob, .h-bob-up, .w-card { animation: none !important; }
   .pt { display: none; }
   .w-arrow, .w-rule > span, .h-swap > span, .h-btn, .h-pill, .s-nav-blob, .h-pill-blob, .s-top, .h-btn-line::before, .s-circle, .g-track, .g-arrow, .p-next-arrow, .ai-drop-body, .ai-drop-item, .ai-drop-plus, .ai-drop-title, .s-icon { transition: none; }
   .w-cursor { display: none; }

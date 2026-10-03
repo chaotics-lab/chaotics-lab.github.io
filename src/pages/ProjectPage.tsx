@@ -100,7 +100,7 @@ const ProjectPage = () => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
       if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey || e.defaultPrevented) return;
-      if ((e.target as HTMLElement | null)?.closest?.('input, textarea, select, [contenteditable="true"]') || document.querySelector('.p-viewer')) return;
+      if ((e.target as HTMLElement | null)?.closest?.('input, textarea, select, [contenteditable="true"]') || document.querySelector('.g-viewer')) return;
       const to = e.key === 'ArrowLeft' ? prev : next;
       if (!to) return;
       e.preventDefault();
