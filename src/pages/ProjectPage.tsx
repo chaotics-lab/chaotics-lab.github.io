@@ -2,10 +2,11 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { ArrowLeft, ArrowRight, ArrowUpRight, ArrowsOut, CaretLeft, CaretRight, GithubLogo, X } from '@phosphor-icons/react';
+import { ArrowLeft, ArrowRight, ArrowUpRight, GithubLogo } from '@phosphor-icons/react';
 import { SiteLayout } from '@/components/site/SiteLayout';
 import { TransitionLink } from '@/components/site/TransitionLink';
 import { AITag } from '@/components/home/AITag';
+import { Gallery } from '@/components/portfolio/Gallery';
 import { RepoStats } from '@/components/RepoStats';
 import { useGithubStars } from '@/hooks/useGithubStars';
 import { useGithubStats } from '@/hooks/useGithubStats';
@@ -47,11 +48,8 @@ const ProjectPage = () => {
   const project = index >= 0 ? PROJECTS[index] : undefined;
   const next = index >= 0 && PROJECTS.length > 1 ? PROJECTS[(index + 1) % PROJECTS.length] : undefined;
   const frames = useFrames(project?.imageUrl);
-  const [current, setCurrent] = useState(0);
-  const [viewer, setViewer] = useState(false);
   const stars = useGithubStars(project?.githubUrl, project?.showGithubStats);
   const stats = useGithubStats(project?.showGithubStats);
-  const touchX = useRef<number | null>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
   const [titleH, setTitleH] = useState(0);
 
@@ -73,32 +71,11 @@ const ProjectPage = () => {
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    setCurrent(0);
-    setViewer(false);
   }, [projectId]);
 
   useEffect(() => {
     document.title = project ? `${withoutCompany(project.title)} | Lox` : 'Project not found | Lox';
   }, [project]);
-
-  const last = frames.length - 1;
-  const go = (d: number) => setCurrent(c => Math.min(last, Math.max(0, c + d)));
-
-  // Full-screen viewer: arrows to browse, Escape to close.
-  useEffect(() => {
-    if (!viewer) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setViewer(false);
-      if (e.key === 'ArrowLeft') setCurrent(c => Math.max(0, c - 1));
-      if (e.key === 'ArrowRight') setCurrent(c => Math.min(last, c + 1));
-    };
-    document.body.style.overflow = 'hidden';
-    window.addEventListener('keydown', onKey);
-    return () => {
-      document.body.style.overflow = '';
-      window.removeEventListener('keydown', onKey);
-    };
-  }, [viewer, last]);
 
   if (!project) {
     return (
@@ -117,16 +94,6 @@ const ProjectPage = () => {
   const categories = (project.category ?? []).map(categoryLabel).filter(Boolean);
   const stack = project.tags?.length ? project.tags : project.technologies ?? [];
   const ai = project.AIUsed ? parseInt(project.AIUsed, 10) : null;
-
-  const swipe = {
-    onTouchStart: (e: React.TouchEvent) => { touchX.current = e.touches[0].clientX; },
-    onTouchEnd: (e: React.TouchEvent) => {
-      if (touchX.current === null) return;
-      const dx = e.changedTouches[0].clientX - touchX.current;
-      if (Math.abs(dx) > 50) go(dx < 0 ? 1 : -1);
-      touchX.current = null;
-    },
-  };
 
   return (
     <SiteLayout>
@@ -204,38 +171,8 @@ const ProjectPage = () => {
         {/* Write-up beside the images; images first on phones */}
         <section className="container mx-auto px-5 sm:px-8 mt-14 md:mt-20 grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] gap-12 lg:gap-16">
           {frames.length > 0 && (
-            <div className="lg:order-2 lg:sticky lg:top-24 self-start min-w-0" aria-label="Images">
-              <div className="p-stage" {...swipe}>
-                {frames.map((src, i) => (
-                  <img
-                    key={src}
-                    src={src}
-                    alt={`${withoutCompany(project.title)}, image ${i + 1}`}
-                    data-on={i === current}
-                    onClick={() => setViewer(true)}
-                  />
-                ))}
-                <button type="button" className="s-circle absolute right-3 bottom-3" onClick={() => setViewer(true)} aria-label="View full screen">
-                  <ArrowsOut size={18} weight="bold" />
-                </button>
-              </div>
-              {frames.length > 1 && (
-                <div className="mt-4 flex items-center gap-3">
-                  <div className="p-thumbs">
-                    {frames.map((src, i) => (
-                      <button key={src} type="button" className="p-thumb" aria-current={i === current} onClick={() => setCurrent(i)} aria-label={`Image ${i + 1}`}>
-                        <img src={src} alt="" />
-                      </button>
-                    ))}
-                  </div>
-                  <button type="button" className="s-circle shrink-0" onClick={() => go(-1)} disabled={current === 0} aria-label="Previous image">
-                    <CaretLeft size={18} weight="bold" />
-                  </button>
-                  <button type="button" className="s-circle shrink-0" onClick={() => go(1)} disabled={current === last} aria-label="Next image">
-                    <CaretRight size={18} weight="bold" />
-                  </button>
-                </div>
-              )}
+            <div className="lg:order-2 lg:sticky lg:top-24 self-start min-w-0">
+              <Gallery key={project.id} frames={frames} title={withoutCompany(project.title)} />
             </div>
           )}
           <article className="p-prose min-w-0 lg:order-1">
@@ -245,37 +182,27 @@ const ProjectPage = () => {
           </article>
         </section>
 
-        {next && (
-          <section className="container mx-auto px-5 sm:px-8 mt-28">
-            <TransitionLink to={`/project/${next.id}`} className="p-next">
-              <span className="h-caps text-[0.68rem] text-[var(--h-c2)]">Next project</span>
-              <span className="mt-3 flex items-end justify-between gap-6">
-                <span className="h-display text-[clamp(2.6rem,7vw,6rem)] p-next-title">{withoutCompany(next.title)}</span>
-                <ArrowRight className="p-next-arrow" weight="bold" />
+        {/* Footer row: back to the grid, or on to the next project */}
+        <nav className="container mx-auto px-5 sm:px-8 mt-24 md:mt-28" aria-label="Projects">
+          <div className="p-next">
+            <TransitionLink to="/#projects" className="p-next-back h-swap-host">
+              <ArrowLeft size={16} weight="bold" />
+              <span className="h-swap">
+                <span>All projects</span>
+                <span className="h-serif text-[1.05rem] leading-[1.05]" aria-hidden="true">All projects</span>
               </span>
             </TransitionLink>
-          </section>
-        )}
+            {next && (
+              <TransitionLink to={`/project/${next.id}`} className="p-next-link">
+                <span className="h-caps text-[0.62rem] text-[var(--h-c2)]">Next</span>
+                {next.logoUrl && <img src={next.logoUrl} alt="" className="p-next-logo" />}
+                <span className="p-next-title">{withoutCompany(next.title)}</span>
+                <ArrowRight size={18} weight="bold" className="p-next-arrow" />
+              </TransitionLink>
+            )}
+          </div>
+        </nav>
       </main>
-
-      {viewer && frames[current] && (
-        <div className="p-viewer" role="dialog" aria-modal="true" aria-label="Image viewer" onClick={() => setViewer(false)} {...swipe}>
-          <img src={frames[current]} alt={`${withoutCompany(project.title)}, image ${current + 1}`} onClick={e => e.stopPropagation()} />
-          <button type="button" className="s-circle absolute top-4 right-4" onClick={() => setViewer(false)} aria-label="Close">
-            <X size={20} weight="bold" />
-          </button>
-          {frames.length > 1 && (
-            <>
-              <button type="button" className="s-circle absolute left-4 top-1/2 -translate-y-1/2" onClick={e => { e.stopPropagation(); go(-1); }} disabled={current === 0} aria-label="Previous image">
-                <CaretLeft size={20} weight="bold" />
-              </button>
-              <button type="button" className="s-circle absolute right-4 top-1/2 -translate-y-1/2" onClick={e => { e.stopPropagation(); go(1); }} disabled={current === last} aria-label="Next image">
-                <CaretRight size={20} weight="bold" />
-              </button>
-            </>
-          )}
-        </div>
-      )}
     </SiteLayout>
   );
 };
