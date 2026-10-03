@@ -31,9 +31,10 @@ export const HomeHero = () => {
             href="#projects"
             onClick={e => {
               e.preventDefault();
+              // land with "How I use AI" just above the projects, in view
               scrollTo(() => {
-                const el = document.getElementById('projects');
-                return el ? el.getBoundingClientRect().top + window.scrollY - parseFloat(getComputedStyle(el).scrollMarginTop || '0') : window.scrollY;
+                const el = document.getElementById('ai-usage') ?? document.getElementById('projects');
+                return el ? el.getBoundingClientRect().top + window.scrollY - 24 : window.scrollY;
               });
             }}
             className="h-btn h-btn-line h-swap-host self-start md:self-auto"

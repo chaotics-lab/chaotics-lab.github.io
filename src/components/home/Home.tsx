@@ -123,7 +123,7 @@ export const Home = () => {
       <HomeHero />
       <ElementMarquee />
 
-      <section className="pt-16 md:pt-20">
+      <section id="ai-usage" className="pt-16 md:pt-20">
         <div className="container mx-auto px-5 sm:px-8">
           <AIUsedShowcase />
         </div>
