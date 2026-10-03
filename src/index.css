@@ -846,7 +846,6 @@ All colors MUST be HSL.
 .s-top-item { border-radius: 9999px; padding: 0.55rem; transition: color 220ms ease, background-color 220ms ease; }
 .s-top-item:hover, .s-top-item:focus-visible { background: var(--h-cream); color: var(--h-ink); outline: none; }
 .s-top-pill, #footer-top { transition: opacity 220ms ease; } /* hand-over between the two */
-[data-flash] > .s-top-item { background: var(--h-cream); color: var(--h-ink); }
 .s-top-item.s-top-wide { padding-right: 1rem; } /* footer version: arrow + label, arrow where the floating one has it */
 .s-circle {
   width: 2.75rem;

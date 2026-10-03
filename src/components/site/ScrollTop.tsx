@@ -3,14 +3,12 @@ import { ArrowUp } from '@phosphor-icons/react';
 import { usePageTransition } from '@/lib/pageTransition';
 
 const DOCK_AT = 40; // px from the bottom of the page
-const FLASH_MS = 220; // keep in sync with the .s-top-item / opacity transitions
+const FADE_MS = 220; // keep in sync with the opacity transition in index.css
 
 // Back-to-top pill, bottom right, styled like the header links. It shows
 // up once the page has been scrolled a little. At the bottom of the page it
-// hands over to the footer's back-to-top pill (#footer-top): it lights up
-// cream as if hovered and fades out, and the footer pill appears cream and
-// settles back to normal. Scrolling up plays it the other way. Going up,
-// the sea pours in from the top.
+// crossfades into the footer's back-to-top pill (#footer-top), and back
+// when scrolling up. Going up, the sea pours in from the top.
 export const ScrollTop = () => {
   const { dive } = usePageTransition();
   const [shown, setShown] = useState(false);
@@ -24,20 +22,12 @@ export const ScrollTop = () => {
     const later = (ms: number, fn: () => void) => timers.push(window.setTimeout(fn, ms));
     const clear = () => { timers.forEach(clearTimeout); timers.length = 0; };
 
-    // from: the pill that flashes and fades; to: the one that arrives cream
+    // crossfade: one pill fades out while the other fades in
     const handOver = (from: HTMLElement, to: HTMLElement) => {
       clear();
-      from.dataset.flash = '';
-      later(FLASH_MS, () => {
-        from.style.opacity = '0';
-        to.dataset.flash = '';
-        to.style.opacity = '1';
-        later(FLASH_MS, () => {
-          delete from.dataset.flash;
-          delete to.dataset.flash;
-          timers.length = 0;
-        });
-      });
+      from.style.opacity = '0';
+      to.style.opacity = '1';
+      later(FADE_MS, () => { timers.length = 0; });
     };
 
     const update = () => {
