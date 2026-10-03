@@ -245,15 +245,20 @@ function useWaveField(gridRef: React.RefObject<HTMLDivElement>, cursorRef: React
         if (!e.isIntersecting) continue;
         io.unobserve(e.target);
         const c = cards.find(k => k.el === e.target);
-        if (!c?.base) continue;
+        if (!c) continue;
+        // data-ready: the image is in (or there is none), so the card
+        // paints on the next frame. Home waits for it before a reveal.
+        if (!c.base) { c.el.dataset.ready = ''; continue; }
         const img = new Image();
         img.decoding = 'async';
         img.onload = () => {
           c.img = img;
+          c.el.dataset.ready = '';
           if (reduced) paint(c, flat(c));
         };
         img.onerror = () => {
           if (!img.src.endsWith('/1.png')) img.src = `${c.base}/1.png`;
+          else c.el.dataset.ready = '';
         };
         img.src = `${c.base}/thumb-1.webp`;
       }

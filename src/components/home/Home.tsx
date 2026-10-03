@@ -10,11 +10,16 @@ import { HomeHero } from './HomeHero';
 import { ProjectGrid } from './ProjectGrid';
 
 // Filter change: the sea transition over the whole page, with the
-// "Projects" title and the pills kept above it. The grid swaps while the
-// page is covered; its old height is held and then eased away, so the page
-// doesn't jump. Same layers and timings as .pt-layer in index.css.
+// "Projects" title and the pills kept above it, in three steps:
+//   1. the sea covers the page (SWEEP_COVER_MS),
+//   2. the grid swaps; its old height is held so the page doesn't jump,
+//      and the reveal waits until the new cards on screen have their
+//      images (at most READY_MAX_MS),
+//   3. the sea leaves (SWEEP_REVEAL_MS), then the held height eases away.
+// Same layers and timings as .pt-layer in index.css.
 const SWEEP_COVER_MS = 260 + 2 * 45;
 const SWEEP_REVEAL_MS = 300 + 2 * 45;
+const READY_MAX_MS = 600;
 const SWEEP_LAYERS = ['var(--h-c1)', 'var(--h-top)', 'var(--h-deep)'];
 
 export const Home = () => {
@@ -22,27 +27,48 @@ export const Home = () => {
   // `category` follows the pills at once, `shown` is what the grid holds.
   const [category, setCategory] = useState('all');
   const [shown, setShown] = useState('all');
+  const [swapped, setSwapped] = useState(false);
   const [sweep, setSweep] = useState<'cover' | 'reveal' | null>(null);
   const [holdH, setHoldH] = useState<number | undefined>(undefined);
   const gridRef = useRef<HTMLDivElement>(null);
-  const timers = useRef<number[]>([]);
-  useEffect(() => () => timers.current.forEach(clearTimeout), []);
+  const run = useRef(0); // id of the latest filter change; older steps stop
   const pick = (id: string) => {
     if (id === category) return;
     setCategory(id);
-    timers.current.forEach(clearTimeout);
     if (prefersReducedMotion()) { setShown(id); return; }
+    const me = ++run.current;
+    const alive = () => run.current === me;
+    const after = (ms: number, fn: () => void) => window.setTimeout(() => { if (alive()) fn(); }, ms);
+
     setSweep('cover');
-    timers.current = [
-      window.setTimeout(() => {
-        setHoldH(gridRef.current?.offsetHeight);
-        setShown(id);
-        setSweep('reveal');
-      }, SWEEP_COVER_MS + 40),
-      window.setTimeout(() => { setSweep(null); setHoldH(0); }, SWEEP_COVER_MS + 40 + SWEEP_REVEAL_MS),
-      window.setTimeout(() => setHoldH(undefined), SWEEP_COVER_MS + 40 + SWEEP_REVEAL_MS + 600),
-    ];
+    after(SWEEP_COVER_MS + 20, () => {
+      setHoldH(h => h ?? gridRef.current?.offsetHeight);
+      setSwapped(true);
+      setShown(id);
+      const start = performance.now();
+      const ready = () => {
+        if (!alive()) return;
+        const vh = window.innerHeight;
+        const waiting = [...(gridRef.current?.querySelectorAll<HTMLElement>('[data-wcard]') ?? [])].some(el => {
+          const r = el.getBoundingClientRect();
+          return r.bottom > 0 && r.top < vh && !('ready' in el.dataset);
+        });
+        if (waiting && performance.now() - start < READY_MAX_MS) { requestAnimationFrame(ready); return; }
+        // one more frame so the cards have painted
+        requestAnimationFrame(() => {
+          if (!alive()) return;
+          setSweep('reveal');
+          after(SWEEP_REVEAL_MS, () => {
+            setSweep(null);
+            setHoldH(0);
+            after(600, () => setHoldH(undefined));
+          });
+        });
+      };
+      requestAnimationFrame(ready);
+    });
   };
+  useEffect(() => () => { run.current++; }, []);
 
   // Cream highlight that slides to the selected pill.
   const tabsRef = useRef<HTMLDivElement>(null);
@@ -120,7 +146,7 @@ export const Home = () => {
         </div>
 
         <div className="mt-16">
-          <div ref={gridRef} className="f-hold" style={{ minHeight: holdH }}>
+          <div ref={gridRef} className="f-hold" data-swapped={swapped || undefined} style={{ minHeight: holdH }}>
             <ProjectGrid key={shown} projects={filtered} />
           </div>
         </div>
