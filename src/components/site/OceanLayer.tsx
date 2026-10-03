@@ -1,21 +1,20 @@
 import { useEffect, useRef } from 'react';
 import { ELEMENTS } from '@/config/elements';
 import { onTick, pointer, prefersReducedMotion } from '@/lib/ticker';
-import { currentElement, onThemeChange, themeRgb } from '@/lib/theme';
+import { currentIcon, onThemeChange } from '@/lib/theme';
 
 // The whole page is an ocean that gets deeper as you scroll. One fixed
 // canvas behind the content draws, in flat shapes:
 //   - the element icons as white silhouettes, sinking and tumbling at
-//     different depths (far ones smaller, fainter and slower),
-//   - Persona-style light: slanted shards rising and twinkling, and
-//     four-point glints that flare now and then. Both get denser deeper.
+//     different depths (far ones smaller, fainter and slower); mostly the
+//     picked element's, all elements evenly on project pages,
+//   - tiny element icons rising and twinkling, denser deeper down.
 // Positions live in "layer space": x as a fraction of the width, y as a
 // fraction of the page height. Things further away (smaller z) move
 // slower with the scroll.
 
 type Icon = { img: HTMLCanvasElement | null; u: number; x: number; z: number; vu: number; phase: number; tumble: number; nx: number };
-type Shard = { u: number; x: number; z: number; len: number; tilt: number; phase: number; freq: number; rise: number; tone: number };
-type Glint = { u: number; x: number; z: number; size: number; t: number; life: number };
+type Speck = { u: number; x: number; z: number; size: number; rot: number; spin: number; phase: number; freq: number; rise: number; main: boolean; id: string };
 
 const rand = (a: number, b: number) => a + Math.random() * (b - a);
 const TOP = 0.12; // the ocean starts below the hero
@@ -74,8 +73,7 @@ export const OceanLayer = () => {
       if (next === pageH) return;
       const k = pageH / next;
       for (const ic of icons) ic.u *= k;
-      for (const sh of shards) sh.u *= k;
-      for (const g of glints) g.u *= k;
+      for (const sp of specks) sp.u *= k;
       pageH = next;
     });
     ro.observe(document.body);
@@ -99,36 +97,39 @@ export const OceanLayer = () => {
       nx: 0,
     }));
     const slots = [...icons];
-    let assigned = currentElement();
+    let assigned = currentIcon();
     function assign() {
-      const main = currentElement();
+      const main = currentIcon();
       assigned = main;
+      // no main icon (project pages): every element shows evenly
       const others = ELEMENTS.filter(e => e.id !== main);
       slots.forEach((ic, k) => {
-        const id = k % 3 === 2 ? others[Math.floor(k / 3) % others.length].id : main;
+        const id = !main ? ELEMENTS[k % ELEMENTS.length].id : k % 3 === 2 ? others[Math.floor(k / 3) % others.length].id : main;
         ic.img = art.get(id) ?? null;
       });
     }
     // On an element change the icons fade out, swap, and fade back in.
     let iconAlpha = 1;
     let swapPending = false;
-    const offTheme = onThemeChange(() => { if (currentElement() !== assigned) swapPending = true; });
+    const offTheme = onThemeChange(() => { if (currentIcon() !== assigned) swapPending = true; });
     icons.sort((a, b) => a.z - b.z); // far ones first
 
-    const shards: Shard[] = Array.from({ length: 110 }, () => ({
+    // Specks: tiny element icons rising slowly and twinkling, half of them
+    // the main icon (when there is one), the rest any element.
+    const specks: Speck[] = Array.from({ length: 70 }, () => ({
       u: deep(TOP),
       x: Math.random(),
       z: rand(0.45, 0.9),
-      len: rand(4, 11),
-      tilt: rand(-0.5, -0.2),
+      size: rand(7, 13),
+      rot: rand(0, Math.PI * 2),
+      spin: rand(-0.6, 0.6),
       phase: rand(0, Math.PI * 2),
       freq: rand(0.5, 1.4),
       rise: rand(0.004, 0.012),
-      tone: Math.floor(Math.random() * 4), // c1, c2, c3 or white
+      main: Math.random() < 0.5,
+      id: ELEMENTS[Math.floor(Math.random() * ELEMENTS.length)].id,
     }));
 
-    const glints: Glint[] = [];
-    let glintClock = 0;
 
     // Nothing is drawn above the black element band: clip to the area under
     // its slanted bottom edge. Pages without the band draw everywhere.
@@ -189,57 +190,28 @@ export const OceanLayer = () => {
         ctx.restore();
       }
 
-      // Shards: slanted slivers of light rising slowly, twinkling.
-      const rgb = themeRgb();
-      const tones = [rgb.c1, rgb.c2, rgb.c3, '255, 255, 255'].map(c => `rgb(${c})`);
-      for (const s of shards) {
-        s.u -= (s.rise * dt * 60) / pageH;
-        if (s.u < TOP) s.u = deep(0.5);
-        const y = screenY(s.u, s.z);
-        if (y < -12 || y > vh + 12) continue;
-        const x = s.x * vw + Math.sin(t * 0.35 + s.phase) * 10;
-        const tw = 0.5 + 0.5 * Math.sin(t * s.freq * 2 + s.phase);
-        // fainter near the surface, brighter in the dark
-        const depth = Math.min(1, Math.max(0.25, (s.u - TOP) / 0.6));
-        ctx.globalAlpha = (0.15 + 0.6 * tw) * depth * s.z;
-        ctx.fillStyle = tones[s.tone];
+      // Specks: tiny icons rising, turning and twinkling; fainter near the
+      // surface, brighter in the dark.
+      const mainId = currentIcon();
+      const mainArt = mainId ? art.get(mainId) : undefined;
+      for (const sp of specks) {
+        sp.u -= (sp.rise * dt * 60) / pageH;
+        if (sp.u < TOP) sp.u = deep(0.5);
+        sp.rot += sp.spin * dt;
+        const img = sp.main && mainArt ? mainArt : art.get(sp.id);
+        if (!img) continue;
+        const y = screenY(sp.u, sp.z);
+        if (y < -16 || y > vh + 16) continue;
+        const x = sp.x * vw + Math.sin(t * 0.35 + sp.phase) * 10;
+        const tw = 0.5 + 0.5 * Math.sin(t * sp.freq * 2 + sp.phase);
+        const depth = Math.min(1, Math.max(0.25, (sp.u - TOP) / 0.6));
+        const size = sp.size * (0.6 + sp.z * 0.6);
+        ctx.globalAlpha = iconAlpha * (0.12 + 0.45 * tw) * depth * sp.z;
         ctx.save();
         ctx.translate(x, y);
-        ctx.rotate(s.tilt);
-        ctx.transform(1, 0, -0.36, 1, 0, 0); // skewX(-20deg), like the AI tag bars
-        const l = s.len * s.z;
-        ctx.fillRect(-l / 2, -1.4, l, 2.8);
+        ctx.rotate(sp.rot);
+        ctx.drawImage(img, -size / 2, -size / 2, size, size);
         ctx.restore();
-      }
-
-      // Glints: a four-point star that flares and fades. More appear
-      // deeper down, so they spawn at random depths biased to the bottom.
-      glintClock += dt;
-      if (glintClock > 0.18 && glints.length < 14) {
-        glintClock = 0;
-        const u = deep(0.3);
-        const z = rand(0.5, 0.9);
-        const y = screenY(u, z);
-        if (y > 0 && y < vh) glints.push({ u, x: Math.random(), z, size: rand(5, 11), t: 0, life: rand(0.6, 1) });
-      }
-      ctx.fillStyle = '#FFFFFF';
-      for (let i = glints.length - 1; i >= 0; i--) {
-        const g = glints[i];
-        g.t += dt;
-        const k = g.t / g.life;
-        if (k >= 1) { glints.splice(i, 1); continue; }
-        const flare = Math.sin(k * Math.PI);
-        const y = screenY(g.u, g.z);
-        const x = g.x * vw;
-        const r = g.size * g.z * flare;
-        ctx.globalAlpha = 0.9 * flare;
-        ctx.beginPath();
-        ctx.moveTo(x, y - r);
-        ctx.quadraticCurveTo(x, y, x + r * 0.55, y);
-        ctx.quadraticCurveTo(x, y, x, y + r);
-        ctx.quadraticCurveTo(x, y, x - r * 0.55, y);
-        ctx.quadraticCurveTo(x, y, x, y - r);
-        ctx.fill();
       }
       ctx.globalAlpha = 1;
       ctx.restore();

@@ -110,6 +110,11 @@ export function initTheme() {
 
 export const currentElement = () => element;
 
+// The element whose icon the ocean shows most: the picked element, or null
+// on a project page, where all elements show evenly.
+export const currentIcon = (): string | null => (override ? null : element);
+
+
 // "r, g, b" for a palette key, e.g. `rgba(${themeRgb().c3}, 0.5)`.
 export const themeRgb = () => rgb;
 
