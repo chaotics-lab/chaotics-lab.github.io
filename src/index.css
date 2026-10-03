@@ -643,12 +643,22 @@ All colors MUST be HSL.
   --h-c1: #16CFFB;
   --h-c2: #7DE6FD;
   --h-c3: #BFF4FF;
+  --h-ramp: #4C8DFF;
   --h-cream: #F5E8D6;
   --h-ink: #0A1024;
-  --h-line: rgba(125, 230, 253, 0.22);
+  /* r g b triplets for colours used with alpha; src/lib/theme.ts swaps all
+     of these when another element is picked */
+  --h-c1-rgb: 22 207 251;
+  --h-c2-rgb: 125 230 253;
+  --h-c3-rgb: 191 244 255;
+  --h-deep-rgb: 5 44 126;
+  --h-night-rgb: 3 26 78;
+  --h-line: rgb(var(--h-c2-rgb) / 0.22);
 }
 
 .h-page {
+  position: relative;
+  isolation: isolate; /* so the ocean layer (z-index -1) sits on the page background, behind the content */
   color: #fff;
   font-family: "Archivo", system-ui, sans-serif;
   background: linear-gradient(180deg, var(--h-top) 0%, var(--h-mid) 18%, var(--h-deep) 45%, var(--h-night) 80%);
@@ -688,7 +698,7 @@ All colors MUST be HSL.
   gap: 0.15rem;
   padding: 0.45rem 0.9rem;
   border-radius: 9999px;
-  border: 1.5px solid rgba(125, 230, 253, 0.45);
+  border: 1.5px solid rgb(var(--h-c2-rgb) / 0.45);
   color: var(--h-c3);
   font-weight: 600;
   font-size: 0.9rem;
@@ -710,8 +720,8 @@ All colors MUST be HSL.
 }
 .h-btn:hover { transform: translateY(-2px); }
 .h-btn-cream { background: var(--h-cream); color: var(--h-ink); }
-.h-btn-line { border: 1.5px solid rgba(125, 230, 253, 0.6); color: var(--h-c3); }
-.h-btn-line:hover { background: rgba(125, 230, 253, 0.12); color: #fff; }
+.h-btn-line { border: 1.5px solid rgb(var(--h-c2-rgb) / 0.6); color: var(--h-c3); }
+.h-btn-line:hover { background: rgb(var(--h-c2-rgb) / 0.12); color: #fff; }
 
 /* ---- Ticker (element band) ---- */
 .h-marquee { display: flex; width: max-content; animation: h-marquee 38s linear infinite; }
@@ -740,7 +750,7 @@ All colors MUST be HSL.
 }
 .w-card:hover .w-arrow,
 .w-card:focus-visible .w-arrow { transform: rotate(-45deg); color: var(--h-cream); }
-.w-rule { position: relative; display: block; height: 1.5px; margin-top: 1rem; overflow: hidden; background: rgba(125, 230, 253, 0.25); }
+.w-rule { position: relative; display: block; height: 1.5px; margin-top: 1rem; overflow: hidden; background: rgb(var(--h-c2-rgb) / 0.25); }
 .w-rule > span { position: absolute; inset: 0; background: var(--h-cream); transform: scaleX(0); transform-origin: left; transition: transform 650ms cubic-bezier(.2,.8,.2,1); }
 .w-card:hover .w-rule > span,
 .w-card:focus-visible .w-rule > span { transform: none; }
@@ -748,7 +758,7 @@ All colors MUST be HSL.
 /* AI usage tag: five slanted bars that climb from deep blue to white.
    The tag takes the colour of its highest lit bar (--ai, set inline). */
 .ai-tag {
-  --ai: rgba(125, 230, 253, 0.5);
+  --ai: rgb(var(--h-c2-rgb) / 0.5);
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
@@ -764,7 +774,7 @@ All colors MUST be HSL.
 }
 .ai-tag b { color: #fff; letter-spacing: 0.04em; }
 .ai-tag-bars { display: inline-flex; gap: 2px; }
-.ai-tag-bars i { width: 5px; height: 10px; transform: skewX(-18deg); background: rgba(125, 230, 253, 0.14); }
+.ai-tag-bars i { width: 5px; height: 10px; transform: skewX(-18deg); background: rgb(var(--h-c2-rgb) / 0.14); }
 
 /* Ring that trails the pointer over cards (the real cursor stays visible) */
 .w-cursor { position: fixed; top: 0; left: 0; z-index: 60; width: 0; height: 0; pointer-events: none; visibility: hidden; }
@@ -778,13 +788,10 @@ All colors MUST be HSL.
 }
 
 /* ---- Site header (Unseen-style) ---- */
-.s-logo { padding: 0.5rem 1.05rem; border-radius: 9999px; font-size: 1.2rem; font-weight: 800; letter-spacing: -0.02em; line-height: 1.2; color: #fff; }
-.s-logo span { color: var(--h-c1); }
-.s-logo,
 .s-nav,
 .s-circle {
-  background: rgba(3, 26, 78, 0.55);
-  border: 1px solid rgba(125, 230, 253, 0.2);
+  background: rgb(var(--h-night-rgb) / 0.55);
+  border: 1px solid rgb(var(--h-c2-rgb) / 0.2);
   -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
 }
@@ -831,7 +838,7 @@ All colors MUST be HSL.
   width: 3.25rem;
   height: 3.25rem;
   border-radius: 9999px;
-  border: 1.5px solid rgba(125, 230, 253, 0.45);
+  border: 1.5px solid rgb(var(--h-c2-rgb) / 0.45);
   color: var(--h-c3);
   transition: transform 450ms cubic-bezier(.34,1.56,.64,1), background-color 200ms ease, color 200ms ease, border-color 200ms ease;
 }
@@ -879,7 +886,7 @@ All colors MUST be HSL.
 }
 .repo-stats dt { display: flex; align-items: center; gap: 0.3rem; margin-top: 0.4rem; font-size: 0.62rem; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--h-c2); }
 .repo-stats dt svg { color: var(--h-c1); }
-.p-stage { position: relative; aspect-ratio: 16 / 9; overflow: hidden; border: 1.5px solid var(--h-line); background: rgba(3, 26, 78, 0.5); }
+.p-stage { position: relative; aspect-ratio: 16 / 9; overflow: hidden; border: 1.5px solid var(--h-line); background: rgb(var(--h-night-rgb) / 0.5); }
 .p-stage > img {
   position: absolute;
   inset: 0;
@@ -893,10 +900,10 @@ All colors MUST be HSL.
 }
 .p-stage > img[data-on="true"] { opacity: 1; transform: none; z-index: 1; }
 .p-stage > .s-circle { z-index: 2; }
-.p-thumbs { display: flex; flex: 1; gap: 0.6rem; overflow-x: auto; padding: 4px 4px 8px; scrollbar-width: thin; scrollbar-color: rgba(125, 230, 253, 0.35) transparent; }
+.p-thumbs { display: flex; flex: 1; gap: 0.6rem; overflow-x: auto; padding: 4px 4px 8px; scrollbar-width: thin; scrollbar-color: rgb(var(--h-c2-rgb) / 0.35) transparent; }
 .p-thumbs::-webkit-scrollbar { height: 4px; }
 .p-thumbs::-webkit-scrollbar-track { background: transparent; }
-.p-thumbs::-webkit-scrollbar-thumb { background: rgba(125, 230, 253, 0.35); border-radius: 9999px; }
+.p-thumbs::-webkit-scrollbar-thumb { background: rgb(var(--h-c2-rgb) / 0.35); border-radius: 9999px; }
 .p-thumb { flex: none; width: 6.5rem; aspect-ratio: 16 / 10; overflow: hidden; opacity: 0.5; outline: 2px solid transparent; outline-offset: 2px; transition: opacity 200ms ease, outline-color 200ms ease; }
 .p-thumb img { width: 100%; height: 100%; object-fit: cover; }
 .p-thumb:hover { opacity: 0.85; }
@@ -907,13 +914,13 @@ All colors MUST be HSL.
 @media (min-width: 1024px) { .p-facts { grid-template-columns: repeat(4, auto) minmax(0, 1fr); gap: 1.5rem 3rem; } .p-facts-wide { grid-column: auto; } }
 .p-facts dt { font-size: 0.66rem; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--h-c2); }
 .p-facts dd { margin-top: 0.4rem; color: #fff; font-weight: 500; }
-.p-chip { padding: 0.2rem 0.6rem; border-radius: 9999px; border: 1.5px solid rgba(125, 230, 253, 0.35); font-size: 0.8rem; color: var(--h-c3); }
+.p-chip { padding: 0.2rem 0.6rem; border-radius: 9999px; border: 1.5px solid rgb(var(--h-c2-rgb) / 0.35); font-size: 0.8rem; color: var(--h-c3); }
 .p-next { display: block; padding: 2.5rem 0 1rem; border-top: 1.5px solid var(--h-line); }
 .p-next-title { transition: color 200ms ease; }
 .p-next-arrow { flex: none; width: clamp(2.5rem, 6vw, 4.5rem); height: auto; color: var(--h-c2); transition: transform 450ms cubic-bezier(.2,.8,.2,1), color 200ms ease; }
 .p-next:hover .p-next-title { color: var(--h-c1); }
 .p-next:hover .p-next-arrow { transform: translateX(0.5rem) rotate(-45deg); color: var(--h-cream); }
-.p-viewer { position: fixed; inset: 0; z-index: 70; display: grid; place-items: center; padding: 4.5rem 1rem; background: rgba(3, 26, 78, 0.96); }
+.p-viewer { position: fixed; inset: 0; z-index: 70; display: grid; place-items: center; padding: 4.5rem 1rem; background: rgb(var(--h-night-rgb) / 0.96); }
 .p-viewer > img { max-width: 100%; max-height: 100%; object-fit: contain; }
 
 /* Write-ups (project markdown) */
@@ -941,8 +948,8 @@ All colors MUST be HSL.
 .p-prose ol > li::marker { color: var(--h-c1); font-weight: 700; }
 .p-prose strong { color: #fff; font-weight: 700; }
 .p-prose a { color: #fff; text-decoration: underline; text-decoration-color: var(--h-c1); text-underline-offset: 3px; }
-.p-prose code { padding: 0.1em 0.35em; border-radius: 0.3em; font-size: 0.9em; background: rgba(3, 26, 78, 0.6); color: var(--h-c2); }
-.p-prose pre { padding: 1rem 1.2rem; overflow-x: auto; border: 1.5px solid var(--h-line); background: rgba(3, 26, 78, 0.6); }
+.p-prose code { padding: 0.1em 0.35em; border-radius: 0.3em; font-size: 0.9em; background: rgb(var(--h-night-rgb) / 0.6); color: var(--h-c2); }
+.p-prose pre { padding: 1rem 1.2rem; overflow-x: auto; border: 1.5px solid var(--h-line); background: rgb(var(--h-night-rgb) / 0.6); }
 .p-prose pre code { padding: 0; background: none; }
 .p-prose blockquote { padding-left: 1rem; border-left: 3px solid var(--h-c1); color: var(--h-c2); }
 .p-prose img { max-width: 100%; }
@@ -976,8 +983,36 @@ All colors MUST be HSL.
 .pt-page { animation: pt-fade 380ms ease-out both; }
 @keyframes pt-fade { from { opacity: 0; } to { opacity: 1; } }
 
+/* ---- Water details ---- */
+/* The ocean behind everything (OceanLayer.tsx) */
+.ocean-layer { position: fixed; inset: 0; z-index: -1; width: 100%; height: 100%; pointer-events: none; }
+
+/* Arrows that bob to invite a click */
+.h-bob { animation: h-bob 1.6s ease-in-out infinite; }
+.h-bob-up { animation: h-bob 1.6s ease-in-out infinite reverse; }
+@keyframes h-bob { 0%, 100% { transform: translateY(-1px); } 50% { transform: translateY(3px); } }
+/* Double ring where a button or link is pressed */
+.tap-ripple { position: fixed; z-index: 120; width: 0; height: 0; pointer-events: none; }
+.tap-ripple::before,
+.tap-ripple::after {
+  content: "";
+  position: absolute;
+  left: -28px;
+  top: -28px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: 2px solid var(--h-c3);
+  animation: tap-ring 620ms cubic-bezier(.2,.8,.2,1) both;
+}
+.tap-ripple::after { border-width: 1.5px; animation-delay: 110ms; }
+@keyframes tap-ring { from { transform: scale(0.15); opacity: 0.9; } to { transform: scale(1.5); opacity: 0; } }
+/* Cards rise in when the grid mounts or the filter changes */
+.w-card { animation: w-in 560ms cubic-bezier(.2,.8,.2,1) backwards; }
+@keyframes w-in { from { opacity: 0; transform: translateY(36px); } to { opacity: 1; transform: none; } }
+
 @media (prefers-reduced-motion: reduce) {
-  .h-line > span, .h-marquee, .h-swap-in, .p-logo, .pt-page { animation: none !important; }
+  .h-line > span, .h-marquee, .h-swap-in, .p-logo, .pt-page, .h-bob, .h-bob-up, .w-card { animation: none !important; }
   .pt { display: none; }
   .w-arrow, .w-rule > span, .h-swap > span, .h-btn, .h-pill, .s-nav-blob, .s-circle, .p-stage > img, .p-next-arrow, .ai-drop-body, .ai-drop-item, .ai-drop-toggle, .ai-drop-title, .s-icon { transition: none; }
   .w-cursor { display: none; }

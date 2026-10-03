@@ -43,7 +43,7 @@ export const AIUsedShowcase = () => {
             href="https://www.media.mit.edu/projects/your-brain-on-chatgpt/overview/"
             target="_blank"
             rel="noopener noreferrer"
-            className="mb-9 inline-flex items-center gap-1 text-[var(--h-c2)] underline underline-offset-4 hover:text-white"
+            className="mb-9 inline-flex items-center gap-1 text-[var(--h-c2)] underline underline-offset-4 hover:text-white transition-colors"
           >
             Your Brain on ChatGPT <ArrowUpRight size={14} weight="bold" />
           </a>

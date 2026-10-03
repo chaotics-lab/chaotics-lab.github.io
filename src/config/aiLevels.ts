@@ -10,6 +10,6 @@ export const AI_LEVELS = [
 
 // P3R-style ramp for levels 1-5: each step brighter, from blue to white.
 // Level 0 (made by hand) has no colour of its own.
-export const AI_RAMP = ['#4C8DFF', '#16CFFB', '#7DE6FD', '#BFF4FF', '#FFFFFF'];
+export const AI_RAMP = ['var(--h-ramp)', 'var(--h-c1)', 'var(--h-c2)', 'var(--h-c3)', '#FFFFFF'];
 
 export const aiLevel = (value: number) => AI_LEVELS[Math.max(0, Math.min(5, Math.round(value / 20)))];

@@ -1,13 +1,10 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { useLocation } from 'react-router-dom';
-import { TransitionLink } from './TransitionLink';
 import { SOCIALS, isExternal } from './links';
 
-// Unseen-style header: wordmark on the left, a pill of links on the right
-// with a cream highlight that slides to whichever link is hovered. On
-// phones the links shrink to their icons.
+// Unseen-style header: a pill of links on the right with a cream
+// highlight that slides to whichever link is hovered. On phones the links
+// shrink to their icons.
 export const SiteHeader = () => {
-  const { pathname } = useLocation();
   const [hovered, setHovered] = useState<string | null>(null);
   const navRef = useRef<HTMLElement>(null);
   const [blob, setBlob] = useState({ x: 0, w: 0, on: false });
@@ -23,19 +20,9 @@ export const SiteHeader = () => {
     return () => window.removeEventListener('resize', place);
   }, [place]);
 
-  const toTop = (e: React.MouseEvent) => {
-    if (pathname !== '/') return;
-    e.preventDefault();
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
   return (
     <header className="fixed top-0 inset-x-0 z-50">
-      <div className="flex items-center justify-between gap-4 px-4 sm:px-6 py-4">
-        <TransitionLink to="/" onClick={toTop} className="s-logo" aria-label="Lox, home">
-          Lox<span>.</span>
-        </TransitionLink>
-
+      <div className="flex items-center justify-end px-4 sm:px-6 py-4">
         <nav ref={navRef} className="s-nav flex" onMouseLeave={() => setHovered(null)} aria-label="Contact">
           <span
             className="s-nav-blob"

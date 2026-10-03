@@ -7,6 +7,7 @@ import { useGithubStars } from '@/hooks/useGithubStars';
 import { useGithubStats } from '@/hooks/useGithubStats';
 import { docOffset, lerp, onTick, pointer, prefersReducedMotion, smoothstep } from '@/lib/ticker';
 import { AITag } from './AITag';
+import { themeRgb } from '@/lib/theme';
 import { TransitionLink } from '@/components/site/TransitionLink';
 
 // Each card image is painted on a canvas in thin rows. Every row sits on a
@@ -16,6 +17,7 @@ import { TransitionLink } from '@/components/site/TransitionLink';
 const PERSPECTIVE = 1100; // keep in sync with .w-labelwrap
 const PAD = 64;           // room around the image for the bend to grow into
 const ROW = 3;            // px of image per painted row (doubles on slow machines)
+const FX = 0.5;           // overall strength of the bend, ripple and parallax
 
 export const ProjectGrid = ({ projects }: { projects: ProjectData[] }) => {
   const gridRef = useRef<HTMLDivElement>(null);
@@ -28,20 +30,20 @@ export const ProjectGrid = ({ projects }: { projects: ProjectData[] }) => {
         ref={gridRef}
         className="container mx-auto px-5 sm:px-8 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-x-8 lg:gap-x-10 gap-y-16 md:gap-y-24 pb-16"
       >
-        {projects.map(p => <ProjectCard key={p.id} p={p} />)}
+        {projects.map((p, i) => <ProjectCard key={p.id} p={p} i={i} />)}
       </div>
       <div ref={cursorRef} className="w-cursor" aria-hidden="true"><span /></div>
     </>
   );
 };
 
-const ProjectCard = ({ p }: { p: ProjectData & { showGithubStats?: boolean } }) => {
+const ProjectCard = ({ p, i }: { p: ProjectData & { showGithubStats?: boolean }; i: number }) => {
   const stars = useGithubStars(p.githubUrl, p.showGithubStats);
   const stats = useGithubStats(p.showGithubStats);
   const year = p.date ? new Date(p.date).getFullYear() : null;
 
   return (
-    <TransitionLink to={`/project/${p.id}`} className="w-card" data-wcard data-img={p.imageUrl ?? ''}>
+    <TransitionLink to={`/project/${p.id}`} className="w-card" data-wcard data-img={p.imageUrl ?? ''} style={{ animationDelay: `${Math.min(i, 8) * 60}ms` }}>
       <div className="w-frame" data-frame>
         <canvas
           className="w-canvas"
@@ -172,7 +174,7 @@ function paint(c: Card, map: (v: number, out: Proj) => void, row = ROW) {
       const slope = light[i + 1];
       const a = Math.min(0.16, Math.abs(slope) * 1.3).toFixed(3);
       const at = Math.min(1, Math.max(0, (light[i] - yTop) / (y0 - yTop)));
-      g.addColorStop(at, slope > 0 ? `rgba(191,244,255,${a})` : `rgba(3,26,78,${a})`);
+      g.addColorStop(at, slope > 0 ? `rgba(${themeRgb().c3}, ${a})` : `rgba(${themeRgb().night}, ${a})`);
     }
     ctx.globalAlpha = 1;
     ctx.globalCompositeOperation = 'source-atop';
@@ -322,19 +324,19 @@ function useWaveField(gridRef: React.RefObject<HTMLDivElement>, cursorRef: React
       if (gridBottom - sy < -vh || gridTop - sy > vh * 1.5) return;
 
       // Camera: slight mouse parallax plus a slow drift made of sines.
-      cam.x = lerp(cam.x, (mouse.x - vw / 2) * -0.12, 0.05);
-      cam.y = lerp(cam.y, (mouse.y - vh / 2) * -0.08, 0.05);
-      const ox = vw / 2 + cam.x + Math.sin(t * 0.31) * 18 + Math.sin(t * 0.17 + 1.3) * 10;
-      const oy = vh * 0.45 + cam.y + Math.cos(t * 0.23) * 12;
+      cam.x = lerp(cam.x, (mouse.x - vw / 2) * -0.12 * FX, 0.05);
+      cam.y = lerp(cam.y, (mouse.y - vh / 2) * -0.08 * FX, 0.05);
+      const ox = vw / 2 + cam.x + (Math.sin(t * 0.31) * 18 + Math.sin(t * 0.17 + 1.3) * 10) * FX;
+      const oy = vh * 0.45 + cam.y + Math.cos(t * 0.23) * 12 * FX;
 
       // Screen y -> point on a sheet that curls away near the top and
       // dips back a little at the bottom. The curl angle is capped so the
       // receding part converges above the screen instead of piling up.
       const topLine = vh * 0.3;
-      const topR = vh * 0.45;
+      const topR = (vh * 0.45) / FX;
       const topMax = Math.atan(PERSPECTIVE / (oy + 250));
       const footLine = vh * 0.92;
-      const footR = vh * 1.2;
+      const footR = (vh * 1.2) / FX;
       const bend = (y: number) => {
         if (y < topLine) {
           const d = topLine - y;
@@ -344,7 +346,7 @@ function useWaveField(gridRef: React.RefObject<HTMLDivElement>, cursorRef: React
           P.z = -topR * (1 - Math.cos(th)) - rest * Math.sin(th);
         } else if (y > footLine) {
           const d = y - footLine;
-          const th = Math.min(d / footR, 0.5);
+          const th = Math.min(d / footR, 0.5 * FX);
           const rest = d - th * footR;
           P.y = footLine + footR * Math.sin(th) + rest * Math.cos(th);
           P.z = -footR * (1 - Math.cos(th)) - rest * Math.sin(th);
@@ -354,10 +356,10 @@ function useWaveField(gridRef: React.RefObject<HTMLDivElement>, cursorRef: React
         }
       };
 
-      const amp = 16 + speed * 40;
+      const amp = (16 + speed * 40) * FX;
       const ripple = (x: number, docY: number) =>
         amp * Math.sin((x - docY) * 0.0065 - t * 1.7) +
-        7 * Math.sin((x * 0.6 + docY) * 0.011 + t * 1.15 + Math.cos(docY * 0.003 + t * 0.6) * 2);
+        7 * FX * Math.sin((x * 0.6 + docY) * 0.011 + t * 1.15 + Math.cos(docY * 0.003 + t * 0.6) * 2);
 
       const t0 = performance.now();
       for (const c of cards) {
@@ -377,7 +379,7 @@ function useWaveField(gridRef: React.RefObject<HTMLDivElement>, cursorRef: React
         c.live = true;
         c.hover = lerp(c.hover, c.hoverTarget, 0.1);
         c.zoom = lerp(c.zoom, c.hoverTarget, 0.06);
-        const lift = c.hover * 28;
+        const lift = c.hover * 28 * FX;
         const cx = c.fx + c.fw / 2;
         const dx = Math.max(0, c.fx - mouse.x, mouse.x - c.fx - c.fw);
         const near = pointer.active ? Math.exp(-(dx * dx) / (2 * 170 * 170)) : 0;
@@ -385,8 +387,8 @@ function useWaveField(gridRef: React.RefObject<HTMLDivElement>, cursorRef: React
           bend(ys);
           const z = P.z +
             k * ripple(cx, docY) +
-            k * near * 46 * Math.exp(-((ys - mouse.y) ** 2) / (2 * 150 * 150)) -
-            drag * (ys - vh * 0.5) * 0.06 +
+            k * near * 46 * FX * Math.exp(-((ys - mouse.y) ** 2) / (2 * 150 * 150)) -
+            drag * (ys - vh * 0.5) * 0.06 * FX +
             lift * k;
           // Soft cap towards the viewer so the bend stays inside the canvas.
           return z > 0 ? 70 * Math.tanh(z / 70) : z;

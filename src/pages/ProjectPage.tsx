@@ -11,7 +11,7 @@ import { useGithubStars } from '@/hooks/useGithubStars';
 import { useGithubStats } from '@/hooks/useGithubStats';
 import { categoryLabel } from '@/config/categories';
 import { aiLevel } from '@/config/aiLevels';
-import { PROJECTS } from '@/lib/projects';
+import { PROJECTS, withoutCompany } from '@/lib/projects';
 
 // Finds the numbered images in a project's folder (1.png, 2.gif, ...),
 // trying each extension in turn, and reveals them as they load.
@@ -70,7 +70,7 @@ const ProjectPage = () => {
   }, [projectId]);
 
   useEffect(() => {
-    document.title = project ? `${project.title} | Lox` : 'Project not found | Lox';
+    document.title = project ? `${withoutCompany(project.title)} | Lox` : 'Project not found | Lox';
   }, [project]);
 
   const last = frames.length - 1;
@@ -125,13 +125,13 @@ const ProjectPage = () => {
       <main className="relative pt-28 md:pt-36">
         <div
           className="absolute -top-[20vh] -right-[20vw] w-[80vw] h-[70vh] pointer-events-none"
-          style={{ background: 'radial-gradient(closest-side, rgba(127, 230, 253, 0.28), transparent)' }}
+          style={{ background: 'radial-gradient(closest-side, rgb(var(--h-c2-rgb) / 0.28), transparent)' }}
           aria-hidden="true"
         />
 
         {/* Title block */}
         <section className="relative container mx-auto px-5 sm:px-8">
-          <TransitionLink to="/#projects" className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--h-c2)] hover:text-white h-swap-host">
+          <TransitionLink to="/#projects" className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--h-c2)] hover:text-white transition-colors h-swap-host">
             <ArrowLeft size={16} weight="bold" />
             <span className="h-swap">
               <span>All projects</span>
@@ -145,7 +145,7 @@ const ProjectPage = () => {
             <div className="mt-4 flex items-center gap-4 md:gap-7">
               {project.logoUrl && <img src={project.logoUrl} alt="" className="p-logo" style={titleH ? { height: titleH } : undefined} />}
               <h1 ref={titleRef} className="h-display text-[clamp(3rem,8vw,7rem)] break-words min-w-0">
-                <span className="h-line"><span>{project.title}</span></span>
+                <span className="h-line"><span>{withoutCompany(project.title)}</span></span>
               </h1>
             </div>
             <p className="mt-6 max-w-3xl text-lg md:text-xl leading-relaxed text-[var(--h-c3)]">{project.description}</p>
@@ -202,7 +202,7 @@ const ProjectPage = () => {
                   <img
                     key={src}
                     src={src}
-                    alt={`${project.title}, image ${i + 1}`}
+                    alt={`${withoutCompany(project.title)}, image ${i + 1}`}
                     data-on={i === current}
                     onClick={() => setViewer(true)}
                   />
@@ -242,7 +242,7 @@ const ProjectPage = () => {
             <TransitionLink to={`/project/${next.id}`} className="p-next">
               <span className="h-caps text-[0.68rem] text-[var(--h-c2)]">Next project</span>
               <span className="mt-3 flex items-end justify-between gap-6">
-                <span className="h-display text-[clamp(2.6rem,7vw,6rem)] p-next-title">{next.title}</span>
+                <span className="h-display text-[clamp(2.6rem,7vw,6rem)] p-next-title">{withoutCompany(next.title)}</span>
                 <ArrowRight className="p-next-arrow" weight="bold" />
               </span>
             </TransitionLink>
@@ -252,7 +252,7 @@ const ProjectPage = () => {
 
       {viewer && frames[current] && (
         <div className="p-viewer" role="dialog" aria-modal="true" aria-label="Image viewer" onClick={() => setViewer(false)} {...swipe}>
-          <img src={frames[current]} alt={`${project.title}, image ${current + 1}`} onClick={e => e.stopPropagation()} />
+          <img src={frames[current]} alt={`${withoutCompany(project.title)}, image ${current + 1}`} onClick={e => e.stopPropagation()} />
           <button type="button" className="s-circle absolute top-4 right-4" onClick={() => setViewer(false)} aria-label="Close">
             <X size={20} weight="bold" />
           </button>

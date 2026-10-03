@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PageTransitionContext } from '@/lib/pageTransition';
 import { prefersReducedMotion } from '@/lib/ticker';
@@ -16,7 +16,7 @@ const WAVE = (() => {
   return `${d} V60 H0 Z`;
 })();
 
-const LAYERS = ['#16CFFB', '#0B5BD9', '#052C7E'];
+const LAYERS = ['var(--h-c1)', 'var(--h-top)', 'var(--h-deep)'];
 
 export const PageTransition = ({ children }: { children: ReactNode }) => {
   const navigate = useNavigate();
@@ -26,23 +26,41 @@ export const PageTransition = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => () => timers.current.forEach(clearTimeout), []);
 
-  const go = useCallback((to: string) => {
-    if (prefersReducedMotion()) { navigate(to); return; }
+  const dive = useCallback((swap: () => void) => {
+    if (prefersReducedMotion()) { swap(); return; }
     if (busy.current) return;
     busy.current = true;
     setPhase('cover');
     timers.current.push(window.setTimeout(() => {
-      navigate(to);
+      swap();
       setPhase('reveal');
       timers.current.push(window.setTimeout(() => {
         setPhase('idle');
         busy.current = false;
       }, REVEAL_MS));
     }, COVER_MS + 40));
-  }, [navigate]);
+  }, []);
+
+  const value = useMemo(() => ({ dive, go: (to: string) => dive(() => navigate(to)) }), [dive, navigate]);
+
+  // A small water ring wherever a button or link is pressed.
+  useEffect(() => {
+    if (prefersReducedMotion()) return;
+    const onDown = (e: PointerEvent) => {
+      if (e.button !== 0 || !(e.target as HTMLElement).closest?.('a, button')) return;
+      const ring = document.createElement('span');
+      ring.className = 'tap-ripple';
+      ring.style.left = `${e.clientX}px`;
+      ring.style.top = `${e.clientY}px`;
+      document.body.appendChild(ring);
+      window.setTimeout(() => ring.remove(), 800);
+    };
+    window.addEventListener('pointerdown', onDown);
+    return () => window.removeEventListener('pointerdown', onDown);
+  }, []);
 
   return (
-    <PageTransitionContext.Provider value={go}>
+    <PageTransitionContext.Provider value={value}>
       {children}
       <div className="pt" data-phase={phase} aria-hidden="true">
         {LAYERS.map((color, i) => (

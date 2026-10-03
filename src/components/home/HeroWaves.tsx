@@ -106,22 +106,22 @@ export const HeroWaves = () => {
       <svg ref={svgRef} viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="w-full h-full">
         <defs>
           <linearGradient id="hw-0" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stopColor="#BFF4FF" stopOpacity="0.14" />
-            <stop offset="1" stopColor="#BFF4FF" stopOpacity="0" />
+            <stop offset="0" style={{ stopColor: 'var(--h-c3)' }} stopOpacity="0.14" />
+            <stop offset="1" style={{ stopColor: 'var(--h-c3)' }} stopOpacity="0" />
           </linearGradient>
           <linearGradient id="hw-1" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stopColor="#16CFFB" stopOpacity="0.2" />
-            <stop offset="1" stopColor="#16CFFB" stopOpacity="0" />
+            <stop offset="0" style={{ stopColor: 'var(--h-c1)' }} stopOpacity="0.2" />
+            <stop offset="1" style={{ stopColor: 'var(--h-c1)' }} stopOpacity="0" />
           </linearGradient>
           <linearGradient id="hw-2" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stopColor="#052C7E" stopOpacity="0.45" />
-            <stop offset="1" stopColor="#052C7E" stopOpacity="0" />
+            <stop offset="0" style={{ stopColor: 'var(--h-deep)' }} stopOpacity="0.45" />
+            <stop offset="1" style={{ stopColor: 'var(--h-deep)' }} stopOpacity="0" />
           </linearGradient>
         </defs>
         <path data-fill fill="url(#hw-0)" />
         <path data-fill fill="url(#hw-1)" />
         <path data-fill fill="url(#hw-2)" />
-        <path data-crest fill="none" stroke="#BFF4FF" strokeOpacity="0.45" strokeWidth="1.5" vectorEffect="non-scaling-stroke" />
+        <path data-crest fill="none" style={{ stroke: 'var(--h-c3)' }} strokeOpacity="0.45" strokeWidth="1.5" vectorEffect="non-scaling-stroke" />
       </svg>
     </div>
   );

@@ -29,3 +29,7 @@ function load(): Project[] {
 }
 
 export const PROJECTS = load();
+
+// "Embedded Power Profiler @Withings" -> "Embedded Power Profiler". The
+// @Company part is shown on the cards only.
+export const withoutCompany = (title: string) => title.replace(/\s*@\S.*$/, '').trim() || title;

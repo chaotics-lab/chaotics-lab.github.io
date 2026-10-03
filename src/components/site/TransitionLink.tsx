@@ -4,7 +4,7 @@ import { usePageTransition } from '@/lib/pageTransition';
 // A Link that plays the sea transition. Modified clicks (new tab etc.)
 // behave like a normal link.
 export const TransitionLink = ({ to, onClick, ...rest }: Omit<LinkProps, 'to'> & { to: string }) => {
-  const go = usePageTransition();
+  const { go } = usePageTransition();
   return (
     <Link
       to={to}
