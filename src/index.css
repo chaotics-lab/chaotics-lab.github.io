@@ -636,7 +636,6 @@ All colors MUST be HSL.
 /* ------------------------------------------------------------------ */
 
 :root {
-  color-scheme: dark; /* already dark: opt out of forced dark modes */
   --h-top: #0B5BD9;
   --h-mid: #0842B0;
   --h-deep: #052C7E;
