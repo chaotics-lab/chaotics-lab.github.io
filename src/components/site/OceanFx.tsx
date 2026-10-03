@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
 import { onTick, pointer, prefersReducedMotion } from '@/lib/ticker';
 import { onQuality, quality } from '@/lib/perf';
 import { currentElement, onThemeChange } from '@/lib/theme';
@@ -9,7 +10,8 @@ import { OCEAN_FX, type Fx } from '@/lib/oceanFx';
 // page, the rest fills the screen. A mask tied to the page fades it in with
 // depth: nothing at the top of the ocean, a trace behind the cards, full at
 // the end; the middle of the screen, where the text is, stays dimmer than
-// the sides. PC only, and not at the minimal quality level.
+// the sides. PC only, not at the minimal quality level, and not on project
+// pages (they keep the icons only).
 
 const OPACITY = 0.8; // every effect, times its gain
 const FADE_S = 0.7; // crossfade between elements, close to the colour blend
@@ -18,6 +20,11 @@ const NOT_HERE = 'a, button, input, textarea, select, label, [role="button"], [d
 const SIDES = 'linear-gradient(to right, #000, rgba(0,0,0,0.55) 50%, #000)';
 
 export const OceanFx = () => {
+  const onProject = useLocation().pathname.startsWith('/project/');
+  return onProject ? null : <OceanFxCanvas />;
+};
+
+const OceanFxCanvas = () => {
   const ref = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
