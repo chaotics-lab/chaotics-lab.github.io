@@ -1,15 +1,10 @@
-import { Header } from "@/components/portfolio/Header";
-import { SoftwareGrid } from "@/components/portfolio/SoftwareGrid";
-import { Footer } from "@/components/portfolio/Footer";
+import { SiteLayout } from "@/components/site/SiteLayout";
+import { Home } from "@/components/home/Home";
 
-const Index = () => {
-  return (
-    <div className="bg-background starfield">
-      <Header />
-      <SoftwareGrid />
-      <Footer />
-    </div>
-  );
-};
+const Index = () => (
+  <SiteLayout>
+    <Home />
+  </SiteLayout>
+);
 
 export default Index;

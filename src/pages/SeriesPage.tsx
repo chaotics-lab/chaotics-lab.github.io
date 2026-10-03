@@ -1,8 +1,8 @@
 import { useState, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
 import { getSeriesById } from "@/lib/blog";
-import { Header } from "@/components/portfolio/Header";
-import { Footer } from "@/components/portfolio/Footer";
+import { SiteHeader as Header } from "@/components/site/SiteHeader";
+import { SiteFooter as Footer } from "@/components/site/SiteFooter";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Calendar, BookOpenText, Check, Clipboard } from "lucide-react";
 import ReactMarkdown from "react-markdown";
@@ -50,7 +50,7 @@ const SeriesPage = () => {
 
   if (!series) {
     return (
-      <div className="bg-background starfield min-h-screen">
+      <div className="h-page min-h-screen">
         <Header />
         <main className="container mx-auto px-6 pt-28 pb-20 max-w-5xl">
           <Link to="/blog" className="inline-flex items-center gap-2 text-space-muted hover:text-white text-sm font-ui transition-colors duration-200 mb-8">
@@ -113,7 +113,7 @@ const SeriesPage = () => {
   figureCounter.current = 0;
 
   return (
-    <div className="bg-background starfield min-h-screen">
+    <div className="h-page min-h-screen">
       <Header />
 
       <main className="container mx-auto px-6 pt-28 pb-20 max-w-5xl">

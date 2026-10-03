@@ -1,7 +1,8 @@
 import { useEffect } from "react";
-import { useLocation, Link } from "react-router-dom";
-import { Header } from "@/components/portfolio/Header";
-import { Footer } from "@/components/portfolio/Footer";
+import { useLocation } from "react-router-dom";
+import { TransitionLink } from "@/components/site/TransitionLink";
+import { ArrowLeft } from "@phosphor-icons/react";
+import { SiteLayout } from "@/components/site/SiteLayout";
 
 const NotFound = () => {
   const location = useLocation();
@@ -11,30 +12,17 @@ const NotFound = () => {
   }, [location.pathname]);
 
   return (
-    <div className="bg-background starfield min-h-screen">
-      <Header />
-
-      <main className="flex flex-col items-center justify-center min-h-[70vh] px-6 text-center">
-        <p className="text-space-muted font-mono text-sm uppercase tracking-widest mb-4">
-          404
-        </p>
-        <h1 className="text-4xl md:text-5xl font-display font-bold text-white mb-4">
-          Page not found
-        </h1>
-        <p className="text-space-muted font-ui text-base max-w-md mb-10">
-          Whatever was here either moved, never existed, or drifted off into the void.
-        </p>
-        <Link
-          to="/"
-          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border border-white/15 bg-white/5 text-white text-sm font-ui hover:bg-white/10 hover:border-white/25 transition-all duration-200"
-        >
-          Back to home
-        </Link>
+    <SiteLayout>
+      <main className="container mx-auto px-5 sm:px-8 pt-40 pb-10">
+        <p className="h-caps text-xs text-[var(--h-c2)]">404</p>
+        <h1 className="mt-4 h-display text-[clamp(3rem,9vw,7rem)]">Page not found</h1>
+        <p className="mt-6 text-lg text-[var(--h-c3)]">Whatever was here either moved or never existed.</p>
+        <TransitionLink to="/" className="mt-10 h-btn h-btn-cream">
+          <ArrowLeft size={16} weight="bold" /> Back to home
+        </TransitionLink>
       </main>
-
-      <Footer />
-    </div>
+    </SiteLayout>
   );
 };
 
-export default NotFound;  
+export default NotFound;

@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { getAllPosts, getAllSeries } from "@/lib/blog";
 import { usePageTransition } from "@/hooks/usePageTransition";
-import { Header } from "@/components/portfolio/Header";
-import { Footer } from "@/components/portfolio/Footer";
+import { SiteHeader as Header } from "@/components/site/SiteHeader";
+import { SiteFooter as Footer } from "@/components/site/SiteFooter";
 import { BookOpenText, Calendar, ChevronDown } from "lucide-react";
 
 function formatDate(dateStr: string) {
@@ -194,7 +194,7 @@ const BlogPage = () => {
   });
 
   return (
-    <div className="bg-background starfield min-h-screen">
+    <div className="h-page min-h-screen">
       <Header />
 
       <main

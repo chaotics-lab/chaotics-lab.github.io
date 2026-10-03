@@ -6,8 +6,8 @@ import {
   getSeriesById,
 } from "@/lib/blog";
 import { usePageTransition } from "@/hooks/usePageTransition";
-import { Header } from "@/components/portfolio/Header";
-import { Footer } from "@/components/portfolio/Footer";
+import { SiteHeader as Header } from "@/components/site/SiteHeader";
+import { SiteFooter as Footer } from "@/components/site/SiteFooter";
 import { Badge } from "@/components/ui/badge";
 import {
   ArrowLeft,
@@ -199,7 +199,7 @@ const BlogPostPage = () => {
 
   if (!post) {
     return (
-      <div className="bg-background starfield min-h-screen">
+      <div className="h-page min-h-screen">
         <Header />
         <main className="container mx-auto px-6 pt-28 pb-20 max-w-5xl">
           <Link
@@ -217,7 +217,7 @@ const BlogPostPage = () => {
   }
 
   return (
-    <div className="bg-background starfield min-h-screen">
+    <div className="h-page min-h-screen">
       <Header />
       <main
         className="container mx-auto px-6 pt-28 pb-20 max-w-5xl"
