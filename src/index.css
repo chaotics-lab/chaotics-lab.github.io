@@ -970,7 +970,9 @@ html[data-quality="0"] .ocean-layer { display: none; }
 @media (hover: hover) { .h-pill-stat, .h-pill-stat:hover { align-items: center; gap: 0.4rem; color: #fff; border-color: rgb(var(--h-c2-rgb) / 0.6); background: rgb(var(--h-night-rgb) / 0.35); font-variant-numeric: tabular-nums; } }
 /* Bottom row: back link on the left, next project on the right */
 .p-next { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem 2rem; padding: 1.25rem 0; border-top: 1.5px solid var(--h-line); }
-.p-next-link { margin-left: auto; min-width: 0; max-width: 100%; } /* an outline button like the others */
+.p-next-pair { display: flex; align-items: center; gap: 0.75rem; margin-left: auto; min-width: 0; max-width: 100%; }
+.p-next-link { min-width: 0; max-width: 100%; } /* an outline button like the others */
+.p-prev-link { flex: none; }
 .p-next-title { min-width: 0; grid-template-columns: minmax(0, 1fr); } /* lets the title shrink and ellipsis */
 .p-next-title > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .p-next-arrow, .p-prev-arrow { flex: none; transition: transform 350ms cubic-bezier(.2,.8,.2,1); }
@@ -1044,7 +1046,7 @@ html[data-quality="0"] .ocean-layer { display: none; }
 @media (max-width: 639px) {
   .ai-drop-head { flex-direction: column; align-items: flex-start; gap: 1.25rem; padding: 1.75rem 0; }
   .p-logo { height: 2.75rem !important; width: auto; max-width: 50vw; align-self: flex-start; } /* above the title, not beside it */
-  .p-next-link { margin-left: 0; }
+  .p-next-pair { margin-left: 0; }
 }
 .h-pill { white-space: nowrap; }
 /* Fade variant (minimal quality): one plain layer, in and out */
