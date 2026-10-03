@@ -839,6 +839,7 @@ All colors MUST be HSL.
 @media (min-width: 640px) { .s-top { right: 1.5rem; bottom: 1.5rem; } }
 .s-top-item { border-radius: 9999px; padding: 0.55rem; transition: color 200ms ease, background-color 200ms ease; }
 .s-top-item:hover, .s-top-item:focus-visible { background: var(--h-cream); color: var(--h-ink); outline: none; }
+.s-top-item.s-top-wide { padding-right: 1rem; } /* footer version: arrow + label, arrow where the floating one has it */
 .s-circle {
   width: 2.75rem;
   height: 2.75rem;

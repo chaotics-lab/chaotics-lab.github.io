@@ -28,13 +28,20 @@ export const SiteFooter = () => {
         </nav>
         <div className="flex items-center justify-between md:justify-end gap-6 text-sm text-[var(--h-c2)]">
           <span>© {new Date().getFullYear()} Lox</span>
-          <button
-            type="button"
-            onClick={() => dive(() => window.scrollTo(0, 0), { dir: 'down' })}
-            className="inline-flex items-center gap-1.5 hover:text-white transition-colors"
-          >
-            Back to top <ArrowUp size={14} weight="bold" className="h-bob-up" />
-          </button>
+          {/* the floating back-to-top pill (ScrollTop) docks onto this one */}
+          <div id="footer-top" className="s-nav">
+            <button
+              type="button"
+              onClick={() => dive(() => window.scrollTo(0, 0), { dir: 'down' })}
+              className="s-nav-item s-top-item s-top-wide h-swap-host"
+            >
+              <ArrowUp size={18} weight="bold" className="s-icon" />
+              <span className="h-swap">
+                <span>Back to top</span>
+                <span className="h-serif text-[1.1rem] leading-[1.05]" aria-hidden="true">Back to top</span>
+              </span>
+            </button>
+          </div>
         </div>
       </div>
     </div>

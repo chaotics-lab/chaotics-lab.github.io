@@ -244,7 +244,7 @@ export const HeroWaves = () => {
     // the ones that always exist (Flora, Cryo, Gaia)
     [0, 1, 2].forEach(pl => {
       live.flora[pl] = els.flora[pl].map((_, i, a) => ({ x: ((i + rnd(0.1, 0.9)) / a.length) * W, y: 0, vx: rnd(3, 8), vy: 0, rot: rnd(0, 360), spin: rnd(-6, 6), size: rnd(16, 28), age: 0, life: 1, phase: rnd(0, 6.3), tier: tierOf() }));
-      live.cryo[pl] = els.cryo[pl].map(() => ({ x: rnd(0, W), y: rnd(8, 60), vx: rnd(-6, 6), vy: rnd(3, 9), rot: rnd(0, 360), spin: rnd(-25, 25), size: rnd(8, 16), age: 0, life: 1, phase: rnd(0, 6.3), tier: tierOf() }));
+      live.cryo[pl] = els.cryo[pl].map(() => ({ x: rnd(0, W), y: rnd(8, 60), vx: rnd(-6, 6), vy: rnd(3, 9), rot: rnd(0, 360), spin: rnd(-25, 25), size: rnd(13, 24), age: 0, life: 1, phase: rnd(0, 6.3), tier: tierOf() }));
       live.gaia[pl] = els.gaia[pl].map((_, i, a) => ({ x: ((i + rnd(0.15, 0.85)) / a.length) * W, y: 0, vx: 0, vy: 0, rot: rnd(-10, 10), spin: 0, size: rnd(22, 34), age: 0, life: 1, phase: rnd(0, 6.3), tier: tierOf() }));
     });
     const nextBurst = [rnd(0.2, 0.8), rnd(0.2, 0.8), rnd(0.2, 0.8)];
@@ -253,7 +253,7 @@ export const HeroWaves = () => {
       const x = -EDGE + (j / (NODES - 1)) * (W + 2 * EDGE);
       const v = PLANE_SPEED[pl];
       for (let i = 0; i < n && live.volta[pl].length < els.volta[pl].length; i++) {
-        live.volta[pl].push({ x: x + rnd(-8, 8), y: surface(pl, x).y, vx: rnd(-70, 70) * v, vy: -rnd(90, 190) * v, rot: rnd(-30, 30), spin: rnd(-300, 300), size: rnd(12, 22) * PLANE_SIZE[pl], age: 0, life: rnd(0.45, 0.8), phase: 0, tier: tierOf() });
+        live.volta[pl].push({ x: x + rnd(-8, 8), y: surface(pl, x).y, vx: rnd(-70, 70) * v, vy: -rnd(90, 190) * v, rot: rnd(-30, 30), spin: rnd(-300, 300), size: rnd(18, 32) * PLANE_SIZE[pl], age: 0, life: rnd(0.45, 0.8), phase: 0, tier: tierOf() });
       }
     };
     const rainClock = [0, 0, 0];
@@ -359,7 +359,7 @@ export const HeroWaves = () => {
           const x = focus ? Math.max(0, Math.min(W, (m.x + (Math.random() - 0.5) * 2 * 140) / sx)) : rnd(0.05, 0.95) * W;
           const n = 2 + Math.floor(Math.random() * 2);
           for (let j = 0; j < n && live.pyra[pl].length < els.pyra[pl].length; j++) {
-            live.pyra[pl].push({ x, y: surface(pl, x).y, vx: rnd(-90, 90) * v, vy: -rnd(150, 260) * v, rot: rnd(0, 360), spin: rnd(-200, 200), size: rnd(16, 28) * f, age: 0, life: 4, phase: 0, tier: tierOf() });
+            live.pyra[pl].push({ x, y: surface(pl, x).y, vx: rnd(-90, 90) * v, vy: -rnd(150, 260) * v, rot: rnd(0, 360), spin: rnd(-200, 200), size: rnd(24, 40) * f, age: 0, life: 4, phase: 0, tier: tierOf() });
           }
         }
 
@@ -371,7 +371,7 @@ export const HeroWaves = () => {
             rainClock[pl] -= 1;
             // the closer the pointer, the more of the rain falls around it
             const x = Math.random() < pull * 0.6 ? (m.x + (Math.random() - 0.5) * 2 * 220) / sx - rainDir * 60 : rnd(-0.2, 1.2) * W;
-            live.aqua[pl].push({ x, y: -10, vx: rainDir * 170 * v, vy: rnd(260, 360) * v, rot: 0, spin: 0, size: rnd(10, 16) * f, age: 0, life: 3, phase: 0, tier: tierOf() });
+            live.aqua[pl].push({ x, y: -10, vx: rainDir * 170 * v, vy: rnd(260, 360) * v, rot: 0, spin: 0, size: rnd(15, 24) * f, age: 0, life: 3, phase: 0, tier: tierOf() });
           }
           if (rainClock[pl] > 1) rainClock[pl] = 1;
         }
