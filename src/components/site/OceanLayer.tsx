@@ -9,7 +9,8 @@ import { currentIcon, onThemeChange } from '@/lib/theme';
 //   - the element icons as white silhouettes, sinking and tumbling at
 //     different depths (far ones smaller, fainter and slower); mostly the
 //     picked element's, all elements evenly on project pages; one under the
-//     cursor fades to its own colours, and back when the cursor leaves,
+//     cursor fades to its own colours (as bright as it was), and back when the
+//     cursor leaves,
 //   - tiny element icons rising and twinkling, denser deeper down.
 // Positions live in "layer space": x as a fraction of the width, y as a
 // fraction of the page height. Things further away (smaller z) move
@@ -195,7 +196,7 @@ export const OceanLayer = () => {
           ic.over = !!under?.closest(TEXTY);
         }
         ic.dim += ((ic.over ? 0.35 : 1) - ic.dim) * Math.min(1, dt * 4);
-        const rest = ic.z < 0.5 ? 0.22 : 0.3 + ic.z * 0.45, a = iconAlpha * fade * (ic.dim * rest + (0.95 - ic.dim * rest) * ic.hot);
+        const a = iconAlpha * ic.dim * fade * (ic.z < 0.5 ? 0.22 : 0.3 + ic.z * 0.45); // the same with or without the hover tint
         ctx.save();
         ctx.translate(base, y);
         // Two slow swings mixed together, so the tumble never repeats

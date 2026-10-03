@@ -15,17 +15,20 @@ import { WAVE, WAVE_V } from '@/lib/wave';
 // shape follows the blot cut mask of github.com/Ultipuk/persona_3_reload_pause_menu
 // (assets/shaders/blot_cut_mask.gdshader): radius progress * (R - amp *
 // sin(lobes * (angle - progress * turn))), with R reaching the far corner.
-// 'band': two rectangles at the element band's angle grow up and down from
-// its edges and fill the screen with the new element's colours; the scheme
-// swaps; they close back into the band.
-// Keep the timings in sync with .pt-layer / .pts-band / .ptb-rect in index.css.
+// 'wipe': Persona 5 Royal's menu wipe (its Skill and Item menus open with a
+// rotational wipe): the new element's colours sweep round the clicked point
+// like a clock hand, a sliver of the accent leading, until they cover the
+// screen; the scheme swaps; the sweep turns on and uncovers the new page.
+// Works from anywhere (the element band, the footer).
+// Keep the timings in sync with .pt-layer / .pts-band in index.css.
 const BLOT = { in: 320, out: 380, gap: 75 }; // ms per blot, and between them
+const WIPE = { in: 420, out: 440, lag: 28 }; // ms per turn; degrees the main colour trails its accent edge
 const TIMING = {
   sea: { cover: 260 + 2 * 45, hold: 40, reveal: 300 + 2 * 45 },
   slash: { cover: 280 + 2 * 60, hold: 320, reveal: 320 + 2 * 60 }, // hold: time to read the title
   blot: { cover: BLOT.gap * 2 + BLOT.in, hold: 120, reveal: BLOT.gap * 2 + BLOT.out },
   fade: { cover: 160, hold: 30, reveal: 220 }, // minimal quality: one plain fade (.pt-fade)
-  band: { cover: 280, hold: 100, reveal: 380 }, // .ptb-rect; hold: lets the new colours paint before it closes
+  wipe: { cover: WIPE.in, hold: 90, reveal: WIPE.out }, // hold: lets the new colours paint before it turns away
 };
 
 const LAYERS = ['var(--h-c1)', 'var(--h-top)', 'var(--h-deep)'];
@@ -70,10 +73,12 @@ export const PageTransition = ({ children }: { children: ReactNode }) => {
     setOpts(o);
     setPhase('cover');
     if (o.kind === 'blot') runBlots('cover', BLOT, o.origin);
+    if (o.kind === 'wipe') runWipe('cover', o.origin);
     timers.current.push(window.setTimeout(() => {
       swap();
       setPhase('reveal');
       if (o.kind === 'blot') runBlots('reveal', BLOT);
+      if (o.kind === 'wipe') runWipe('reveal', o.origin);
       timers.current.push(window.setTimeout(() => {
         setPhase('idle');
         busy.current = false;
@@ -110,6 +115,29 @@ export const PageTransition = ({ children }: { children: ReactNode }) => {
     blotRaf.current = requestAnimationFrame(frame);
   };
   useEffect(() => () => cancelAnimationFrame(blotRaf.current), []);
+
+  // Wipe: each layer masked by a conic gradient around the clicked point,
+  // set every frame. Layer 0 is the accent edge, layer 1 the main colour.
+  const runWipe = (step: 'cover' | 'reveal', at?: { x: number; y: number }) => {
+    cancelAnimationFrame(blotRaf.current);
+    const x = at?.x ?? window.innerWidth / 2, y = at?.y ?? window.innerHeight / 2, dur = step === 'cover' ? WIPE.in : WIPE.out;
+    let start = -1;
+    const frame = () => {
+      if (!blots.current[1]?.isConnected) { blotRaf.current = requestAnimationFrame(frame); return; }
+      if (start < 0) start = performance.now();
+      const k = Math.min(1, (performance.now() - start) / dur), a = easeInOut(k) * (360 + WIPE.lag);
+      blots.current.slice(0, 2).forEach((el, i) => {
+        if (!el) return;
+        // covering, the accent leads; uncovering, the main colour goes first and the accent trails
+        const deg = Math.max(0, Math.min(360, step === 'cover' ? a - i * WIPE.lag : a - (1 - i) * WIPE.lag));
+        const [on, off] = step === 'cover' ? ['#000', 'transparent'] : ['transparent', '#000'];
+        el.style.visibility = 'visible';
+        el.style.maskImage = el.style.webkitMaskImage = `conic-gradient(from 0deg at ${x}px ${y}px, ${on} ${deg}deg, ${off} ${deg}deg)`;
+      });
+      if (k < 1) blotRaf.current = requestAnimationFrame(frame);
+    };
+    blotRaf.current = requestAnimationFrame(frame);
+  };
 
   const diveRef = useRef(dive);
   diveRef.current = dive;
@@ -155,12 +183,11 @@ export const PageTransition = ({ children }: { children: ReactNode }) => {
           ))}
         </div>
       )}
-      {opts.kind === 'band' && phase !== 'idle' && (
+      {opts.kind === 'wipe' && phase !== 'idle' && (
         <div className="pt" data-phase={phase} aria-hidden="true">
-          <div className="ptb" style={{ top: opts.origin?.y ?? '50%', transform: `rotate(${opts.angle ?? 0}deg)`, ['--gap' as string]: `${(opts.gap ?? 0) / 2}px` }}>
-            <div className="ptb-rect ptb-up" style={{ background: opts.colors?.[0] ?? 'var(--h-top)' }} />
-            <div className="ptb-rect ptb-down" style={{ background: opts.colors?.[1] ?? 'var(--h-deep)' }} />
-          </div>
+          {(opts.colors ?? ['var(--h-c1)', 'var(--h-top)']).slice(0, 2).map((color, i) => (
+            <div key={i} ref={el => { blots.current[i] = el; }} className="pt-blot" style={{ background: color, visibility: 'hidden' }} />
+          ))}
         </div>
       )}
       {opts.kind === 'fade' && phase !== 'idle' && <div className="pt pt-fade" data-phase={phase} aria-hidden="true" />}
@@ -172,7 +199,7 @@ export const PageTransition = ({ children }: { children: ReactNode }) => {
         </div>
       )}
       {/* sideways sea (dir left/right), same layers as the filter sweep */}
-      <div className="pt" data-phase={opts.kind !== 'slash' && opts.kind !== 'fade' && opts.kind !== 'band' && sideways ? phase : 'idle'} data-dir={opts.dir} aria-hidden="true">
+      <div className="pt" data-phase={opts.kind !== 'slash' && opts.kind !== 'fade' && opts.kind !== 'wipe' && sideways ? phase : 'idle'} data-dir={opts.dir} aria-hidden="true">
         {LAYERS.map((color, i) => (
           <div
             key={color}
@@ -185,7 +212,7 @@ export const PageTransition = ({ children }: { children: ReactNode }) => {
           </div>
         ))}
       </div>
-      <div className="pt" data-phase={opts.kind === 'slash' || opts.kind === 'fade' || sideways || opts.kind === 'blot' || opts.kind === 'band' ? 'idle' : phase} data-dir={opts.dir ?? 'up'} aria-hidden="true">
+      <div className="pt" data-phase={opts.kind === 'slash' || opts.kind === 'fade' || sideways || opts.kind === 'blot' || opts.kind === 'wipe' ? 'idle' : phase} data-dir={opts.dir ?? 'up'} aria-hidden="true">
         {LAYERS.map((color, i) => (
           <div
             key={color}

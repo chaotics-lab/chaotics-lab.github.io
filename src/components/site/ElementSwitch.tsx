@@ -25,9 +25,9 @@ export const ElementSwitch = () => {
           title={e.name}
           onClick={ev => {
             if (e.id === currentElement()) return;
-            // same fill as from the element band, opening from this button's row
+            // the new colours sweep round from this button (PageTransition 'wipe')
             const r = ev.currentTarget.getBoundingClientRect(), pal = THEMES[e.id] ?? THEMES.aqua;
-            dive(() => applyTheme(e.id), { kind: 'band', angle: -2, gap: 0, colors: [pal.top, pal.deep], origin: { x: r.left + r.width / 2, y: r.top + r.height / 2 } });
+            dive(() => applyTheme(e.id), { kind: 'wipe', colors: [pal.c1, pal.top], origin: { x: r.left + r.width / 2, y: r.top + r.height / 2 } });
           }}
         >
           <ElementGlyph id={e.id} size={20} className="s-icon" filled={active === e.id} />
