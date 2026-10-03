@@ -218,11 +218,13 @@ const ProjectPage = () => {
               </span>
             </TransitionLink>
             {next && (
-              <TransitionLink to={`/project/${next.id}`} className="p-next-link" transition={slashTo(next)}>
-                <span className="h-caps text-[0.62rem] text-[var(--h-c2)]">Next</span>
-                {next.logoUrl && <img src={next.logoUrl} alt="" className="p-next-logo" />}
-                <span className="p-next-title">{withoutCompany(next.title)}</span>
-                <ArrowRight size={18} weight="bold" className="p-next-arrow" />
+              <TransitionLink to={`/project/${next.id}`} className="h-btn h-btn-line h-swap-host p-next-link" transition={slashTo(next)}>
+                <span className="h-caps text-[0.62rem] opacity-70">Next</span>
+                <span className="h-swap p-next-title">
+                  <span>{withoutCompany(next.title)}</span>
+                  <span className="h-serif text-[1.1rem] leading-[1.05]" aria-hidden="true">{withoutCompany(next.title)}</span>
+                </span>
+                <ArrowRight size={16} weight="bold" className="p-next-arrow" />
               </TransitionLink>
             )}
           </div>

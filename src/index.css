@@ -958,12 +958,11 @@ All colors MUST be HSL.
 .h-pill-static:hover { border-color: rgb(var(--h-c2-rgb) / 0.45); color: var(--h-c3); }
 /* Bottom row: back link on the left, next project on the right */
 .p-next { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem 2rem; padding: 1.25rem 0; border-top: 1.5px solid var(--h-line); }
-.p-next-link { display: inline-flex; align-items: center; gap: 0.75rem; min-width: 0; margin-left: auto; }
-.p-next-logo { height: 1.6rem; width: auto; max-width: 3rem; object-fit: contain; }
-.p-next-title { font-family: "Archivo", sans-serif; font-weight: 900; font-style: italic; font-stretch: 75%; text-transform: uppercase; font-size: clamp(1.1rem, 2.2vw, 1.6rem); line-height: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; transition: color 200ms ease; }
-.p-next-arrow { flex: none; color: var(--h-c2); transition: transform 350ms cubic-bezier(.2,.8,.2,1), color 200ms ease; }
-.p-next-link:hover .p-next-title { color: var(--h-c1); }
-.p-next-link:hover .p-next-arrow { transform: translateX(0.3rem); color: var(--h-cream); }
+.p-next-link { margin-left: auto; min-width: 0; max-width: 100%; } /* an outline button like the others */
+.p-next-title { min-width: 0; }
+.p-next-title > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.p-next-arrow { flex: none; transition: transform 350ms cubic-bezier(.2,.8,.2,1); }
+.p-next-link:hover .p-next-arrow { transform: translateX(0.25rem); }
 .p-viewer { position: fixed; inset: 0; z-index: 70; display: grid; place-items: center; padding: 4.5rem 1rem; background: rgb(var(--h-night-rgb) / 0.96); }
 .p-viewer > img { max-width: 100%; max-height: 100%; object-fit: contain; }
 
