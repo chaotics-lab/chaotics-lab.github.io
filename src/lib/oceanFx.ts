@@ -209,25 +209,42 @@ function pyra(): Fx {
 // Painted into a kept layer that fades in steps (so a frame only draws the
 // new bits), over a frosted haze baked once. The pointer melts a patch.
 function cryo(): Fx {
-  const paint = canvas(), p = paint.getContext('2d')!, haze = canvas(), D = Math.min(2, window.devicePixelRatio || 1);
+  const paint = canvas(), p = paint.getContext('2d')!, D = Math.min(2, window.devicePixelRatio || 1);
   type Front = { x: number; y: number; ang: number; len: number; gen: number; d: number; nextBranch: number };
   let fronts: Front[] = [], fadeT = 0, next = 0, ptr: Ptr = null, W = 0, H = 0, last: number | null = null;
+  // the frosted haze in two parts: the sides stay with the screen, the bottom band sits on the seabed
+  const sides = canvas(), bottom = canvas();
+  let band = 0;
   const bakeHaze = (w: number, h: number) => {
-    haze.width = Math.round(w); haze.height = Math.round(h);
-    const x = haze.getContext('2d')!, e = Math.min(w, h) * 0.35;
-    for (const [x0, y0, x1, y1] of [[0, h, 0, h - e], [0, 0, e, 0], [w, 0, w - e, 0]]) {
-      const gr = x.createLinearGradient(x0, y0, x1, y1);
+    const e = Math.min(w, h) * 0.35;
+    band = Math.round(e);
+    sides.width = Math.round(w); sides.height = Math.round(h);
+    bottom.width = Math.round(w); bottom.height = band;
+    const s = sides.getContext('2d')!, b = bottom.getContext('2d')!;
+    for (const [x0, x1] of [[0, e], [w, w - e]]) {
+      const gr = s.createLinearGradient(x0, 0, x1, 0);
       gr.addColorStop(0, 'rgba(255,255,255,0.22)');
       gr.addColorStop(1, 'rgba(255,255,255,0)');
-      x.fillStyle = gr;
-      x.fillRect(0, 0, w, h);
+      s.fillStyle = gr;
+      s.fillRect(0, 0, w, h);
     }
-    x.fillStyle = '#fff';
-    for (let i = 0; i < (w * h) / 40; i++) {
+    const gb = b.createLinearGradient(0, band, 0, 0);
+    gb.addColorStop(0, 'rgba(255,255,255,0.22)');
+    gb.addColorStop(1, 'rgba(255,255,255,0)');
+    b.fillStyle = gb;
+    b.fillRect(0, 0, w, band);
+    // fine speckle, denser toward each edge
+    s.fillStyle = b.fillStyle = '#fff';
+    for (let i = 0; i < (w * h) / 60; i++) {
       const px = rnd(0, w), py = rnd(0, h);
-      if (Math.random() > Math.min(px, w - px, h - py) / e) { x.globalAlpha = rnd(0.1, 0.45); x.fillRect(px, py, 1, 1); }
+      if (Math.random() > Math.min(px, w - px) / e) { s.globalAlpha = rnd(0.1, 0.45); s.fillRect(px, py, 1, 1); }
+    }
+    for (let i = 0; i < (w * band) / 40; i++) {
+      const px = rnd(0, w), py = rnd(0, band);
+      if (Math.random() > (band - py) / e) { b.globalAlpha = rnd(0.1, 0.45); b.fillRect(px, py, 1, 1); }
     }
   };
+
   const grow = (x: number, y: number, ang: number, len: number, gen: number) => fronts.push({ x, y, ang, len, gen, d: 0, nextBranch: rnd(6, 12) });
   // from the seabed when it is in view, else from the sides of the screen
   const spawn = (w: number, h: number, floor: number) => {
@@ -285,7 +302,8 @@ function cryo(): Fx {
       }
       if ((fadeT += dt) > 1) { fadeT = 0; p.fillStyle = 'rgba(0,0,0,0.12)'; p.fillRect(0, 0, w, h); } // steps: small ones stall on 8-bit alpha
       p.globalCompositeOperation = 'source-over';
-      g.drawImage(haze, 0, floor - h, w, h); // haze hugs the seabed
+      g.drawImage(sides, 0, 0, w, h);
+      g.drawImage(bottom, 0, floor - band, w, band); // hugs the seabed
       g.drawImage(paint, 0, 0, w, h);
     },
   };
@@ -394,9 +412,10 @@ function aero(): Fx {
 
 // ---- Flora: roots and vines growing up from the seabed, swaying around
 // their base (eased swings within a few degrees, as the Kodama pen's), and
-// thick roots coming in from both sides in three depth layers that shift
-// with the pointer. The pointer also nudges the thin ones aside.
-type Stroke = { x: number; y: number; pts: [number, number][]; w: number; amp: number; slow: number; a: number; from: number; to: number; t0: number; dur: number; push: number; len: number };
+// thick roots coming in from both sides in three depth layers. Everything
+// has a depth: farther strokes follow the scroll and the pointer less. The
+// pointer also nudges the thin ones aside.
+type Stroke = { d: number; x: number; y: number; pts: [number, number][]; w: number; amp: number; slow: number; a: number; from: number; to: number; t0: number; dur: number; push: number; len: number };
 type Thick = { path: Path2D; depth: number };
 // A tapering ribbon along a cubic curve, as one closed path.
 function ribbon(p0: number[], p1: number[], p2: number[], p3: number[], w0: number, path: Path2D) {
@@ -416,28 +435,29 @@ function ribbon(p0: number[], p1: number[], p2: number[], p3: number[], w0: numb
 }
 function flora(): Fx {
   let items: Stroke[] = [], thick: Thick[] = [], t = 0, ptr: Ptr = null, W = 0, H = 0, px = 0, py = 0;
-  const add = (x: number, y: number, pts: [number, number][], w: number, amp: number, slow: number) => {
+  // d: depth, 1 at the front; farther strokes follow the scroll and the pointer less (parallax)
+  const add = (d: number, x: number, y: number, pts: [number, number][], w: number, amp: number, slow: number) => {
     const a = rnd(-amp, amp) * DEG;
-    items.push({ x, y, pts, w, amp, slow, a, from: a, to: rnd(-amp, amp) * DEG, t0: 0, dur: rnd(3, 5) * slow, push: 0, len: pts[pts.length - 1][1] });
+    items.push({ d, x, y, pts, w, amp, slow, a, from: a, to: rnd(-amp, amp) * DEG, t0: 0, dur: rnd(3, 5) * slow, push: 0, len: pts[pts.length - 1][1] });
   };
   const setup = (w: number, h: number) => {
     items = []; thick = [];
     const n = Math.max(3, Math.round(w / 110));
     for (let c = 0; c < n; c++) {
-      const cx = (c + 0.5 + rnd(-0.3, 0.3)) * (w / n), base = h + rnd(-h * 0.03, 12), L = h * rnd(0.25, 0.45);
+      const cx = (c + 0.5 + rnd(-0.3, 0.3)) * (w / n), base = h + rnd(-h * 0.03, 12), L = h * rnd(0.25, 0.45), d = rnd(0.55, 1);
       for (let r = 0; r < 4; r++) {
         const hook = (Math.random() < 0.5 ? -1 : 1) * rnd(6, 16), ph = rnd(0, TAU), len = L * rnd(0.75, 1), pts: [number, number][] = [];
         for (let y = 0; y <= len; y += 8) { const k = Math.min(1, y / 22); pts.push([hook * Math.sin((k * Math.PI) / 2) + Math.sin(y * 0.045 + ph) * 3 + noise(c * 7 + r, y * 0.02) * 6, y]); }
-        add(cx + rnd(-10, 10), base - (r % 2) * rnd(4, 14), pts, r % 2 ? 0.6 : 1.6, 5, 1);
+        add(d, cx + rnd(-10, 10), base - (r % 2) * rnd(4, 14), pts, r % 2 ? 0.6 : 1.6, 5, 1);
       }
     }
     const m = Math.max(2, Math.round(w / 220));
     for (let v = 0; v < m; v++) {
-      const vx = (v + 0.5 + rnd(-0.35, 0.35)) * (w / m), side = Math.random() < 0.5 ? -1 : 1, len = h * rnd(0.55, 0.8), ph = rnd(0, TAU);
+      const vx = (v + 0.5 + rnd(-0.35, 0.35)) * (w / m), side = Math.random() < 0.5 ? -1 : 1, len = h * rnd(0.55, 0.8), ph = rnd(0, TAU), d = rnd(0.75, 1);
       for (const [wd, off] of [[2.4, 0], [0.9, rnd(1.5, 3)]]) {
         const pts: [number, number][] = [];
         for (let y = 0; y <= len; y += 10) { const k = Math.min(1, y / 50); pts.push([side * 30 * (1 - Math.sin((k * Math.PI) / 2)) + off + Math.sin(y * 0.012 + ph) * 5 + noise(v * 13 + off, y * 0.01) * 8, y]); }
-        add(vx, h + 6, pts, wd, 2.5, 1.6);
+        add(d, vx, h + 6, pts, wd, 2.5, 1.6);
       }
     }
     // thick roots: from each side, curving inward and up, one per depth layer, with an offshoot
@@ -458,7 +478,7 @@ function flora(): Fx {
       t += dt;
       if (W !== w || H !== h) { W = w; H = h; setup(w, h); }
       const off = floor - h; // everything here grows from the seabed
-      if (off > h * 1.2) return;
+      if (off * 0.55 > h * 1.2) return; // even the farthest strokes are still below the screen
       // parallax target from the pointer's place on screen, eased
       const tx = ptr ? ptr.x / w - 0.5 : 0, ty = ptr ? clamp(ptr.y / h, 0, 1) - 0.5 : 0;
       px += (tx - px) * Math.min(1, dt * 2);
@@ -466,7 +486,7 @@ function flora(): Fx {
       for (const r of thick) {
         const par = 8 + r.depth * 14;
         g.save();
-        g.translate(-px * par, -py * par * 0.5 + off);
+        g.translate(-px * par, -py * par * 0.5 + off * (0.7 + 0.1 * r.depth));
         g.fillStyle = `rgba(255,255,255,${0.07 + r.depth * 0.05})`;
         g.fill(r.path);
         g.restore();
@@ -476,11 +496,11 @@ function flora(): Fx {
         let k = (t - r.t0) / r.dur;
         if (k >= 1) { r.from = r.to; r.to = rnd(-r.amp, r.amp) * DEG; r.t0 = t; r.dur = rnd(3, 5) * r.slow; k = 0; }
         let target = 0;
-        const ry = r.y + off;
-        if (ptr && ptr.y < ry && ptr.y > ry - r.len) { const dx = r.x - ptr.x, d = Math.abs(dx); if (d < 70) target = Math.sign(dx || 1) * (1 - d / 70) * 9 * DEG; }
+        const ry = r.y + off * r.d, rx = r.x - px * (6 + 18 * r.d);
+        if (ptr && ptr.y < ry && ptr.y > ry - r.len) { const dx = rx - ptr.x, d = Math.abs(dx); if (d < 70) target = Math.sign(dx || 1) * (1 - d / 70) * 9 * DEG; }
         r.push += (target - r.push) * Math.min(1, dt * 3);
         r.a = r.from + (r.to - r.from) * easeInOut(k) - r.push;
-        const cs = Math.cos(r.a), sn = Math.sin(r.a), pa = P2[r.w], P = r.pts.map(([x, y]) => [r.x + x * cs + y * sn, ry + x * sn - y * cs]);
+        const cs = Math.cos(r.a), sn = Math.sin(r.a), pa = P2[r.w], P = r.pts.map(([x, y]) => [rx + x * cs + y * sn, ry + x * sn - y * cs]);
         pa.moveTo(P[0][0], P[0][1]);
         for (let i = 1; i < P.length - 1; i++) pa.quadraticCurveTo(P[i][0], P[i][1], (P[i][0] + P[i + 1][0]) / 2, (P[i][1] + P[i + 1][1]) / 2);
         const e = P[P.length - 1];
