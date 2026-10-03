@@ -15,13 +15,17 @@ import { WAVE, WAVE_V } from '@/lib/wave';
 // shape follows the blot cut mask of github.com/Ultipuk/persona_3_reload_pause_menu
 // (assets/shaders/blot_cut_mask.gdshader): radius progress * (R - amp *
 // sin(lobes * (angle - progress * turn))), with R reaching the far corner.
-// Keep the timings in sync with .pt-layer / .pts-band in index.css.
+// 'band': two rectangles at the element band's angle grow up and down from
+// its edges and fill the screen with the new element's colours; the scheme
+// swaps; they pull back to the screen edges.
+// Keep the timings in sync with .pt-layer / .pts-band / .ptb-rect in index.css.
 const BLOT = { in: 320, out: 380, gap: 75 }; // ms per blot, and between them
 const TIMING = {
   sea: { cover: 260 + 2 * 45, hold: 40, reveal: 300 + 2 * 45 },
   slash: { cover: 280 + 2 * 60, hold: 320, reveal: 320 + 2 * 60 }, // hold: time to read the title
   blot: { cover: BLOT.gap * 2 + BLOT.in, hold: 120, reveal: BLOT.gap * 2 + BLOT.out },
   fade: { cover: 160, hold: 30, reveal: 220 }, // minimal quality: one plain fade (.pt-fade)
+  band: { cover: 280, hold: 60, reveal: 320 }, // .ptb-rect
 };
 
 const LAYERS = ['var(--h-c1)', 'var(--h-top)', 'var(--h-deep)'];
@@ -151,6 +155,14 @@ export const PageTransition = ({ children }: { children: ReactNode }) => {
           ))}
         </div>
       )}
+      {opts.kind === 'band' && phase !== 'idle' && (
+        <div className="pt" data-phase={phase} aria-hidden="true">
+          <div className="ptb" style={{ top: opts.origin?.y ?? '50%', transform: `rotate(${opts.angle ?? 0}deg)`, ['--gap' as string]: `${(opts.gap ?? 0) / 2}px` }}>
+            <div className="ptb-rect ptb-up" style={{ background: opts.colors?.[0] ?? 'var(--h-top)' }} />
+            <div className="ptb-rect ptb-down" style={{ background: opts.colors?.[1] ?? 'var(--h-deep)' }} />
+          </div>
+        </div>
+      )}
       {opts.kind === 'fade' && phase !== 'idle' && <div className="pt pt-fade" data-phase={phase} aria-hidden="true" />}
       {opts.kind === 'blot' && phase !== 'idle' && (
         <div className="pt" data-phase={phase} aria-hidden="true">
@@ -160,7 +172,7 @@ export const PageTransition = ({ children }: { children: ReactNode }) => {
         </div>
       )}
       {/* sideways sea (dir left/right), same layers as the filter sweep */}
-      <div className="pt" data-phase={opts.kind !== 'slash' && opts.kind !== 'fade' && sideways ? phase : 'idle'} data-dir={opts.dir} aria-hidden="true">
+      <div className="pt" data-phase={opts.kind !== 'slash' && opts.kind !== 'fade' && opts.kind !== 'band' && sideways ? phase : 'idle'} data-dir={opts.dir} aria-hidden="true">
         {LAYERS.map((color, i) => (
           <div
             key={color}
@@ -173,7 +185,7 @@ export const PageTransition = ({ children }: { children: ReactNode }) => {
           </div>
         ))}
       </div>
-      <div className="pt" data-phase={opts.kind === 'slash' || opts.kind === 'fade' || sideways || opts.kind === 'blot' ? 'idle' : phase} data-dir={opts.dir ?? 'up'} aria-hidden="true">
+      <div className="pt" data-phase={opts.kind === 'slash' || opts.kind === 'fade' || sideways || opts.kind === 'blot' || opts.kind === 'band' ? 'idle' : phase} data-dir={opts.dir ?? 'up'} aria-hidden="true">
         {LAYERS.map((color, i) => (
           <div
             key={color}

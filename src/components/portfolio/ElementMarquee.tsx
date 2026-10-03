@@ -1,70 +1,61 @@
 import { useEffect, useRef, useState } from 'react';
 import { ELEMENTS } from '@/config/elements';
-import { currentElement, onThemeChange } from '@/lib/theme';
-import { ring, switchElement } from '@/lib/elementSwitch';
+import { applyTheme, currentElement, onThemeChange } from '@/lib/theme';
+import { usePageTransition } from '@/lib/pageTransition';
+import { THEMES } from '@/config/themes';
 import { onTick, prefersReducedMotion } from '@/lib/ticker';
 import { IconTile } from './IconTile';
 
 const LOOP_S = 38; // seconds for one full loop at normal speed
 const DRAG_PX = 6; // movement that turns a press into a drag (no click)
-const NUDGE_KEY = 'lox-el-nudged', NUDGE_AFTER_MS = 3500;
+const HINT_KEY = 'lox-theme-hint', HINT_HOVER_MS = 1000, HINT_TOUCH_MS = 4000;
+const hintDone = () => { try { return !!sessionStorage.getItem(HINT_KEY); } catch { return false; } };
+const hintOff = () => { try { sessionStorage.setItem(HINT_KEY, '1'); } catch { /* storage unavailable */ } };
 
 // Slanted black band with the elements scrolling past (P5-style ticker).
 // The list is rendered twice and wraps at half its width, so the loop is
 // seamless. It can be dragged (finger or mouse) and keeps a little momentum;
 // hovering eases it down to 20% speed. A tap or click picks an element and
-// switches the colour scheme (src/lib/elementSwitch.ts). The ocean layer is clipped to the
+// fills the page with its colours from the band out (PageTransition 'band').
+// Until someone does, resting the mouse on an element for a moment shows
+// "Click to change theme" by the cursor (on touch screens, once under the
+// band after a few seconds in view). The ocean layer is clipped to the
 // band's bottom edge, found through data-ocean-top.
 export const ElementMarquee = () => {
   const [active, setActive] = useState(currentElement);
   useEffect(() => onThemeChange(() => setActive(currentElement())), []);
 
+  const { dive } = usePageTransition();
   const trackRef = useRef<HTMLDivElement>(null);
   const bandRef = useRef<HTMLDivElement>(null);
-  const touched = useRef(false);
+  const [hint, setHint] = useState<{ x: number; y: number } | null>(null);
+  const [touchHint, setTouchHint] = useState(false);
+  const hintTimer = useRef(0);
+  const hintAt = useRef({ x: 0, y: 0 });
+  const hideHint = () => { clearTimeout(hintTimer.current); setHint(null); };
+  const onHover = (e: React.PointerEvent) => {
+    if (e.pointerType !== 'mouse' || hintDone()) return;
+    hintAt.current = { x: e.clientX, y: e.clientY };
+    if (hint) { setHint({ ...hintAt.current }); return; }
+    clearTimeout(hintTimer.current);
+    if (!(e.target as Element).closest('.e-pick')) return;
+    hintTimer.current = window.setTimeout(() => setHint({ ...hintAt.current }), HINT_HOVER_MS);
+  };
+  useEffect(() => () => clearTimeout(hintTimer.current), []);
 
-  // Once per visit, if the band has been in view for a few seconds and
-  // nobody has touched it: two elements near the middle hop in turn, each
-  // with a small ring in its colour, the hint that these do something.
+  // touch screens: once, a few seconds after the band comes into view
   useEffect(() => {
     const band = bandRef.current;
-    if (!band || prefersReducedMotion()) return;
-    try { if (sessionStorage.getItem(NUDGE_KEY)) return; } catch { /* storage unavailable */ }
-    let timer = 0;
-    const nudge = () => {
-      if (touched.current) return;
-      const w = window.innerWidth, picks = [...band.querySelectorAll<HTMLElement>('.e-pick')].filter(el => {
-        const r = el.getBoundingClientRect();
-        return el.getAttribute('aria-pressed') !== 'true' && r.left > w * 0.2 && r.right < w * 0.8;
-      });
-      const mid = Math.floor(picks.length / 2), two = picks.slice(Math.max(0, mid - 1), mid + 1);
-      if (!two.length) return;
-      try { sessionStorage.setItem(NUDGE_KEY, '1'); } catch { /* storage unavailable */ }
-      two.forEach((el, i) => window.setTimeout(() => {
-        const tile = el.querySelector('.e-tile');
-        if (!tile || touched.current) return;
-        tile.classList.add('e-nudge');
-        window.setTimeout(() => tile.classList.remove('e-nudge'), 800);
-        const r = tile.getBoundingClientRect();
-        ring(r.left + r.width / 2, r.top + r.height / 2, getComputedStyle(el).getPropertyValue('--el'), 120, true);
-      }, i * 450));
-      io.disconnect();
-    };
+    if (!band || hintDone() || !window.matchMedia('(hover: none)').matches) return;
+    let t = 0, off = 0;
     const io = new IntersectionObserver(([e]) => {
-      clearTimeout(timer);
-      if (e.isIntersecting) timer = window.setTimeout(nudge, NUDGE_AFTER_MS);
-    }, { threshold: 0.9 });
+      clearTimeout(t);
+      if (!e.isIntersecting || hintDone()) return;
+      t = window.setTimeout(() => { hintOff(); setTouchHint(true); off = window.setTimeout(() => setTouchHint(false), 3200); io.disconnect(); }, HINT_TOUCH_MS);
+    }, { threshold: 0.6 });
     io.observe(band);
-    return () => { clearTimeout(timer); io.disconnect(); };
+    return () => { clearTimeout(t); clearTimeout(off); io.disconnect(); };
   }, []);
-
-  // Hovering an element (mouse) previews it: the band's edge glows in its colour.
-  const preview = (e: React.PointerEvent) => {
-    const band = bandRef.current, el = (e.target as Element).closest<HTMLElement>('.e-pick');
-    if (!band || e.pointerType !== 'mouse') return;
-    if (el) { band.dataset.preview = ''; band.style.setProperty('--preview', el.style.getPropertyValue('--el')); }
-    else delete band.dataset.preview;
-  };
   const drag = useRef({ on: false, id: -1, x: 0, moved: 0, vel: 0, last: 0 });
   const motion = useRef({ x: 0, rate: 1, target: 1, fling: 0 });
 
@@ -111,20 +102,29 @@ export const ElementMarquee = () => {
     if (d.moved > DRAG_PX) motion.current.fling = Math.max(-2500, Math.min(2500, d.vel));
   };
 
-  const pick = (id: string, from: HTMLElement) => {
+  const pick = (id: string) => {
     if (drag.current.moved > DRAG_PX) return; // that was a drag, not a click
-    switchElement(id, from);
+    hintOff();
+    hideHint();
+    setTouchHint(false);
+    if (id === currentElement()) return;
+    // the new colours fill the page from the band out (PageTransition 'band')
+    const band = bandRef.current, r = band?.getBoundingClientRect(), pal = THEMES[id] ?? THEMES.aqua;
+    dive(() => applyTheme(id), {
+      kind: 'band', angle: -2, gap: band?.offsetHeight ?? 0, colors: [pal.top, pal.deep],
+      origin: r ? { x: r.left + r.width / 2, y: r.top + r.height / 2 } : undefined,
+    });
   };
 
   return (
+    <div className="relative">
     <div
       ref={bandRef}
       data-ocean-top
       onPointerEnter={e => { if (e.pointerType === 'mouse') motion.current.target = 0.2; }}
-      onPointerLeave={() => { motion.current.target = 1; if (bandRef.current) delete bandRef.current.dataset.preview; }}
-      onPointerOver={preview}
-      onPointerDown={e => { touched.current = true; onDown(e); }}
-      onPointerMove={onMove}
+      onPointerLeave={() => { motion.current.target = 1; hideHint(); }}
+      onPointerDown={onDown}
+      onPointerMove={e => { onMove(e); onHover(e); }}
       onPointerUp={onUp}
       onPointerCancel={onUp}
       className="e-band relative -rotate-2 my-6 md:my-10 -mx-4 bg-[#121212] border-y-[3px] border-[#121212] overflow-hidden select-none touch-pan-y cursor-grab active:cursor-grabbing"
@@ -136,7 +136,7 @@ export const ElementMarquee = () => {
               <button
                 key={`${copy}-${i}`}
                 type="button"
-                onClick={ev => pick(e.id, ev.currentTarget)}
+                onClick={() => pick(e.id)}
                 tabIndex={copy === 0 && i < ELEMENTS.length ? 0 : -1}
                 aria-pressed={active === e.id}
                 aria-label={`${e.name} colour scheme`}
@@ -151,6 +151,9 @@ export const ElementMarquee = () => {
           </div>
         ))}
       </div>
+    </div>
+    {hint && <span className="e-hint" style={{ left: hint.x, top: hint.y }} aria-hidden="true">Click to change theme</span>}
+    {touchHint && <span className="e-hint e-hint-under" aria-hidden="true">Tap to change theme</span>}
     </div>
   );
 };

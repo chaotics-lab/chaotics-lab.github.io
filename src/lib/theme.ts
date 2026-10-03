@@ -56,11 +56,11 @@ function blendTo(target: Palette, ms: number) {
 // colours over instead of swapping them. A project palette shown at the
 // time keeps showing until the project page clears it.
 let override: Palette | null = null;
-export function applyTheme(id: string, blend = false, ms = 800) {
+export function applyTheme(id: string, blend = false) {
   element = THEMES[id] ? id : 'aqua';
   try { localStorage.setItem(KEY, element); } catch { /* storage unavailable */ }
   const target = override ?? THEMES[element];
-  if (blend && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) blendTo(target, ms);
+  if (blend && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) blendTo(target, 800);
   else { cancelAnimationFrame(tween); paint(target); }
   listeners.forEach(fn => fn());
 }

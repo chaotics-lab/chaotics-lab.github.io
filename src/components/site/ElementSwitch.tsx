@@ -1,13 +1,15 @@
 import { useEffect, useState } from 'react';
 import { ELEMENTS } from '@/config/elements';
-import { currentElement, onThemeChange } from '@/lib/theme';
-import { switchElement } from '@/lib/elementSwitch';
+import { applyTheme, currentElement, onThemeChange } from '@/lib/theme';
+import { usePageTransition } from '@/lib/pageTransition';
+import { THEMES } from '@/config/themes';
 import { ElementGlyph } from './ElementGlyph';
 
 // The seven elements as a header-style pill (footer). Hovering tints an
-// icon towards its element's colour; clicking switches the colour scheme (src/lib/elementSwitch.ts).
+// icon towards its element's colour; clicking switches the colour scheme.
 export const ElementSwitch = () => {
   const [active, setActive] = useState(currentElement);
+  const { dive } = usePageTransition();
   useEffect(() => onThemeChange(() => setActive(currentElement())), []);
 
   return (
@@ -21,7 +23,12 @@ export const ElementSwitch = () => {
           aria-pressed={active === e.id}
           aria-label={`${e.name} colour scheme`}
           title={e.name}
-          onClick={ev => switchElement(e.id, ev.currentTarget)}
+          onClick={ev => {
+            if (e.id === currentElement()) return;
+            // same fill as from the element band, opening from this button's row
+            const r = ev.currentTarget.getBoundingClientRect(), pal = THEMES[e.id] ?? THEMES.aqua;
+            dive(() => applyTheme(e.id), { kind: 'band', angle: -2, gap: 0, colors: [pal.top, pal.deep], origin: { x: r.left + r.width / 2, y: r.top + r.height / 2 } });
+          }}
         >
           <ElementGlyph id={e.id} size={20} className="s-icon" />
         </button>
