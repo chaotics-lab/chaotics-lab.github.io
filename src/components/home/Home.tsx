@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { prefersReducedMotion } from '@/lib/ticker';
-import { WAVE } from '@/lib/wave';
+import { WAVE_V } from '@/lib/wave';
 import { useLocation } from 'react-router-dom';
 import { CATEGORIES } from '@/config/categories';
 import { PROJECTS } from '@/lib/projects';
@@ -18,7 +18,9 @@ import { ProjectGrid } from './ProjectGrid';
 //      short to stay at the same scroll position. The reveal waits until
 //      the new cards on screen have their images (at most READY_MAX_MS),
 //   3. the sea leaves (SWEEP_REVEAL_MS).
-// Same layers and timings as .pt-layer in index.css.
+// The sea sweeps sideways, the way the pill highlight moves: to the right
+// when the new category is to the right of the old one, else to the left.
+// Same layers and timings as .pt-hlayer in index.css.
 const SWEEP_COVER_MS = 260 + 2 * 45;
 const SWEEP_REVEAL_MS = 300 + 2 * 45;
 const READY_MAX_MS = 600;
@@ -31,6 +33,7 @@ export const Home = () => {
   const [shown, setShown] = useState('all');
   const [swapped, setSwapped] = useState(false);
   const [sweep, setSweep] = useState<'cover' | 'reveal' | null>(null);
+  const [sweepDir, setSweepDir] = useState<'right' | 'left'>('right');
   const [holdH, setHoldH] = useState<number | undefined>(undefined);
   const gridRef = useRef<HTMLDivElement>(null);
   const run = useRef(0); // id of the latest filter change; older steps stop
@@ -42,6 +45,8 @@ export const Home = () => {
     const alive = () => run.current === me;
     const after = (ms: number, fn: () => void) => window.setTimeout(() => { if (alive()) fn(); }, ms);
 
+    const order = (c: string) => CATEGORIES.findIndex(k => k.id === c);
+    setSweepDir(order(id) > order(category) ? 'right' : 'left');
     setSweep('cover');
     after(SWEEP_COVER_MS + 20, () => {
       // Smallest grid height that keeps the page long enough for the current
@@ -162,15 +167,16 @@ export const Home = () => {
       </section>
 
       {sweep && (
-        <div className="pt f-sweep" data-phase={sweep} aria-hidden="true">
+        <div className="pt f-sweep" data-phase={sweep} data-dir={sweepDir} aria-hidden="true">
           {SWEEP_LAYERS.map((color, i) => (
             <div
               key={color}
-              className="pt-layer"
+              className="pt-hlayer"
               style={{ color, ['--in' as string]: `${i * 45}ms`, ['--out' as string]: `${(SWEEP_LAYERS.length - 1 - i) * 45}ms`, ['--drift' as string]: `${-i * 0.4}s` }}
             >
-              <svg className="pt-wave" viewBox="0 0 2880 60" preserveAspectRatio="none"><path d={WAVE} fill="currentColor" /></svg>
-              <div className="pt-body" />
+              <div className="pt-hedge pt-hflip"><svg className="pt-hwave" viewBox="0 0 60 2880" preserveAspectRatio="none"><path d={WAVE_V} fill="currentColor" /></svg></div>
+              <div className="pt-hbody" />
+              <div className="pt-hedge"><svg className="pt-hwave" viewBox="0 0 60 2880" preserveAspectRatio="none"><path d={WAVE_V} fill="currentColor" /></svg></div>
             </div>
           ))}
         </div>
