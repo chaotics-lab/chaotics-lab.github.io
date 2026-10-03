@@ -10,6 +10,10 @@
 import { themeRgb } from './theme';
 
 export interface Fx {
+  // Elements the effect keeps itself, shown behind what it draws: parts that
+  // stay the same and only move, which the compositor places without them
+  // being drawn again (see sprite()).
+  els?: HTMLElement[];
   draw(g: CanvasRenderingContext2D, w: number, h: number, dt: number, floor: number): void;
   move?(x: number | null, y: number): void;
   click?(w: number, h: number, x: number, y: number): void;
@@ -22,6 +26,29 @@ const rnd = (a: number, b: number) => a + Math.random() * (b - a);
 const clamp = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v));
 const easeInOut = (k: number) => (k < 0.5 ? 2 * k * k : 1 - (-2 * k + 2) ** 2 / 2);
 const canvas = () => document.createElement('canvas');
+
+// A canvas shown as it is, one pixel per CSS pixel, which the compositor
+// moves: at() puts its top left at (x, y) in the screen box, or hides it
+// (null). Only touches the style when something changed.
+function sprite(moving = true) {
+  const c = canvas(), g = c.getContext('2d')!;
+  c.style.cssText = `position:absolute;left:0;top:0;display:none${moving ? ';will-change:transform' : ''}`;
+  let last = 'none';
+  return {
+    c, g,
+    size(w: number, h: number) {
+      c.width = Math.round(w); c.height = Math.round(h);
+      c.style.width = `${c.width}px`; c.style.height = `${c.height}px`;
+    },
+    at(x: number, y: number | null) {
+      const v = y === null ? 'none' : `translate3d(${Math.round(x)}px,${Math.round(y)}px,0)`;
+      if (v === last) return;
+      if (y === null) c.style.display = 'none';
+      else { if (last === 'none') c.style.display = ''; c.style.transform = v; }
+      last = v;
+    },
+  };
+}
 
 // Gradient noise in about [-1, 1], and a few octaves of it.
 const perm = new Uint8Array(512);
@@ -79,7 +106,7 @@ function volta(): Fx {
       else power *= Math.pow(0.02, dt);
       const a = Math.min(1, power / 550);
       if (a <= 0.01) return;
-      const Q = 4, ow = Math.ceil(w / Q), oh = Math.ceil(h / Q); // soft glow: a quarter of the resolution is enough
+      const Q = 4, ow = Math.ceil(w / Q), oh = Math.ceil(h / Q); // soft glow: a quarter of the resolution is enough (its layer is that size too)
       if (off.width !== ow || off.height !== oh) { off.width = ow; off.height = oh; }
       o.globalCompositeOperation = 'source-over';
       o.clearRect(0, 0, ow, oh);
@@ -206,21 +233,24 @@ function pyra(): Fx {
 
 // ---- Cryo: frost creeping in from the bottom and the sides, like on a
 // window: straight segments branching at 60 degrees, with short needles.
-// Painted into a kept layer that fades in steps (so a frame only draws the
-// new bits), over a frosted haze baked once. The pointer melts a patch.
+// Painted into kept layers that fade in steps (so a frame only draws the new
+// bits), over a frosted haze baked once. Two of each: what grows on the
+// seabed belongs to the page (its layer covers the last screen and is drawn
+// at the seabed, so it scrolls with it and nothing is lost), what grows from
+// the sides higher up stays with the screen. The pointer melts a patch.
 function cryo(): Fx {
-  const paint = canvas(), p = paint.getContext('2d')!, D = Math.min(2, window.devicePixelRatio || 1);
   type Front = { x: number; y: number; ang: number; len: number; gen: number; d: number; nextBranch: number };
-  let fronts: Front[] = [], fadeT = 0, next = 0, ptr: Ptr = null, W = 0, H = 0, last: number | null = null;
+  type Pane = ReturnType<typeof sprite> & { fronts: Front[] };
+  const bed: Pane = { ...sprite(), fronts: [] }, side: Pane = { ...sprite(false), fronts: [] }; // bed: y from 0 (one screen above the seabed) to h (the seabed)
   // the frosted haze in two parts: the sides stay with the screen, the bottom band sits on the seabed
-  const sides = canvas(), bottom = canvas();
-  let band = 0;
+  const sides = sprite(false), bottom = sprite();
+  let fadeT = 0, next = 0, ptr: Ptr = null, W = 0, H = 0, fl = 0, band = 0;
   const bakeHaze = (w: number, h: number) => {
     const e = Math.min(w, h) * 0.35;
     band = Math.round(e);
-    sides.width = Math.round(w); sides.height = Math.round(h);
-    bottom.width = Math.round(w); bottom.height = band;
-    const s = sides.getContext('2d')!, b = bottom.getContext('2d')!;
+    sides.size(w, h);
+    bottom.size(w, band);
+    const s = sides.g, b = bottom.g;
     for (const [x0, x1] of [[0, e], [w, w - e]]) {
       const gr = s.createLinearGradient(x0, 0, x1, 0);
       gr.addColorStop(0, 'rgba(255,255,255,0.22)');
@@ -245,39 +275,22 @@ function cryo(): Fx {
       }
       x.putImageData(img, 0, 0);
     };
-    speckle(s, sides.width, sides.height, (w * h) / 60, px => Math.min(px, w - px) / e);
-    speckle(b, bottom.width, band, (w * band) / 40, (px, py) => (band - py) / e);
+    speckle(s, sides.c.width, sides.c.height, (w * h) / 60, px => Math.min(px, w - px) / e);
+    speckle(b, bottom.c.width, band, (w * band) / 40, (px, py) => (band - py) / e);
   };
 
-
-  const grow = (x: number, y: number, ang: number, len: number, gen: number) => fronts.push({ x, y, ang, len, gen, d: 0, nextBranch: rnd(6, 12) });
-  // from the seabed when it is in view, else from the sides of the screen
+  const grow = (pn: Pane, x: number, y: number, ang: number, len: number, gen: number) => pn.fronts.push({ x, y, ang, len, gen, d: 0, nextBranch: rnd(6, 12) });
+  // from the seabed and the sides just above it when it is in view, else from the sides of the screen
   const spawn = (w: number, h: number, floor: number) => {
-    const s = Math.random(), low = Math.min(floor, h);
-    if (s < 0.7 && floor < h + 40) grow(rnd(0, w), floor + 1, -Math.PI / 2 + rnd(-0.6, 0.6), h * rnd(0.15, 0.4), 0);
-    else if (s < 0.85) grow(-1, rnd(low * 0.2, low), rnd(-0.6, 0.4), h * rnd(0.2, 0.45), 0);
-    else grow(w + 1, rnd(low * 0.2, low), Math.PI + rnd(-0.4, 0.6), h * rnd(0.2, 0.45), 0);
+    const s = Math.random(), near = floor < h + 40, pn = near ? bed : side, y = () => (near ? h * rnd(0.35, 1) : h * rnd(0.2, 1));
+    if (s < 0.7 && near) grow(bed, rnd(0, w), h + 1, -Math.PI / 2 + rnd(-0.6, 0.6), h * rnd(0.15, 0.4), 0);
+    else if (s < 0.85) grow(pn, -1, y(), rnd(-0.6, 0.4), h * rnd(0.2, 0.45), 0);
+    else grow(pn, w + 1, y(), Math.PI + rnd(-0.4, 0.6), h * rnd(0.2, 0.45), 0);
   };
-  return {
-    move: (x, y) => { ptr = x === null ? null : { x, y }; },
-    click: (w, h, x, y) => { for (let i = 0; i < 6; i++) grow(x, y, (i / 6) * TAU + rnd(-0.1, 0.1), rnd(25, 45), 1); },
-    draw(g, w, h, dt, floor) {
-      if (W !== w || H !== h) { W = w; H = h; paint.width = Math.round(w * D); paint.height = Math.round(h * D); fronts = []; last = null; bakeHaze(w, h); }
-      // the frost belongs to the page: when it scrolls, move what is painted with it
-      if (last !== null && floor !== last) {
-        const dy = floor - last;
-        p.save();
-        p.setTransform(1, 0, 0, 1, 0, 0);
-        p.globalCompositeOperation = 'copy';
-        p.drawImage(paint, 0, Math.round(dy * D));
-        p.restore();
-        for (const f of fronts) f.y += dy;
-      }
-      last = floor;
-      p.setTransform(D, 0, 0, D, 0, 0);
+  const step = (pn: Pane, w: number, h: number, dt: number, mx: number | null, my: number) => {
+    const p = pn.g, fronts = pn.fronts;
+    if (fronts.length) {
       p.lineCap = 'round';
-      const cap = Math.round(w / 12);
-      if ((next -= dt) <= 0 && fronts.length < cap) { next = rnd(0.12, 0.3) * (1200 / Math.max(600, w)); spawn(w, h, floor); }
       p.strokeStyle = 'rgba(255,255,255,0.8)';
       p.beginPath();
       for (let i = fronts.length - 1; i >= 0; i--) {
@@ -286,30 +299,56 @@ function cryo(): Fx {
         f.x = x; f.y = y; f.d += v;
         if (f.d >= f.nextBranch) {
           f.nextBranch += rnd(5, 10);
-          const side = Math.random() < 0.5 ? -1 : 1;
-          if (f.gen < 3 && Math.random() < 0.35) grow(x, y, f.ang + (side * Math.PI) / 3, (f.len - f.d) * rnd(0.35, 0.6), f.gen + 1);
+          const sd = Math.random() < 0.5 ? -1 : 1;
+          if (f.gen < 3 && Math.random() < 0.35) grow(pn, x, y, f.ang + (sd * Math.PI) / 3, (f.len - f.d) * rnd(0.35, 0.6), f.gen + 1);
           else {
             const n = rnd(2, 5) * (1 - f.d / f.len) + 1; // needles
-            for (const s of [-1, 1]) { const a = f.ang + (s * Math.PI) / 3; p.moveTo(x, y); p.lineTo(x + Math.cos(a) * n, y + Math.sin(a) * n); }
+            for (const k of [-1, 1]) { const a = f.ang + (k * Math.PI) / 3; p.moveTo(x, y); p.lineTo(x + Math.cos(a) * n, y + Math.sin(a) * n); }
           }
         }
         if (f.d >= f.len) fronts.splice(i, 1);
       }
       p.lineWidth = 0.8;
       p.stroke();
-      p.globalCompositeOperation = 'destination-out';
-      if (ptr) {
-        const gr = p.createRadialGradient(ptr.x, ptr.y, 0, ptr.x, ptr.y, 45);
-        gr.addColorStop(0, 'rgba(0,0,0,0.35)');
-        gr.addColorStop(1, 'rgba(0,0,0,0)');
-        p.fillStyle = gr;
-        p.fillRect(ptr.x - 45, ptr.y - 45, 90, 90);
+    }
+    p.globalCompositeOperation = 'destination-out';
+    if (mx !== null && my > -45 && my < h + 45) {
+      const gr = p.createRadialGradient(mx, my, 0, mx, my, 45);
+      gr.addColorStop(0, 'rgba(0,0,0,0.35)');
+      gr.addColorStop(1, 'rgba(0,0,0,0)');
+      p.fillStyle = gr;
+      p.fillRect(mx - 45, my - 45, 90, 90);
+    }
+    if (fadeT > 1) { p.fillStyle = 'rgba(0,0,0,0.12)'; p.fillRect(0, 0, w, h); } // steps: small ones stall on 8-bit alpha
+    p.globalCompositeOperation = 'source-over';
+  };
+  return {
+    els: [sides.c, side.c, bottom.c, bed.c],
+    move: (x, y) => { ptr = x === null ? null : { x, y }; },
+    click: (w, h, x, y) => {
+      const onBed = y > fl - h, pn = onBed ? bed : side, yy = onBed ? y - (fl - h) : y;
+      for (let i = 0; i < 6; i++) grow(pn, x, yy, (i / 6) * TAU + rnd(-0.1, 0.1), rnd(25, 45), 1);
+    },
+    draw(g, w, h, dt, floor) {
+      fl = floor;
+      if (W !== w || H !== h) {
+        W = w; H = h;
+        for (const pn of [bed, side]) { pn.size(w, h); pn.fronts = []; }
+        bakeHaze(w, h);
       }
-      if ((fadeT += dt) > 1) { fadeT = 0; p.fillStyle = 'rgba(0,0,0,0.12)'; p.fillRect(0, 0, w, h); } // steps: small ones stall on 8-bit alpha
-      p.globalCompositeOperation = 'source-over';
-      g.drawImage(sides, 0, 0, w, h);
-      g.drawImage(bottom, 0, floor - band, w, band); // hugs the seabed
-      g.drawImage(paint, 0, 0, w, h);
+      const cap = Math.round(w / 12);
+      if ((next -= dt) <= 0 && bed.fronts.length + side.fronts.length < cap) { next = rnd(0.12, 0.3) * (1200 / Math.max(600, w)); spawn(w, h, floor); }
+      fadeT += dt;
+      const top = floor - h; // where the bed pane sits on screen
+      step(bed, w, h, dt, ptr && ptr.x, ptr ? ptr.y - top : 0);
+      step(side, w, h, dt, ptr && ptr.x, ptr ? ptr.y : 0);
+      if (fadeT > 1) fadeT = 0;
+      if (g.canvas.width === 1) return; // running ahead (OceanFx.tsx): nothing to show
+      sides.at(0, 0);
+      side.at(0, 0);
+      const seen = top < h;
+      bottom.at(0, seen ? floor - band : null); // hugs the seabed
+      bed.at(0, seen ? top : null);
     },
   };
 }
@@ -339,7 +378,7 @@ function aero(): Fx {
   const born = (w: number, h: number, anywhere: boolean): Icon => ({ x: anywhere ? rnd(0, w) : rnd(-80, -30), y: rnd(h * 0.1, h * 0.9), s: rnd(16, 34), a: 0, spin: rnd(-1, 1), ph: rnd(0, TAU), vx: 0, vy: 0, hx: [], hy: [] });
   const setup = (w: number, h: number) => {
     icons = Array.from({ length: Math.max(5, Math.round(w / 170)) }, () => born(w, h, true));
-    blades = [0, 1].map(layer => Array.from({ length: Math.round(w / (layer ? 6 : 9)) }, () => ({ x: rnd(-10, w + 10), len: rnd(h * 0.04, h * (layer ? 0.12 : 0.16)), wb: rnd(1.2, 2.6), ph: rnd(0, TAU) })));
+    blades = [0, 1].map(layer => Array.from({ length: Math.round(w / (layer ? 11 : 16)) }, () => ({ x: rnd(-10, w + 10), len: rnd(h * 0.04, h * (layer ? 0.12 : 0.16)), wb: rnd(1.2, 2.6), ph: rnd(0, TAU) })));
     const n = Math.max(3, Math.round(w / 300));
     plants = Array.from({ length: n }, (_, i) => ({ x: ((i + 0.5 + rnd(-0.3, 0.3)) / n) * w, len: h * rnd(0.22, 0.34), ph: rnd(0, TAU), fl: Array.from({ length: 7 }, () => rnd(0.24, 0.32)) }));
   };
@@ -421,7 +460,6 @@ function aero(): Fx {
 // has a depth: farther strokes follow the scroll and the pointer less. The
 // pointer also nudges the thin ones aside.
 type Stroke = { d: number; x: number; y: number; pts: [number, number][]; w: number; amp: number; slow: number; a: number; from: number; to: number; t0: number; dur: number; push: number; len: number };
-type Thick = { path: Path2D; depth: number };
 // A tapering ribbon along a cubic curve, as one closed path.
 function ribbon(p0: number[], p1: number[], p2: number[], p3: number[], w0: number, path: Path2D) {
   const at = (t: number, i: number) => (1 - t) ** 3 * p0[i] + 3 * (1 - t) ** 2 * t * p1[i] + 3 * (1 - t) * t * t * p2[i] + t ** 3 * p3[i];
@@ -439,20 +477,23 @@ function ribbon(p0: number[], p1: number[], p2: number[], p3: number[], w0: numb
   return (t: number) => [at(t, 0), at(t, 1)];
 }
 function flora(): Fx {
-  let items: Stroke[] = [], thick: Thick[] = [], t = 0, ptr: Ptr = null, W = 0, H = 0, px = 0, py = 0;
+  let items: Stroke[] = [], t = 0, ptr: Ptr = null, W = 0, H = 0, px = 0, py = 0;
+  // the thick roots never change shape: one picture per depth layer, with a margin for the parallax, moved by the compositor
+  const P = 60, thick = [sprite(), sprite(), sprite()];
   // d: depth, 1 at the front; farther strokes follow the scroll and the pointer less (parallax)
   const add = (d: number, x: number, y: number, pts: [number, number][], w: number, amp: number, slow: number) => {
     const a = rnd(-amp, amp) * DEG;
     items.push({ d, x, y, pts, w, amp, slow, a, from: a, to: rnd(-amp, amp) * DEG, t0: 0, dur: rnd(3, 5) * slow, push: 0, len: pts[pts.length - 1][1] });
   };
   const setup = (w: number, h: number) => {
-    items = []; thick = [];
+    items = [];
+    for (const sp of thick) { sp.size(w + 2 * P, h + 2 * P); sp.g.translate(P, P); }
     const n = Math.max(3, Math.round(w / 110));
     for (let c = 0; c < n; c++) {
       const cx = (c + 0.5 + rnd(-0.3, 0.3)) * (w / n), base = h + rnd(-h * 0.03, 12), L = h * rnd(0.25, 0.45), d = rnd(0.55, 1);
       for (let r = 0; r < 4; r++) {
         const hook = (Math.random() < 0.5 ? -1 : 1) * rnd(6, 16), ph = rnd(0, TAU), len = L * rnd(0.75, 1), pts: [number, number][] = [];
-        for (let y = 0; y <= len; y += 8) { const k = Math.min(1, y / 22); pts.push([hook * Math.sin((k * Math.PI) / 2) + Math.sin(y * 0.045 + ph) * 3 + noise(c * 7 + r, y * 0.02) * 6, y]); }
+        for (let y = 0; y <= len; y += 13) { const k = Math.min(1, y / 22); pts.push([hook * Math.sin((k * Math.PI) / 2) + Math.sin(y * 0.045 + ph) * 3 + noise(c * 7 + r, y * 0.02) * 6, y]); }
         add(d, cx + rnd(-10, 10), base - (r % 2) * rnd(4, 14), pts, r % 2 ? 0.6 : 1.6, 5, 1);
       }
     }
@@ -461,7 +502,7 @@ function flora(): Fx {
       const vx = (v + 0.5 + rnd(-0.35, 0.35)) * (w / m), side = Math.random() < 0.5 ? -1 : 1, len = h * rnd(0.55, 0.8), ph = rnd(0, TAU), d = rnd(0.75, 1);
       for (const [wd, off] of [[2.4, 0], [0.9, rnd(1.5, 3)]]) {
         const pts: [number, number][] = [];
-        for (let y = 0; y <= len; y += 10) { const k = Math.min(1, y / 50); pts.push([side * 30 * (1 - Math.sin((k * Math.PI) / 2)) + off + Math.sin(y * 0.012 + ph) * 5 + noise(v * 13 + off, y * 0.01) * 8, y]); }
+        for (let y = 0; y <= len; y += 18) { const k = Math.min(1, y / 50); pts.push([side * 30 * (1 - Math.sin((k * Math.PI) / 2)) + off + Math.sin(y * 0.012 + ph) * 5 + noise(v * 13 + off, y * 0.01) * 8, y]); }
         add(d, vx, h + 6, pts, wd, 2.5, 1.6);
       }
     }
@@ -473,29 +514,28 @@ function flora(): Fx {
         const at = ribbon([X(-30), y0], [X(reach * 0.55), y0 - h * rnd(0, 0.1)], [X(reach * 0.9), top + h * 0.25], [X(reach * rnd(0.85, 1.1)), top], W0, path);
         const [bx, by] = at(rnd(0.3, 0.5));
         ribbon([bx, by], [bx + s * -w * 0.04, by - h * 0.1], [bx + s * -w * 0.02, by - h * 0.22], [bx + s * -w * rnd(0.02, 0.07), by - h * rnd(0.25, 0.35)], W0 * 0.45, path);
-        thick.push({ path, depth });
+        const tg = thick[depth].g;
+        tg.fillStyle = `rgba(255,255,255,${0.07 + depth * 0.05})`;
+        tg.fill(path);
       }
     }
   };
   return {
+    els: thick.map(sp => sp.c),
     move: (x, y) => { ptr = x === null ? null : { x, y }; },
     draw(g, w, h, dt, floor) {
       t += dt;
       if (W !== w || H !== h) { W = w; H = h; setup(w, h); }
       const off = floor - h; // everything here grows from the seabed
-      if (off * 0.55 > h * 1.2) return; // even the farthest strokes are still below the screen
+      if (off * 0.55 > h * 1.2) { for (const sp of thick) sp.at(0, null); return; } // even the farthest strokes are still below the screen
       // parallax target from the pointer's place on screen, eased
       const tx = ptr ? ptr.x / w - 0.5 : 0, ty = ptr ? clamp(ptr.y / h, 0, 1) - 0.5 : 0;
       px += (tx - px) * Math.min(1, dt * 2);
       py += (ty - py) * Math.min(1, dt * 2);
-      for (const r of thick) {
-        const par = 8 + r.depth * 14;
-        g.save();
-        g.translate(-px * par, -py * par * 0.5 + off * (0.7 + 0.1 * r.depth));
-        g.fillStyle = `rgba(255,255,255,${0.07 + r.depth * 0.05})`;
-        g.fill(r.path);
-        g.restore();
-      }
+      thick.forEach((sp, depth) => {
+        const par = 8 + depth * 14, y = -py * par * 0.5 + off * (0.7 + 0.1 * depth);
+        sp.at(-P - px * par, y < h ? y - P : null);
+      });
       const P2: Record<number, Path2D> = { 2.4: new Path2D(), 1.6: new Path2D(), 0.9: new Path2D(), 0.6: new Path2D() };
       for (const r of items) {
         let k = (t - r.t0) / r.dur;
@@ -562,15 +602,17 @@ type Ray = { x: number; w: number; ph: number; sp: number };
 type Flake = { x: number; y: number; s: number; ph: number; vx: number; vy: number };
 function aqua(): Fx {
   let rays: Ray[] = [], snow: Flake[] = [], rings: { x: number; y: number; age: number }[] = [], t = 0, W = 0, H = 0, ptr: Ptr = null;
-  let tile: HTMLCanvasElement | null = null, pats: CanvasPattern[] = [], frame = 0;
-  // soft light at a quarter of the resolution; the seabed rendered every third frame and reused while scrolling
-  const rayBuf = canvas(), rg = rayBuf.getContext('2d')!, floorBuf = canvas(), fg = floorBuf.getContext('2d')!;
+  let tile: HTMLCanvasElement | null = null, pats: CanvasPattern[] = [], floorT = 0;
+  // soft light at a quarter of the resolution; the seabed rendered 15 times a second and reused in between
+  const rays4 = sprite(false), rayBuf = rays4.c, rg = rays4.g, bed = sprite(), floorBuf = bed.c, fg = bed.g;
+  rayBuf.style.width = rayBuf.style.height = '100%'; // a quarter of the resolution, stretched by the compositor
   const setup = (w: number, h: number) => {
     const n = Math.max(4, Math.round(w / 220));
     rays = Array.from({ length: n }, (_, i) => ({ x: ((i + 0.5 + rnd(-0.3, 0.3)) / n) * w * 1.1 - w * 0.05, w: rnd(30, 110), ph: rnd(0, TAU), sp: rnd(0.15, 0.3) }));
-    snow = Array.from({ length: Math.round((w * h) / 5000) }, () => ({ x: rnd(0, w), y: rnd(0, h), s: rnd(0.8, 2.4), ph: rnd(0, TAU), vx: 0, vy: 0 }));
+    snow = Array.from({ length: Math.round((w * h) / 7000) }, () => ({ x: rnd(0, w), y: rnd(0, h), s: rnd(0.8, 2.4), ph: rnd(0, TAU), vx: 0, vy: 0 }));
   };
   return {
+    els: [rayBuf, floorBuf],
     move: (x, y) => { ptr = x === null ? null : { x, y }; },
     click: (w, h, x, y) => {
       rings.push({ x, y, age: 0 });
@@ -581,7 +623,7 @@ function aqua(): Fx {
       if (W !== w || H !== h) { W = w; H = h; setup(w, h); }
       // light shafts: slanted, widening downward, fading out with depth (soft, so a quarter of the resolution)
       const RQ = 4, slant = 0.28;
-      if (rayBuf.width !== Math.ceil(w / RQ) || rayBuf.height !== Math.ceil(h / RQ)) { rayBuf.width = Math.ceil(w / RQ); rayBuf.height = Math.ceil(h / RQ); }
+      if (rayBuf.width !== Math.ceil(w / RQ) || rayBuf.height !== Math.ceil(h / RQ)) { rayBuf.width = Math.ceil(w / RQ); rayBuf.height = Math.ceil(h / RQ); rays4.at(0, 0); }
       rg.setTransform(1 / RQ, 0, 0, 1 / RQ, 0, 0);
       rg.clearRect(0, 0, w, h);
       for (const r of rays) {
@@ -592,8 +634,6 @@ function aqua(): Fx {
         rg.fillStyle = gr;
         rg.beginPath(); rg.moveTo(x - r.w / 2, -10); rg.lineTo(x + r.w / 2, -10); rg.lineTo(bx + r.w, len); rg.lineTo(bx - r.w, len); rg.closePath(); rg.fill();
       }
-      g.imageSmoothingEnabled = true;
-      g.drawImage(rayBuf, 0, 0, w, h);
       // marine snow: slow current that varies with depth, sinking a little, swirling from the pointer
       const bands = [new Path2D(), new Path2D(), new Path2D()];
       for (const f of snow) {
@@ -615,8 +655,9 @@ function aqua(): Fx {
       if (horizon < h) {
         if (!tile) { tile = causticTile(); pats = [fg.createPattern(tile, 'repeat')!, fg.createPattern(tile, 'repeat')!]; }
         const B = Math.round(band);
-        if (floorBuf.width !== Math.round(w) || floorBuf.height !== B) { floorBuf.width = Math.round(w); floorBuf.height = B; frame = 0; }
-        if (frame++ % 3 === 0) { // 20 fps is plenty for this slow light; drawn in the buffer's own space: horizon at 0, page end at B
+        if (floorBuf.width !== Math.round(w) || floorBuf.height !== B) { bed.size(w, B); floorT = 0; }
+        if ((floorT -= dt) <= 0) { // 15 updates a second are plenty for this slow light; drawn in the buffer's own space: horizon at 0, page end at B
+          floorT = 1 / 15;
           const ZF = 5, D = 420, cx = w / 2, STRIPS = 90;
           const yAt = (z: number) => B - B * ((1 - 1 / z) / (1 - 1 / ZF)), planeY = (z: number) => (D * (z - 1)) / (ZF - 1);
           fg.globalCompositeOperation = 'source-over';
@@ -643,8 +684,8 @@ function aqua(): Fx {
             });
           }
         }
-        g.drawImage(floorBuf, 0, horizon, w, B);
-      }
+        bed.at(0, horizon);
+      } else bed.at(0, null);
       // click ripples
       rings = rings.filter(r => (r.age += dt) < 1.4);
       for (const r of rings) { const k = r.age / 1.4; g.strokeStyle = `rgba(255,255,255,${0.6 * (1 - k)})`; g.lineWidth = 1.4; g.beginPath(); g.ellipse(r.x, r.y, 20 + k * 140, (20 + k * 140) * 0.35, 0, 0, TAU); g.stroke(); }
@@ -656,7 +697,7 @@ function aqua(): Fx {
 // speed, shifted by the pointer for parallax; each star twinkles on its own
 // clock and lights up near the pointer; now and then a shooting star.
 function gaia(): Fx {
-  const LAYERS = [{ n: 800, s: 1.2, v: 6, par: 4 }, { n: 240, s: 2, v: 3, par: 10 }, { n: 90, s: 2.8, v: 2, par: 18 }]; // per million px
+  const LAYERS = [{ n: 600, s: 1.2, v: 6, par: 4 }, { n: 240, s: 2, v: 3, par: 10 }, { n: 90, s: 2.8, v: 2, par: 18 }]; // per million px
   const BANDS = 5;
   type Star = { x: number; y: number; ph: number; sp: number; lit: number };
   type Shoot = { x: number; y: number; ang: number; v: number; age: number };
@@ -703,13 +744,15 @@ function gaia(): Fx {
 }
 
 // One factory per element; how strongly each shows, so filled effects (Pyra)
-// and sparse line ones end up at about the same visual weight; and how many
-// 50 ms steps to run it ahead before it shows (only what has to grow in).
-export const OCEAN_FX: Record<string, { make: (w: number) => Fx; gain: number; warm?: number }> = {
+// and sparse line ones end up at about the same visual weight; how many
+// 50 ms steps to run it ahead before it shows (only what has to grow in);
+// and the resolution of its layer (soft ones draw fewer pixels and are
+// scaled up on screen for free).
+export const OCEAN_FX: Record<string, { make: (w: number) => Fx; gain: number; warm?: number; res?: number }> = {
   aqua: { make: aqua, gain: 1 },
-  pyra: { make: pyra, gain: 0.55 },
+  pyra: { make: pyra, gain: 0.55, res: 0.5 },
   cryo: { make: cryo, gain: 0.85, warm: 80 },
-  volta: { make: volta, gain: 1 },
+  volta: { make: volta, gain: 1, res: 0.25 },
   aero: { make: aero, gain: 1 },
   gaia: { make: gaia, gain: 1 },
   flora: { make: flora, gain: 0.85 },

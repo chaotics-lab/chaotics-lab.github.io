@@ -1106,8 +1106,10 @@ html[data-quality="0"] .ocean-layer { display: none; }
 .ocean-fx {
   position: fixed; inset: 0; z-index: -1; width: 100%; height: 100%; pointer-events: none;
   mask-repeat: no-repeat; -webkit-mask-repeat: no-repeat; mask-composite: intersect; -webkit-mask-composite: source-in;
-  transition: opacity 350ms ease;
+  contain: strict;
 }
+.ocean-fx > div { position: absolute; inset: 0; }
+.ocean-fx > div > canvas:last-child { position: absolute; inset: 0; width: 100%; height: 100%; }
 
 /* Arrows that bob to invite a click */
 .h-bob { animation: h-bob 1.6s ease-in-out infinite; }
