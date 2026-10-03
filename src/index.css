@@ -131,6 +131,12 @@ All colors MUST be HSL.
     @apply border-border;
   }
 
+  /* past the page (overscroll bounce, under a short page): black. With its own
+     background, html stops taking the body's, which only paints the page itself */
+  html {
+    background: #000;
+  }
+
   body {
     @apply bg-background text-foreground antialiased;
     /* body font-family is driven by Tailwind font-sans — see src/config/fonts.ts */
