@@ -12,6 +12,7 @@ import { useGithubStats } from '@/hooks/useGithubStats';
 import { categoryLabel } from '@/config/categories';
 import { aiLevel } from '@/config/aiLevels';
 import { PROJECTS, withoutCompany } from '@/lib/projects';
+import { projectPalette, setProjectPalette } from '@/lib/theme';
 
 // Finds the numbered images in a project's folder (1.png, 2.gif, ...),
 // trying each extension in turn, and reveals them as they load.
@@ -53,6 +54,13 @@ const ProjectPage = () => {
   const touchX = useRef<number | null>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
   const [titleH, setTitleH] = useState(0);
+
+  // The page takes the project's colours; leaving it brings the element
+  // scheme back. Layout effect, so it swaps while the transition covers.
+  useLayoutEffect(() => {
+    setProjectPalette(projectPalette(project?.themeColors));
+    return () => setProjectPalette(null);
+  }, [project]);
 
   // The logo beside the title matches the title's height (1-3 lines).
   useLayoutEffect(() => {

@@ -3,6 +3,7 @@ import { projectOrder } from '@/config/projectOrder';
 
 export type Project = ProjectData & {
   showGithubStats?: boolean;
+  themeColors?: string[];
   demoUrl?: string;
   logoUrl?: string;
   logoBackgroundColor?: string;

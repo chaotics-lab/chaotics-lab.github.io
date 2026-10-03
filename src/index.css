@@ -726,9 +726,8 @@ All colors MUST be HSL.
 /* ---- Ticker (element band) ---- */
 .h-marquee { display: flex; width: max-content; animation: h-marquee 38s linear infinite; }
 @keyframes h-marquee { to { transform: translateX(-50%); } }
-/* Element picker in the band: slows down under the cursor so the names are
-   easy to hit; the hovered and the active element take their own colour. */
-.e-band:hover .h-marquee { animation-play-state: paused; }
+/* Element picker in the band. ElementMarquee slows the scroll under the
+   cursor; the hovered and the active element take their own colour. */
 .e-pick { color: var(--h-cream); cursor: pointer; transition: color 0.2s; }
 .e-pick .e-tile { transition: transform 0.25s cubic-bezier(0.3, 1.6, 0.5, 1); }
 .e-pick:hover, .e-pick[aria-pressed="true"] { color: var(--el); }

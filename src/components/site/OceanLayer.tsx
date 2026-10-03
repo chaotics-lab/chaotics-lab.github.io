@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { ELEMENTS } from '@/config/elements';
 import { onTick, pointer, prefersReducedMotion } from '@/lib/ticker';
-import { themeRgb } from '@/lib/theme';
+import { currentElement, onThemeChange, themeRgb } from '@/lib/theme';
 
 // The whole page is an ocean that gets deeper as you scroll. One fixed
 // canvas behind the content draws, in flat shapes:
@@ -73,22 +73,30 @@ export const OceanLayer = () => {
     // at that depth, but moving z times as fast.
     const screenY = (u: number, z: number) => (u * pageH - window.scrollY - vh / 2) * z + vh / 2;
 
-    // Three of each element, spread over the whole depth.
-    const icons: Icon[] = [];
-    ELEMENTS.forEach((e, i) => {
-      const copies: Icon[] = [0, 1, 2].map(n => ({
-        img: null,
-        u: TOP + ((i * 3 + n) / (ELEMENTS.length * 3)) * (1 - TOP) + rand(0, 0.03),
-        x: n === 2 ? rand(0.05, 0.95) : sideX(),
-        z: n === 2 ? rand(0.35, 0.5) : rand(0.55, 0.9),
-        vu: rand(0.004, 0.009),
-        phase: rand(0, Math.PI * 2),
-        tumble: rand(0.35, 1),
-        nx: 0,
-      }));
-      icons.push(...copies);
-      whiteIcon(`/${e.id}.png`, 128, c => copies.forEach(ic => { ic.img = c; }));
-    });
+    // 21 icons spread over the whole depth. Two in three are the active
+    // element, the rest cycle through the other six.
+    const art = new Map<string, HTMLCanvasElement>();
+    ELEMENTS.forEach(e => whiteIcon(`/${e.id}.png`, 128, c => { art.set(e.id, c); assign(); }));
+    const icons: Icon[] = Array.from({ length: ELEMENTS.length * 3 }, (_, k) => ({
+      img: null,
+      u: TOP + (k / (ELEMENTS.length * 3)) * (1 - TOP) + rand(0, 0.03),
+      x: k % 3 === 2 ? rand(0.05, 0.95) : sideX(),
+      z: k % 3 === 2 ? rand(0.35, 0.5) : rand(0.55, 0.9),
+      vu: rand(0.004, 0.009),
+      phase: rand(0, Math.PI * 2),
+      tumble: rand(0.35, 1),
+      nx: 0,
+    }));
+    const slots = [...icons];
+    function assign() {
+      const main = currentElement();
+      const others = ELEMENTS.filter(e => e.id !== main);
+      slots.forEach((ic, k) => {
+        const id = k % 3 === 2 ? others[Math.floor(k / 3) % others.length].id : main;
+        ic.img = art.get(id) ?? null;
+      });
+    }
+    const offTheme = onThemeChange(assign);
     icons.sort((a, b) => a.z - b.z); // far ones first
 
     const shards: Shard[] = Array.from({ length: 110 }, () => ({
@@ -219,6 +227,7 @@ export const OceanLayer = () => {
 
     return () => {
       off();
+      offTheme();
       ro.disconnect();
       window.removeEventListener('resize', fit);
     };
