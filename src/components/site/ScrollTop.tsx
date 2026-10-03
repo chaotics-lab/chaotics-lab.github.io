@@ -2,93 +2,64 @@ import { useEffect, useRef, useState } from 'react';
 import { ArrowUp } from '@phosphor-icons/react';
 import { usePageTransition } from '@/lib/pageTransition';
 
-const DOCK_MS = 1100;
 const DOCK_AT = 40; // px from the bottom of the page
-
-// easeInOutElastic
-const elastic = (x: number) => {
-  const c = (2 * Math.PI) / 4.5;
-  if (x <= 0) return 0;
-  if (x >= 1) return 1;
-  return x < 0.5
-    ? -(2 ** (20 * x - 10) * Math.sin((20 * x - 11.125) * c)) / 2
-    : (2 ** (-20 * x + 10) * Math.sin((20 * x - 11.125) * c)) / 2 + 1;
-};
+const FLASH_MS = 220; // keep in sync with the .s-top-item / opacity transitions
 
 // Back-to-top pill, bottom right, styled like the header links. It shows
 // up once the page has been scrolled a little. At the bottom of the page it
-// jumps, with an elastic in-out, onto the footer's back-to-top pill
-// (#footer-top) and hands over to it (same height and arrow position, so
-// the arrow lands on the footer's); scrolling back up sends it home the
-// same way. Going up, the sea pours in from the top.
+// hands over to the footer's back-to-top pill (#footer-top): it lights up
+// cream as if hovered and fades out, and the footer pill appears cream and
+// settles back to normal. Scrolling up plays it the other way. Going up,
+// the sea pours in from the top.
 export const ScrollTop = () => {
   const { dive } = usePageTransition();
   const [shown, setShown] = useState(false);
-  const outer = useRef<HTMLDivElement>(null);
   const pill = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     let raf = 0;
-    let anim = 0;
-    let tx = 0; // current offset from the resting spot
-    let ty = 0;
     let docked = false;
-    let landed = false; // docking finished, footer pill showing
-
+    const timers: number[] = [];
     const dockEl = () => document.getElementById('footer-top');
-    const setOffset = (x: number, y: number) => {
-      tx = x;
-      ty = y;
-      if (outer.current) outer.current.style.translate = `${x.toFixed(1)}px ${y.toFixed(1)}px`;
-    };
-    const showDock = (on: boolean) => {
-      landed = on;
-      if (pill.current) pill.current.style.opacity = on ? '0' : '1';
-      const d = dockEl();
-      if (d) d.style.opacity = on || window.scrollY <= 120 ? '1' : '0';
-    };
-    // where the footer pill rests, relative to the floating pill's home
-    const target = () => {
-      const d = dockEl();
-      const me = pill.current;
-      if (!d || !me) return [0, 0];
-      const r = d.getBoundingClientRect();
-      const home = me.getBoundingClientRect();
-      const left = document.documentElement.scrollHeight - window.innerHeight - window.scrollY;
-      return [r.left - (home.left - tx), r.top - left - (home.top - ty)];
-    };
-    const glide = (to: [number, number], done?: () => void) => {
-      cancelAnimationFrame(anim);
-      const from = [tx, ty];
-      const start = performance.now();
-      const frame = (now: number) => {
-        const k = Math.min(1, (now - start) / DOCK_MS);
-        const e = elastic(k);
-        setOffset(from[0] + (to[0] - from[0]) * e, from[1] + (to[1] - from[1]) * e);
-        if (k < 1) anim = requestAnimationFrame(frame);
-        else done?.();
-      };
-      anim = requestAnimationFrame(frame);
+    const later = (ms: number, fn: () => void) => timers.push(window.setTimeout(fn, ms));
+    const clear = () => { timers.forEach(clearTimeout); timers.length = 0; };
+
+    // from: the pill that flashes and fades; to: the one that arrives cream
+    const handOver = (from: HTMLElement, to: HTMLElement) => {
+      clear();
+      from.dataset.flash = '';
+      later(FLASH_MS, () => {
+        from.style.opacity = '0';
+        to.dataset.flash = '';
+        to.style.opacity = '1';
+        later(FLASH_MS, () => {
+          delete from.dataset.flash;
+          delete to.dataset.flash;
+          timers.length = 0;
+        });
+      });
     };
 
     const update = () => {
       raf = 0;
       const on = window.scrollY > 120;
       setShown(on);
+      const me = pill.current;
+      const dock = dockEl();
+      if (!me || !dock) return;
       const left = document.documentElement.scrollHeight - window.innerHeight - window.scrollY;
-      const want = on && !!dockEl() && left < DOCK_AT;
+      const want = on && left < DOCK_AT;
       if (want && !docked) {
         docked = true;
-        glide(target() as [number, number], () => showDock(true));
+        handOver(me, dock);
       } else if (!want && docked) {
         docked = false;
-        showDock(false);
-        glide([0, 0]);
-      } else if (landed) {
-        const [x, y] = target();
-        setOffset(x, y);
+        handOver(dock, me);
+      } else if (!docked && !timers.length) {
+        // footer pill shows on its own only when the floating one is hidden
+        dock.style.opacity = on ? '0' : '1';
+        me.style.opacity = '1';
       }
-      if (!docked && !landed) showDock(false);
     };
     const queue = () => { if (!raf) raf = requestAnimationFrame(update); };
     update();
@@ -98,7 +69,7 @@ export const ScrollTop = () => {
     ro.observe(document.body);
     return () => {
       cancelAnimationFrame(raf);
-      cancelAnimationFrame(anim);
+      clear();
       window.removeEventListener('scroll', queue);
       window.removeEventListener('resize', queue);
       ro.disconnect();
@@ -106,7 +77,7 @@ export const ScrollTop = () => {
   }, []);
 
   return (
-    <div ref={outer} className="s-top select-none" data-shown={shown}>
+    <div className="s-top select-none" data-shown={shown}>
       <div ref={pill} className="s-nav s-top-pill">
         <button
           type="button"
