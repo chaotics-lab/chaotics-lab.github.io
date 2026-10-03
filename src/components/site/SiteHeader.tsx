@@ -21,9 +21,10 @@ export const SiteHeader = () => {
   }, [place]);
 
   return (
-    <header className="fixed top-0 inset-x-0 z-50 select-none">
+    <header className="fixed top-0 inset-x-0 z-50 select-none pointer-events-none">
+      {/* the bar itself lets clicks through; only the pill takes them */}
       <div className="flex items-center justify-end px-4 sm:px-6 py-4">
-        <nav ref={navRef} className="s-nav flex" onMouseLeave={() => setHovered(null)} aria-label="Contact">
+        <nav ref={navRef} className="s-nav flex pointer-events-auto" onMouseLeave={() => setHovered(null)} aria-label="Contact">
           <span
             className="s-nav-blob"
             style={{ width: blob.w, transform: `translateX(${blob.x}px)`, opacity: blob.on ? 1 : 0 }}

@@ -27,13 +27,15 @@ export const PageTransition = ({ children }: { children: ReactNode }) => {
   const [phase, setPhase] = useState<'idle' | 'cover' | 'reveal'>('idle');
   const [opts, setOpts] = useState<TransitionOpts>({});
   const busy = useRef(false);
+  // a request made while a transition is still running plays right after it
+  const queued = useRef<[() => void, TransitionOpts] | null>(null);
   const timers = useRef<number[]>([]);
 
   useEffect(() => () => timers.current.forEach(clearTimeout), []);
 
   const dive = useCallback((swap: () => void, given: TransitionOpts = {}) => {
     if (prefersReducedMotion()) { swap(); return; }
-    if (busy.current) return;
+    if (busy.current) { queued.current = [swap, given]; return; }
     busy.current = true;
     // The transitions are cheap CSS transforms and stay on every device;
     // only the card zoom drops its page zoom (keeps the colour wash) on
@@ -55,9 +57,15 @@ export const PageTransition = ({ children }: { children: ReactNode }) => {
       timers.current.push(window.setTimeout(() => {
         setPhase('idle');
         busy.current = false;
+        const next = queued.current;
+        queued.current = null;
+        if (next) diveRef.current(...next);
       }, t.reveal));
     }, t.cover + t.hold));
   }, []);
+
+  const diveRef = useRef(dive);
+  diveRef.current = dive;
 
   const value = useMemo(() => ({ dive, go: (to: string, o?: TransitionOpts) => dive(() => navigate(to), o) }), [dive, navigate]);
 
