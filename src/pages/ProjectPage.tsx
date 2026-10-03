@@ -12,7 +12,8 @@ import { useGithubStars } from '@/hooks/useGithubStars';
 import { useGithubStats } from '@/hooks/useGithubStats';
 import { categoryLabel } from '@/config/categories';
 import { aiLevel } from '@/config/aiLevels';
-import { PROJECTS, withoutCompany } from '@/lib/projects';
+import { PROJECTS, withoutCompany, type Project } from '@/lib/projects';
+import type { TransitionOpts } from '@/lib/pageTransition';
 import { projectPalette, setProjectPalette } from '@/lib/theme';
 
 // Finds the numbered images in a project's folder (1.png, 2.gif, ...),
@@ -41,6 +42,12 @@ function useFrames(base?: string) {
   }, [base]);
   return frames;
 }
+
+// Project to project: slanted bands in the next project's colours.
+const slashTo = (p: Project): TransitionOpts => {
+  const pal = projectPalette(p.themeColors);
+  return { kind: 'slash', label: withoutCompany(p.title), colors: pal ? [pal.c1, pal.top, pal.deep] : undefined };
+};
 
 const ProjectPage = () => {
   const { projectId } = useParams<{ projectId: string }>();
@@ -193,7 +200,7 @@ const ProjectPage = () => {
               </span>
             </TransitionLink>
             {next && (
-              <TransitionLink to={`/project/${next.id}`} className="p-next-link">
+              <TransitionLink to={`/project/${next.id}`} className="p-next-link" transition={slashTo(next)}>
                 <span className="h-caps text-[0.62rem] text-[var(--h-c2)]">Next</span>
                 {next.logoUrl && <img src={next.logoUrl} alt="" className="p-next-logo" />}
                 <span className="p-next-title">{withoutCompany(next.title)}</span>

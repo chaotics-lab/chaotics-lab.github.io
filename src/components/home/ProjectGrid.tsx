@@ -43,7 +43,7 @@ const ProjectCard = ({ p, i }: { p: ProjectData & { showGithubStats?: boolean };
   const year = p.date ? new Date(p.date).getFullYear() : null;
 
   return (
-    <TransitionLink to={`/project/${p.id}`} className="w-card" data-wcard data-img={p.imageUrl ?? ''} style={{ animationDelay: `${Math.min(i, 8) * 60}ms` }}>
+    <TransitionLink to={`/project/${p.id}`} className="w-card" data-wcard data-img={p.imageUrl ?? ''} style={{ ['--i' as string]: Math.min(i, 8) }}>
       <div className="w-frame" data-frame>
         <canvas
           className="w-canvas"
