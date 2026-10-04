@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 // remembered in this browser and only applied while #debug is there.
 type Role = 'body' | 'display' | 'serif';
 const ROLES: { role: Role; label: string; def: string; list: string[] }[] = [
-  { role: 'body', label: 'Body (text, buttons)', def: 'Archivo', list: ['Archivo', 'Inter', 'Manrope', 'DM Sans', 'Space Grotesk', 'Outfit', 'Sora', 'Plus Jakarta Sans', 'Rubik', 'Work Sans', 'IBM Plex Sans', 'Barlow', 'Chivo', 'Figtree', 'Onest'] },
+  { role: 'body', label: 'Body (text, buttons)', def: 'Sora', list: ['Sora', 'Archivo', 'Inter', 'Manrope', 'DM Sans', 'Space Grotesk', 'Outfit', 'Plus Jakarta Sans', 'Rubik', 'Work Sans', 'IBM Plex Sans', 'Barlow', 'Chivo', 'Figtree', 'Onest'] },
   { role: 'display', label: 'Display (big titles)', def: 'Archivo', list: ['Archivo', 'Anton', 'Bebas Neue', 'Oswald', 'Barlow Condensed', 'Saira Condensed', 'Big Shoulders Display', 'Archivo Narrow', 'Fjalla One', 'League Gothic', 'Antonio', 'Teko', 'Bricolage Grotesque', 'Unbounded', 'Syne'] },
   { role: 'serif', label: 'Serif (italic accents)', def: 'Instrument Serif', list: ['Instrument Serif', 'Playfair Display', 'DM Serif Display', 'Fraunces', 'Cormorant Garamond', 'Libre Caslon Text', 'Newsreader', 'Young Serif', 'Lora', 'EB Garamond', 'Spectral', 'Source Serif 4', 'Bodoni Moda', 'Gloock', 'Crimson Pro'] },
 ];
@@ -26,7 +26,7 @@ const apply = (role: Role, family: string) => { load(family); document.documentE
 export const FontDebug = () => {
   const [on, setOn] = useState(() => window.location.hash === '#debug');
   const [picked, setPicked] = useState<Record<Role, string>>(() => {
-    try { return { body: 'Archivo', display: 'Archivo', serif: 'Instrument Serif', ...JSON.parse(localStorage.getItem(KEY) || '{}') }; } catch { return { body: 'Archivo', display: 'Archivo', serif: 'Instrument Serif' }; }
+    try { return { body: 'Sora', display: 'Archivo', serif: 'Instrument Serif', ...JSON.parse(localStorage.getItem(KEY) || '{}') }; } catch { return { body: 'Sora', display: 'Archivo', serif: 'Instrument Serif' }; }
   });
   useEffect(() => {
     const f = () => setOn(window.location.hash === '#debug');
@@ -56,7 +56,7 @@ export const FontDebug = () => {
         </div>
       ))}
       <div className="flex justify-between">
-        <button type="button" className="underline" onClick={() => setPicked({ body: 'Archivo', display: 'Archivo', serif: 'Instrument Serif' })}>Reset</button>
+        <button type="button" className="underline" onClick={() => setPicked({ body: 'Sora', display: 'Archivo', serif: 'Instrument Serif' })}>Reset</button>
         <button type="button" className="underline" onClick={() => navigator.clipboard?.writeText(JSON.stringify(picked))}>Copy values</button>
       </div>
     </div>
