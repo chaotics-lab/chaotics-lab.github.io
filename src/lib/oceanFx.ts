@@ -589,13 +589,15 @@ const CAUSTIC_LAYERS = [['/caustic-deep.jpg', 1.5, 0.55, -7, 5, 0.75], ['/causti
 // Tuning (temporary, #debug on the home page: CausticDebug.tsx). lo / hi:
 // where the cutout starts and reaches full; alpha, scale, flat, speed:
 // multipliers on both layers.
-export const CAUSTIC_TUNE = { lo: 0.3, hi: 0.75, alpha: 1, scale: 1, flat: 1, speed: 1, warp: 30, warpSize: 220 };
+export const CAUSTIC_TUNE = { lo: 0.3, hi: 0.75, alpha: 1, scale: 1, flat: 1, speed: 1, warp: 30, warpSize: 220, warpSpeed: 1 };
+const WARP_SWAY = 140; // px the seabed canvas sways each way, which carries the warp noise along
 // The displacement map (the video's first technique): smooth noise, red
 // pushing x and green pushing y, made by the filter itself (feTurbulence)
 // as one continuous field over the whole seabed: nothing is tiled or
-// shifted, so it has no seams whatever the sizes. The caustic layers drift
-// through it, so the ripples bend the light as it flows past, which breaks
-// up the repeats and the straight drift directions.
+// shifted inside the filter, so it has no seams whatever the sizes; it is
+// carried along by swaying the canvas itself (in aqua() below), and the
+// caustic layers drift through it too. That breaks up the repeats and the
+// straight drift directions.
 function cutTable() {
   const { lo, hi } = CAUSTIC_TUNE, n = 16;
   return Array.from({ length: n }, (_, i) => { const x = i / (n - 1), k = Math.min(1, Math.max(0, (x - lo) / Math.max(0.01, hi - lo))); return (k * k * (3 - 2 * k)).toFixed(3); }).join(' ');
@@ -636,7 +638,7 @@ function aqua(): Fx {
   // soft light at a quarter of the resolution; the seabed rendered 15 times a second and reused in between
   const rays4 = sprite(false), rayBuf = rays4.c, rg = rays4.g, bed = sprite(), floorBuf = bed.c, fg = bed.g;
   rayBuf.style.width = rayBuf.style.height = '100%'; // a quarter of the resolution, stretched by the compositor
-  floorBuf.style.maskImage = floorBuf.style.webkitMaskImage = 'linear-gradient(to bottom, transparent, #000 70%)';
+  let wx = 0, wy = 0; // how far the seabed canvas has swayed (see below)
   floorBuf.style.filter = causticCut();
   const setup = (w: number, h: number) => {
     const n = Math.max(4, Math.round(w / 220));
@@ -683,11 +685,22 @@ function aqua(): Fx {
       const band = Math.min(320, h * 0.4), horizon = floor - band;
       if (horizon < h) {
         const B = Math.round(band);
-        if (floorBuf.width !== Math.round(w) || floorBuf.height !== B) { bed.size(w, B); floorT = 0; }
+        // The warp noise is fixed to the canvas, so to make it move the whole
+        // canvas sways (a slow loop, so it never jumps) while the caustics are
+        // drawn shifted back by the same amount: the light stays put on screen
+        // and the ripples travel under it. M: margin so the edges never show.
+        const M = WARP_SWAY + 2, CW = Math.round(w) + 2 * M, CH = B + 2 * M;
+        if (floorBuf.width !== CW || floorBuf.height !== CH) { bed.size(CW, CH); floorT = 0; }
         if ((floorT -= dt) <= 0) {
           floorT = 1 / 15;
           fg.setTransform(1, 0, 0, 1, 0, 0);
-          fg.clearRect(0, 0, w, B);
+          const ws = t * 0.25 * CAUSTIC_TUNE.warpSpeed;
+          wx = Math.round(WARP_SWAY * Math.sin(ws)); wy = Math.round(WARP_SWAY * 0.6 * Math.sin(ws * 0.73 + 1.3)); // whole px, as the canvas is placed
+          fg.clearRect(0, 0, CW, CH);
+          // the caustics in screen space: the canvas sits at (wx - M, wy - M) from the band's corner
+          const ox = M - wx, oy = M - wy;
+          const m = `linear-gradient(to bottom, transparent ${oy.toFixed(1)}px, #000 ${(oy + B * 0.7).toFixed(1)}px)`;
+          floorBuf.style.maskImage = floorBuf.style.webkitMaskImage = m;
           fg.globalCompositeOperation = 'lighter';
           CAUSTIC_LAYERS.forEach(([src, k, flat, vx, vy, al], i) => {
             const art = caustic(src);
@@ -695,15 +708,15 @@ function aqua(): Fx {
             const pat = pats[i];
             if (!pat) return;
             const T = CAUSTIC_TUNE, ks = k * T.scale, ts = t * T.speed;
-            pat.setTransform(new DOMMatrix([ks, 0, 0, ks * flat * T.flat, w / 2 + ts * vx, B + ts * vy])); // lies flat; anchored at the middle of the page end
+            pat.setTransform(new DOMMatrix([ks, 0, 0, ks * flat * T.flat, ox + w / 2 + ts * vx, oy + B + ts * vy])); // lies flat; anchored at the middle of the page end
             fg.globalAlpha = Math.min(1, al * T.alpha);
             fg.fillStyle = pat;
-            fg.fillRect(0, 0, w, B);
+            fg.fillRect(0, 0, CW, CH);
           });
           fg.globalCompositeOperation = 'source-over';
           fg.globalAlpha = 1;
         }
-        bed.at(0, horizon);
+        bed.at(wx - M, horizon + wy - M);
       } else bed.at(0, null);
       // click ripples
       rings = rings.filter(r => (r.age += dt) < 1.4);
