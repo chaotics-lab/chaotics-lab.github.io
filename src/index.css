@@ -1243,7 +1243,7 @@ html[data-quality="0"] .ocean-layer { display: none; }
   animation: ai-guide-in 300ms cubic-bezier(.7,0,.2,1) both;
 }
 .ai-guide-panel[data-leaving] { animation: ai-guide-out 240ms cubic-bezier(.7,0,.3,1) both; }
-.ai-guide-panel::before { content: ""; position: absolute; left: 0; right: 0; top: -0.7rem; height: 0.7rem; } /* keeps the hover across the gap */
+.ai-guide-bridge { position: absolute; left: 0; top: 100%; z-index: 40; width: min(22rem, calc(100vw - 2.5rem)); height: 0.8rem; } /* fills the gap under the tag, outside the panel's clip, so the hover holds across it */
 @keyframes ai-guide-in { from { clip-path: polygon(0 0, 0 0, -30% 100%, -30% 100%); } to { clip-path: polygon(0 0, 130% 0, 100% 100%, -30% 100%); } }
 @keyframes ai-guide-out { from { clip-path: polygon(0 0, 130% 0, 100% 100%, -30% 100%); } to { clip-path: polygon(130% 0, 130% 0, 100% 100%, 100% 100%); transform: translateX(0.6rem); } } /* the same slanted edge carries on to the right */
 .ai-guide-row {

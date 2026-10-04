@@ -9,6 +9,7 @@ import { AITag } from '@/components/home/AITag';
 // the levels cascade in sliding and un-skewing, and a plain highlight
 // sweeps in behind this project's level last; closing carries the wipe on to the right.
 const CLOSE_MS = 240;
+const LEAVE_GRACE_MS = 180;
 export const AIGuide = ({ value }: { value: number }) => {
   const [open, setOpenRaw] = useState(false);
   const [leaving, setLeaving] = useState(false);
@@ -21,7 +22,8 @@ export const AIGuide = ({ value }: { value: number }) => {
     setLeaving(true);
     timer.current = window.setTimeout(() => { setOpenRaw(false); setLeaving(false); }, CLOSE_MS);
   };
-  useEffect(() => () => clearTimeout(timer.current), []);
+  const leaveTimer = useRef(0); // a short grace, so crossing from the tag to the panel doesn't close it
+  useEffect(() => () => { clearTimeout(timer.current); clearTimeout(leaveTimer.current); }, []);
   const ref = useRef<HTMLSpanElement>(null);
   const current = Math.max(0, Math.min(5, Math.round(value / 20)));
 
@@ -38,12 +40,13 @@ export const AIGuide = ({ value }: { value: number }) => {
     <span
       ref={ref}
       className="ai-guide"
-      onPointerEnter={e => { if (e.pointerType === 'mouse') setOpen(true); }}
-      onPointerLeave={e => { if (e.pointerType === 'mouse') setOpen(false); }}
+      onPointerEnter={e => { if (e.pointerType === 'mouse') { clearTimeout(leaveTimer.current); setOpen(true); } }}
+      onPointerLeave={e => { if (e.pointerType === 'mouse') leaveTimer.current = window.setTimeout(() => setOpen(false), LEAVE_GRACE_MS); }}
     >
       <button type="button" className="ai-guide-btn" onClick={() => setOpen(o => !o)} aria-expanded={open && !leaving} aria-label="AI usage guide">
         <AITag value={value} />
       </button>
+      {open && <span className="ai-guide-bridge" aria-hidden="true" />}
       {open && (
         <span className="ai-guide-panel" role="dialog" aria-label="AI usage guide" data-leaving={leaving || undefined}>
           <span className="h-caps text-[0.6rem] text-[var(--h-c2)]">How much AI went into it</span>
