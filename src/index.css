@@ -982,7 +982,7 @@ html[data-quality="0"] .ocean-layer { display: none; }
   -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
 }
-.g-track { display: flex; height: 100%; transition: transform 650ms cubic-bezier(.65, 0, .35, 1); }
+.g-track { display: flex; height: 100%; transition: transform 450ms cubic-bezier(.65, 0, .35, 1); } /* SLIDE_MS in Gallery.tsx */
 .g-slide { flex: none; width: 100%; height: 100%; }
 .g-slide img { width: 100%; height: 100%; object-fit: contain; cursor: zoom-in; user-select: none; }
 /* Arrows show on hover (always on touch screens) */
@@ -1027,18 +1027,19 @@ html[data-quality="0"] .ocean-layer { display: none; }
    title and close pill on top, the slides, the bars and pill below */
 .g-viewer {
   position: fixed; inset: 0; z-index: 95; display: flex; flex-direction: column; gap: clamp(0.75rem, 2vh, 1.25rem);
-  padding: clamp(1rem, 3vw, 2rem) clamp(1rem, 4vw, 3rem);
-  background: radial-gradient(90% 70% at 85% 0%, rgb(var(--h-c2-rgb) / 0.22), transparent 70%), linear-gradient(180deg, var(--h-deep), var(--h-night));
-  animation: g-v-in 240ms ease-out both;
+  padding: clamp(1rem, 3vw, 2rem) clamp(1rem, 4vw, 3rem); isolation: isolate;
 }
+/* while the image zooms in or out, it may pass outside the strip: let it, and hide the other slides */
+.g-viewer[data-zoom] .g-v-stage { overflow: visible; }
+.g-viewer[data-zoom] .g-v-slide[aria-hidden="true"] { visibility: hidden; }
+/* the backdrop is its own layer, so it fades while the image zooms (Gallery.tsx) */
+.g-v-bg { position: absolute; inset: 0; z-index: -1; background: radial-gradient(90% 70% at 85% 0%, rgb(var(--h-c2-rgb) / 0.22), transparent 70%), linear-gradient(180deg, var(--h-deep), var(--h-night)); }
 .g-v-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; }
 .g-v-title { margin-top: 0.3rem; font-size: clamp(1.4rem, 3.2vw, 2.6rem); line-height: 0.95; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .g-v-stage { position: relative; flex: 1; min-height: 0; overflow: hidden; touch-action: pan-y; }
 .g-v-slide { flex: none; width: 100%; height: 100%; display: grid; place-items: center; padding: 0 0.5rem; }
-.g-v-slide img { max-width: 100%; max-height: 100%; object-fit: contain; user-select: none; box-shadow: 0 24px 60px -20px rgb(0 0 0 / 0.6); animation: g-v-pop 340ms cubic-bezier(.2,.8,.2,1) both; }
+.g-v-slide img { max-width: 100%; max-height: 100%; object-fit: contain; user-select: none; box-shadow: 0 24px 60px -20px rgb(0 0 0 / 0.6); }
 .g-viewer .g-bar { margin-top: 0; }
-@keyframes g-v-in { from { opacity: 0; } to { opacity: 1; } }
-@keyframes g-v-pop { from { opacity: 0; transform: scale(0.94); } to { opacity: 1; transform: none; } }
 
 /* Write-ups (project markdown) */
 .p-prose { color: var(--h-c3); font-size: 1.05rem; line-height: 1.75; }
@@ -1218,7 +1219,7 @@ html[data-quality="0"] .ocean-layer { display: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .e-hint, .g-viewer, .g-v-slide img, .g-fill[data-run], .h-line > span, .h-marquee, .h-swap-in, .p-logo, .pt-page, .h-bob, .h-bob-up, .w-card { animation: none !important; }
+  .e-hint, .g-fill[data-run], .h-line > span, .h-marquee, .h-swap-in, .p-logo, .pt-page, .h-bob, .h-bob-up, .w-card { animation: none !important; }
   .pt { display: none; }
   .w-arrow, .w-rule > span, .h-swap > span, .h-btn, .h-pill, .s-nav-blob, .h-pill-blob, .s-top, .h-btn-line::before, .s-circle, .g-track, .g-arrow, .p-next-arrow, .ai-drop-body, .ai-drop-item, .ai-drop-plus, .ai-drop-title, .s-icon { transition: none; }
   .w-cursor { display: none; }

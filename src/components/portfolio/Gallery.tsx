@@ -2,8 +2,21 @@ import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { ArrowsOut, CaretLeft, CaretRight, X } from '@phosphor-icons/react';
 import { prefersReducedMotion } from '@/lib/ticker';
+import { gifLength } from '@/lib/gifLength';
 
-const AUTOPLAY_MS = 5000;
+const AUTOPLAY_MS = 4000; // how long a still image stays
+const SLIDE_MS = 450; // one slide change (.g-track in index.css)
+const MIN_MS = 2500; // a GIF stays at least this long (whole loops)
+const ZOOM_MS = 380; // full screen opening / closing
+
+// How long slide `src` stays: still images AUTOPLAY_MS; a GIF one loop
+// minus the slide change in and out, so a loop plays across them (or as
+// many whole loops as needed to stay MIN_MS)
+const stayFor = (loop: number | undefined) => {
+  if (!loop) return AUTOPLAY_MS;
+  const loops = Math.max(1, Math.ceil((MIN_MS + 2 * SLIDE_MS) / loop));
+  return loops * loop - 2 * SLIDE_MS;
+};
 
 // Project images: one track of slides that slides sideways, advancing on
 // its own (looping) until the visitor hovers, focuses or opens it. Slanted
@@ -12,6 +25,10 @@ export const Gallery = ({ frames, title }: { frames: string[]; title: string }) 
   const [current, setCurrent] = useState(0);
   const [hold, setHold] = useState(false);
   const [viewer, setViewer] = useState(false);
+  const [loops, setLoops] = useState<Record<string, number>>({});
+  const stageRef = useRef<HTMLDivElement>(null);
+  const viewRef = useRef<HTMLDivElement>(null);
+  const closing = useRef(false);
   const touchX = useRef<number | null>(null);
   const count = frames.length;
   const auto = count > 1 && !hold && !viewer && !prefersReducedMotion();
@@ -20,18 +37,56 @@ export const Gallery = ({ frames, title }: { frames: string[]; title: string }) 
 
   const go = (d: number) => setCurrent(c => (c + d + count) % count);
 
+  // GIF loop lengths, read from the files
+  useEffect(() => {
+    let alive = true;
+    frames.forEach(src => gifLength(src).then(ms => { if (alive && ms) setLoops(l => ({ ...l, [src]: ms })); }));
+    return () => { alive = false; };
+  }, [frames]);
+  const stay = stayFor(loops[frames[current]]);
+
   // Restarts on every slide change, so a manual pick gets a full interval.
   useEffect(() => {
     if (!auto) return;
-    const id = window.setTimeout(() => setCurrent(c => (c + 1) % count), AUTOPLAY_MS);
+    const id = window.setTimeout(() => setCurrent(c => (c + 1) % count), stay);
     return () => clearTimeout(id);
-  }, [auto, current, count]);
+  }, [auto, current, count, stay]);
+
+  // Full screen opens out of the carousel and closes back into it: the
+  // current image travels between its spot in the carousel and its full
+  // screen size (only transforms), while the backdrop fades.
+  const zoom = (img: HTMLElement | null | undefined, back: boolean) => {
+    const from = stageRef.current?.getBoundingClientRect(), view = viewRef.current;
+    if (!img || !from || !view || prefersReducedMotion()) return null;
+    const to = img.getBoundingClientRect();
+    const t = `translate(${from.left + from.width / 2 - (to.left + to.width / 2)}px, ${from.top + from.height / 2 - (to.top + to.height / 2)}px) scale(${Math.min(from.width / to.width, from.height / to.height)})`;
+    const ease = 'cubic-bezier(.2,.8,.2,1)';
+    const frames1 = [{ transform: t }, { transform: 'none' }];
+    view.dataset.zoom = '';
+    const a = img.animate(back ? [...frames1].reverse() : frames1, { duration: ZOOM_MS, easing: back ? 'cubic-bezier(.6,0,.8,.2)' : ease, fill: back ? 'forwards' : 'none' });
+    if (!back) a.onfinish = () => { delete view.dataset.zoom; };
+    const fade = [{ opacity: 0 }, { opacity: 1 }];
+    view.querySelectorAll<HTMLElement>('.g-v-fade').forEach(el => el.animate(back ? [...fade].reverse() : fade, { duration: ZOOM_MS * 0.8, easing: 'ease-out', fill: 'forwards' }));
+    return a;
+  };
+  const currentViewImg = () => viewRef.current?.querySelectorAll<HTMLElement>('.g-v-slide img')[current];
+  useEffect(() => {
+    if (viewer) zoom(currentViewImg(), false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [viewer]);
+  const close = () => {
+    if (closing.current) return;
+    const a = zoom(currentViewImg(), true);
+    if (!a) { setViewer(false); return; }
+    closing.current = true;
+    a.onfinish = () => { closing.current = false; setViewer(false); };
+  };
 
   // Full-screen viewer: arrows to browse, Escape to close.
   useEffect(() => {
     if (!viewer) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setViewer(false);
+      if (e.key === 'Escape') close();
       if (e.key === 'ArrowLeft') go(-1);
       if (e.key === 'ArrowRight') go(1);
     };
@@ -77,7 +132,7 @@ export const Gallery = ({ frames, title }: { frames: string[]; title: string }) 
                 key={i === current ? `${current}-${auto}` : undefined}
                 className="g-fill"
                 data-run={i === current && auto ? 'true' : undefined}
-                style={{ animationDuration: `${AUTOPLAY_MS}ms` }}
+                style={{ animationDuration: `${stay}ms` }}
               />
             </button>
           ))}
@@ -106,7 +161,7 @@ export const Gallery = ({ frames, title }: { frames: string[]; title: string }) 
       onFocus={() => setHold(true)}
       onBlur={e => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setHold(false); }}
     >
-      <div className="g-stage" {...swipe}>
+      <div ref={stageRef} className="g-stage" {...swipe}>
         <div className="g-track" style={{ transform: `translateX(${-current * 100}%)` }}>
           {frames.map((src, i) => (
             <div key={src} className="g-slide" aria-hidden={i !== current}>
@@ -122,14 +177,15 @@ export const Gallery = ({ frames, title }: { frames: string[]; title: string }) 
           slides moving sideways like above, the same bars and pill below.
           Clicking around the image closes it. */}
       {viewer && createPortal(
-        <div className="g-viewer" role="dialog" aria-modal="true" aria-label={`${title}, images`} onClick={() => setViewer(false)}>
-          <div className="g-v-head" onClick={e => e.stopPropagation()}>
+        <div ref={viewRef} className="g-viewer" role="dialog" aria-modal="true" aria-label={`${title}, images`} onClick={close}>
+          <div className="g-v-bg g-v-fade" aria-hidden="true" />
+          <div className="g-v-head g-v-fade" onClick={e => e.stopPropagation()}>
             <div className="min-w-0">
               <p className="h-caps text-[0.62rem] text-[var(--h-c2)]">Images</p>
               <p className="h-display g-v-title">{title}</p>
             </div>
             <div className="s-nav flex flex-none">
-              <button type="button" className="s-nav-item s-top-item s-top-wide h-swap-host" onClick={() => setViewer(false)} aria-label="Close">
+              <button type="button" className="s-nav-item s-top-item s-top-wide h-swap-host" onClick={close} aria-label="Close">
                 <X size={16} weight="bold" className="s-icon" />
                 <span className="h-swap">
                   <span>Close</span>
@@ -147,7 +203,7 @@ export const Gallery = ({ frames, title }: { frames: string[]; title: string }) 
               ))}
             </div>
           </div>
-          <div onClick={e => e.stopPropagation()}>{bar(false)}</div>
+          <div className="g-v-fade" onClick={e => e.stopPropagation()}>{bar(false)}</div>
         </div>,
         document.body,
       )}
