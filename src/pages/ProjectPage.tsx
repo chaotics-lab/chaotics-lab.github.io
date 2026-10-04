@@ -5,13 +5,12 @@ import remarkGfm from 'remark-gfm';
 import { ArrowLeft, ArrowRight, ArrowUpRight, GithubLogo } from '@phosphor-icons/react';
 import { SiteLayout } from '@/components/site/SiteLayout';
 import { TransitionLink } from '@/components/site/TransitionLink';
-import { AITag } from '@/components/home/AITag';
+import { AIGuide } from '@/components/portfolio/AIGuide';
 import { Gallery } from '@/components/portfolio/Gallery';
 import { RepoStats } from '@/components/RepoStats';
 import { useGithubStars } from '@/hooks/useGithubStars';
 import { useGithubStats } from '@/hooks/useGithubStats';
 import { categoryLabel } from '@/config/categories';
-import { aiLevel } from '@/config/aiLevels';
 import { PROJECTS, withoutCompany, type Project } from '@/lib/projects';
 import { backToProjects, usePageTransition, type TransitionOpts } from '@/lib/pageTransition';
 import { projectPalette, setProjectPalette } from '@/lib/theme';
@@ -155,7 +154,7 @@ const ProjectPage = () => {
             <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
               {/* the facts in one line: category, type, date, AI usage */}
               <p className="h-caps text-[0.68rem] text-[var(--h-c2)]">{[categories.join(' / '), project.type, when].filter(Boolean).join(' · ')}</p>
-              {ai !== null && <span className="flex items-center gap-2 text-sm text-[var(--h-c3)]" title={`AI usage: ${aiLevel(ai).label}`}><AITag value={ai} /> {aiLevel(ai).label}</span>}
+              {ai !== null && <AIGuide value={ai} />}
             </div>
 
             {/* Logo sits left of the title, as tall as the title */}
