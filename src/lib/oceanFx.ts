@@ -589,26 +589,13 @@ const CAUSTIC_LAYERS = [['/caustic-deep.jpg', 1.5, 0.55, -7, 5, 0.75], ['/causti
 // Tuning (temporary, #debug on the home page: CausticDebug.tsx). lo / hi:
 // where the cutout starts and reaches full; alpha, scale, flat, speed:
 // multipliers on both layers.
-export const CAUSTIC_TUNE = { lo: 0.3, hi: 0.75, alpha: 1, scale: 1, flat: 1, speed: 1, warp: 30, warpSize: 220, warpSpeed: 1 };
+export const CAUSTIC_TUNE = { lo: 0.3, hi: 0.75, alpha: 1, scale: 1, flat: 1, speed: 1, warp: 30, warpSize: 220 };
 // The displacement map (the video's first technique): smooth noise, red
-// pushing x and green pushing y, made by the filter itself (feTurbulence,
-// stitched so one tile repeats without seams) in one fixed tile that feTile
-// repeats; shifting the tiled result scrolls ripples across the caustics, which
-// breaks up the repeats and the straight drift directions.
-// The filter area: the seabed canvas plus one warp tile right and below, so
-// the shifted noise always has tiled noise to read from (an uncovered row
-// showed as a line travelling up).
-export function sizeWarp(w: number, h: number) {
-  const f = document.getElementById('fx-caustic-cut'), S = CAUSTIC_TUNE.warpSize;
-  f?.setAttribute('width', String(Math.ceil(w + 2 * S))); f?.setAttribute('height', String(Math.ceil(h + 2 * S)));
-}
-export function scrollWarp(t: number) {
-  const T = CAUSTIC_TUNE, off = document.getElementById('fx-caustic-warp-off');
-  if (!off) return;
-  // the tiled noise is shifted up-left by up to one tile, one clean tile is cut out at the origin (always covered), and tiled again
-  off.setAttribute('dx', (-((t * 23 * T.warpSpeed) % T.warpSize)).toFixed(1));
-  off.setAttribute('dy', (-((t * 11 * T.warpSpeed) % T.warpSize)).toFixed(1));
-}
+// pushing x and green pushing y, made by the filter itself (feTurbulence)
+// as one continuous field over the whole seabed: nothing is tiled or
+// shifted, so it has no seams whatever the sizes. The caustic layers drift
+// through it, so the ripples bend the light as it flows past, which breaks
+// up the repeats and the straight drift directions.
 function cutTable() {
   const { lo, hi } = CAUSTIC_TUNE, n = 16;
   return Array.from({ length: n }, (_, i) => { const x = i / (n - 1), k = Math.min(1, Math.max(0, (x - lo) / Math.max(0.01, hi - lo))); return (k * k * (3 - 2 * k)).toFixed(3); }).join(' ');
@@ -617,10 +604,7 @@ export function retuneCaustics() {
   const T = CAUSTIC_TUNE;
   document.querySelector('#fx-caustic-cut feFuncA')?.setAttribute('tableValues', cutTable());
   document.querySelector('#fx-caustic-cut feDisplacementMap')?.setAttribute('scale', String(T.warp));
-  for (const el of [document.getElementById('fx-caustic-warp-noise'), document.getElementById('fx-caustic-warp-off')]) { el?.setAttribute('width', String(T.warpSize)); el?.setAttribute('height', String(T.warpSize)); }
-  document.getElementById('fx-caustic-warp-noise')?.setAttribute('baseFrequency', (2 / T.warpSize).toFixed(4));
-  const c = document.querySelector<HTMLCanvasElement>('canvas[style*="fx-caustic-cut"]');
-  if (c) sizeWarp(c.width, c.height);
+  document.getElementById('fx-caustic-warp-noise')?.setAttribute('baseFrequency', (1 / T.warpSize).toFixed(4));
 }
 function causticCut() {
   const id = 'fx-caustic-cut';
@@ -629,11 +613,8 @@ function causticCut() {
     svg.setAttribute('width', '0'); svg.setAttribute('height', '0'); svg.setAttribute('aria-hidden', 'true');
     svg.style.position = 'absolute';
     const T = CAUSTIC_TUNE;
-    svg.innerHTML = `<filter id="${id}" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse" primitiveUnits="userSpaceOnUse" x="0" y="0" width="2000" height="800">`
-      + `<feTurbulence id="fx-caustic-warp-noise" type="fractalNoise" baseFrequency="${(2 / T.warpSize).toFixed(4)}" numOctaves="2" stitchTiles="stitch" seed="7" x="0" y="0" width="${T.warpSize}" height="${T.warpSize}" result="tile"/>`
-      + `<feTile in="tile" result="tiled"/>`
-      + `<feOffset id="fx-caustic-warp-off" in="tiled" dx="0" dy="0" x="0" y="0" width="${T.warpSize}" height="${T.warpSize}" result="win"/>`
-      + `<feTile in="win" result="warp"/>`
+    svg.innerHTML = `<filter id="${id}" color-interpolation-filters="sRGB" x="0" y="0" width="100%" height="100%">`
+      + `<feTurbulence id="fx-caustic-warp-noise" type="fractalNoise" baseFrequency="${(1 / T.warpSize).toFixed(4)}" numOctaves="2" seed="7" result="warp"/>`
       + `<feDisplacementMap in="SourceGraphic" in2="warp" scale="${T.warp}" xChannelSelector="R" yChannelSelector="G" result="moved"/>`
       + `<feComponentTransfer in="moved"><feFuncA type="table" tableValues="${cutTable()}"/></feComponentTransfer></filter>`;
     document.body.appendChild(svg);
@@ -702,7 +683,7 @@ function aqua(): Fx {
       const band = Math.min(320, h * 0.4), horizon = floor - band;
       if (horizon < h) {
         const B = Math.round(band);
-        if (floorBuf.width !== Math.round(w) || floorBuf.height !== B) { bed.size(w, B); sizeWarp(w, B); floorT = 0; }
+        if (floorBuf.width !== Math.round(w) || floorBuf.height !== B) { bed.size(w, B); floorT = 0; }
         if ((floorT -= dt) <= 0) {
           floorT = 1 / 15;
           fg.setTransform(1, 0, 0, 1, 0, 0);
@@ -721,7 +702,6 @@ function aqua(): Fx {
           });
           fg.globalCompositeOperation = 'source-over';
           fg.globalAlpha = 1;
-          scrollWarp(t);
         }
         bed.at(0, horizon);
       } else bed.at(0, null);
