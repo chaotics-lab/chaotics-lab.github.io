@@ -59,14 +59,16 @@ export const ElementMarquee = () => {
   useEffect(() => {
     const el = trackRef.current;
     if (!el) return;
-    if (prefersReducedMotion()) return;
+    // with reduced motion asked for, it still scrolls (the band is how the
+    // elements are found), at half speed
+    const pace = prefersReducedMotion() ? 0.5 : 1;
     return onTick((_t, dt) => {
       const m = motion.current;
       const half = el.scrollWidth / 2 || 1;
       // hover easing towards 20% speed and back (about 0.6 s)
       m.rate += (m.target - m.rate) * Math.min(1, dt * 5);
       if (!drag.current.on) {
-        m.x -= (half / LOOP_S) * m.rate * dt;
+        m.x -= (half / LOOP_S) * m.rate * pace * dt;
         // momentum after a drag, decaying
         m.x += m.fling * dt;
         m.fling *= Math.pow(0.04, dt);
