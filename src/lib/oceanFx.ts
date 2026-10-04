@@ -580,7 +580,23 @@ function caustic(src: string) {
 }
 // [texture, scale, squash (height / width, lower lies flatter), drift x and y in px/s, alpha]:
 // the deep one first, larger and dimmer, drifting the other way
-const CAUSTIC_LAYERS = [['/caustic-deep.jpg', 1.5, 0.55, -7, 5, 0.45], ['/caustic.jpg', 1.6, 0.38, 9, 3, 0.55]] as const;
+const CAUSTIC_LAYERS = [['/caustic-deep.jpg', 1.5, 0.55, -7, 5, 0.75], ['/caustic.jpg', 1.6, 0.38, 9, 3, 0.75]] as const;
+// The cutout, as in Super Mario Galaxy's pooled water: the two layers are
+// added, then everything under a brightness threshold is cut away, so only
+// where their bright lines meet survives, as sharp shifting shapes rather
+// than a soft sum. Done by an SVG filter on the seabed canvas (no per-pixel
+// work in JS): alpha below ~0.3 goes to 0, then ramps up steeply.
+function causticCut() {
+  const id = 'fx-caustic-cut';
+  if (!document.getElementById(id)) {
+    const ns = 'http://www.w3.org/2000/svg', svg = document.createElementNS(ns, 'svg');
+    svg.setAttribute('width', '0'); svg.setAttribute('height', '0'); svg.setAttribute('aria-hidden', 'true');
+    svg.style.position = 'absolute';
+    svg.innerHTML = `<filter id="${id}" color-interpolation-filters="sRGB"><feComponentTransfer><feFuncA type="table" tableValues="0 0 0 0.25 0.65 0.95 1 1"/></feComponentTransfer></filter>`;
+    document.body.appendChild(svg);
+  }
+  return `url(#${id})`;
+}
 
 // ---- Aqua: under water. Slanted light shafts from the surface sway and
 // breathe; marine snow drifts in a slow current and swirls away from the
@@ -597,6 +613,7 @@ function aqua(): Fx {
   const rays4 = sprite(false), rayBuf = rays4.c, rg = rays4.g, bed = sprite(), floorBuf = bed.c, fg = bed.g;
   rayBuf.style.width = rayBuf.style.height = '100%'; // a quarter of the resolution, stretched by the compositor
   floorBuf.style.maskImage = floorBuf.style.webkitMaskImage = 'linear-gradient(to bottom, transparent, #000 70%)';
+  floorBuf.style.filter = causticCut();
   const setup = (w: number, h: number) => {
     const n = Math.max(4, Math.round(w / 220));
     rays = Array.from({ length: n }, (_, i) => ({ x: ((i + 0.5 + rnd(-0.3, 0.3)) / n) * w * 1.1 - w * 0.05, w: rnd(30, 110), ph: rnd(0, TAU), sp: rnd(0.15, 0.3) }));
