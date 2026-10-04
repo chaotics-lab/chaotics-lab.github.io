@@ -10,6 +10,9 @@ const SLIDERS: [keyof typeof CAUSTIC_TUNE, string, number, number, number][] = [
   ['scale', 'Scale', 0.4, 3, 0.05],
   ['flat', 'Flatness', 0.3, 2, 0.05],
   ['speed', 'Speed', 0, 4, 0.1],
+  ['warp', 'Warp strength', 0, 80, 1],
+  ['warpSize', 'Warp size', 40, 800, 10],
+  ['warpSpeed', 'Warp speed', 0, 5, 0.1],
 ];
 
 export const CausticDebug = () => {
