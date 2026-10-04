@@ -746,6 +746,8 @@ All colors MUST be HSL.
   clip-path: inset(100% 0 0 0 round 9999px); transition: clip-path 480ms cubic-bezier(.76,0,.24,1);
 }
 @media (hover: hover) { .h-btn-line:hover, .h-btn-line:focus-visible { color: var(--h-ink); } }
+/* an outline button on the header pills' glass (the footer's links, beside the element and back-to-top pills) */
+.h-btn-glass { background: rgb(var(--h-night-rgb) / 0.55); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
 @media (hover: hover) { .h-btn-line:hover::before, .h-btn-line:focus-visible::before { clip-path: inset(0 0 0 0 round 9999px); } }
 
 /* ---- Ticker (element band) ---- */
@@ -861,6 +863,7 @@ html[data-quality="1"] .s-nav, html[data-quality="1"] .s-circle, html[data-quali
 html[data-quality="0"] .s-nav, html[data-quality="0"] .s-circle, html[data-quality="0"] .g-arrow {
   -webkit-backdrop-filter: none; backdrop-filter: none; background: rgb(var(--h-night-rgb) / 0.85);
 }
+html[data-quality="1"] .h-btn-glass, html[data-quality="0"] .h-btn-glass { -webkit-backdrop-filter: none; backdrop-filter: none; background: rgb(var(--h-night-rgb) / 0.85); }
 html[data-quality="1"] .g-stage, html[data-quality="0"] .g-stage { -webkit-backdrop-filter: none; backdrop-filter: none; background: rgb(var(--h-night-rgb) / 0.8); }
 html[data-quality="0"] .ocean-layer { display: none; }
 /* Element switch (footer): icon-only header items; hover and the active

@@ -26,7 +26,7 @@ export const SiteFooter = () => {
               href={url}
               target={isExternal(url) ? '_blank' : undefined}
               rel={isExternal(url) ? 'noopener noreferrer' : undefined}
-              className="h-btn h-btn-line h-swap-host"
+              className="h-btn h-btn-line h-btn-glass h-swap-host"
             >
               <Icon size={18} weight="duotone" className="s-icon" />
               <span className="h-swap">
