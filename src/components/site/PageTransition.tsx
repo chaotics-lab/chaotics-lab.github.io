@@ -11,7 +11,7 @@ import { WAVE, WAVE_V } from '@/lib/wave';
 // 'blot': Persona 3 Reload's menu cut. Three blots (circles with a wavy,
 // slowly turning edge) grow one after the other from the clicked point and
 // cover the screen; the page switches; then a wavy hole grows from the
-// middle of each, front one first, and lets the new page through. The
+// same point in each, front one first, and lets the new page through. The
 // shape follows the blot cut mask of github.com/Ultipuk/persona_3_reload_pause_menu
 // (assets/shaders/blot_cut_mask.gdshader): radius progress * (R - amp *
 // sin(lobes * (angle - progress * turn))), with R reaching the far corner.
@@ -77,7 +77,7 @@ export const PageTransition = ({ children }: { children: ReactNode }) => {
     timers.current.push(window.setTimeout(() => {
       swap();
       setPhase('reveal');
-      if (o.kind === 'blot') runBlots('reveal', BLOT);
+      if (o.kind === 'blot') runBlots('reveal', BLOT, o.origin);
       if (o.kind === 'circles') runCircles('reveal', o.dir === 'right' ? 1 : -1);
       timers.current.push(window.setTimeout(() => {
         setPhase('idle');
@@ -96,7 +96,7 @@ export const PageTransition = ({ children }: { children: ReactNode }) => {
     cancelAnimationFrame(blotRaf.current);
     const w = window.innerWidth, h = window.innerHeight;
     let start = -1; // from the first frame the layers are there (they mount with the phase)
-    const cx = step === 'reveal' ? w / 2 : at?.x ?? w / 2, cy = step === 'reveal' ? h / 2 : at?.y ?? h / 2;
+    const cx = at?.x ?? w / 2, cy = at?.y ?? h / 2; // both ways from the clicked point
     const frame = () => {
       if (!blots.current[2]?.isConnected) { blotRaf.current = requestAnimationFrame(frame); return; }
       if (start < 0) start = performance.now();
