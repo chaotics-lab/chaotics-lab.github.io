@@ -7,7 +7,7 @@ import { gifLength } from '@/lib/gifLength';
 const AUTOPLAY_MS = 4000; // how long a still image stays
 const SLIDE_MS = 450; // one slide change (.g-track in index.css)
 const MIN_MS = 2500; // a GIF stays at least this long (whole loops)
-const ZOOM_MS = 420; // full screen opening / closing
+const ZOOM_MS = 360; // full screen opening / closing
 
 // How long slide `src` stays: still images AUTOPLAY_MS; a GIF one loop
 // minus the slide change in and out, so a loop plays across them (or as
@@ -52,29 +52,20 @@ export const Gallery = ({ frames, title }: { frames: string[]; title: string }) 
     return () => clearTimeout(id);
   }, [auto, current, count, stay]);
 
-  // Full screen, Persona-style: the backdrop sweeps in from the right as a
-  // slanted panel, a cream sliver leading its edge (like the project
-  // slashes); the current image zooms out of its spot in the carousel with a
-  // slight tilt that straightens as it lands; the title slides in skewed
-  // from the left and the bar rises. Closing plays it all back, the panel
-  // sweeping away to the left. Only transforms, clip paths and opacity.
+  // Full screen: the current image zooms between its spot in the carousel
+  // and its full size, the only thing that moves; the backdrop, title and
+  // bar just fade around it. Closing plays it back. Only transforms and
+  // opacity.
   const zoom = (img: HTMLElement | null | undefined, back: boolean) => {
     const from = stageRef.current?.getBoundingClientRect(), view = viewRef.current;
     if (!img || !from || !view || prefersReducedMotion()) return null;
     const to = img.getBoundingClientRect();
     const dx = from.left + from.width / 2 - (to.left + to.width / 2), dy = from.top + from.height / 2 - (to.top + to.height / 2);
     const k = Math.min(from.width / to.width, from.height / to.height);
-    const run = (el: Element | null, frames: Keyframe[], o: KeyframeAnimationOptions) => el?.animate(back ? [...frames].reverse() : frames, { fill: 'both', ...o }); // both: no flash before a delayed start
-    const out = back ? 'cubic-bezier(.6,0,.8,.3)' : 'cubic-bezier(.2,.9,.25,1.08)'; // in: a touch of overshoot
+    const run = (el: Element | null, frames: Keyframe[], o: KeyframeAnimationOptions) => el?.animate(back ? [...frames].reverse() : frames, { fill: 'both', ...o });
     view.dataset.zoom = '';
-    // the panel and its sliver: a slanted edge travelling right to left (out: on to the far left)
-    const edge = (x: number) => `polygon(${x}% 0, ${x + 140}% 0, ${x + 140}% 100%, ${x - 12}% 100%)`;
-    const sweep = back ? [{ clipPath: edge(-12) }, { clipPath: edge(-160) }] : [{ clipPath: edge(112) }, { clipPath: edge(-12) }];
-    view.querySelector('.g-v-sliver')?.animate(sweep, { duration: ZOOM_MS, easing: 'cubic-bezier(.7,0,.3,1)', fill: 'both', delay: back ? 70 : 0 });
-    view.querySelector('.g-v-bg')?.animate(sweep, { duration: ZOOM_MS, easing: 'cubic-bezier(.7,0,.3,1)', fill: 'both', delay: back ? 0 : 70 });
-    run(view.querySelector('.g-v-head'), [{ opacity: 0, transform: 'translateX(-3rem) skewX(-14deg)' }, { opacity: 1, transform: 'none' }], { duration: ZOOM_MS, easing: out, delay: back ? 0 : 140 });
-    run(view.querySelector('.g-v-foot'), [{ opacity: 0, transform: 'translateY(1.5rem)' }, { opacity: 1, transform: 'none' }], { duration: ZOOM_MS, easing: out, delay: back ? 0 : 180 });
-    const a = run(img, [{ transform: `translate(${dx}px, ${dy}px) scale(${k}) rotate(-3deg)` }, { transform: 'none' }], { duration: ZOOM_MS + 60, easing: out, delay: back ? 40 : 60 })!;
+    view.querySelectorAll('.g-v-bg, .g-v-head, .g-v-foot').forEach(el => run(el, [{ opacity: 0 }, { opacity: 1 }], { duration: ZOOM_MS * 0.8, easing: 'ease-out' }));
+    const a = run(img, [{ transform: `translate(${dx}px, ${dy}px) scale(${k})` }, { transform: 'none' }], { duration: ZOOM_MS, easing: back ? 'cubic-bezier(.5,0,.75,0)' : 'cubic-bezier(.2,.8,.2,1)' })!;
     if (!back) { a.onfinish = () => { delete view.dataset.zoom; }; a.effect?.updateTiming({ fill: 'none' }); }
     return a;
   };
@@ -189,7 +180,6 @@ export const Gallery = ({ frames, title }: { frames: string[]; title: string }) 
           Clicking around the image closes it. */}
       {viewer && createPortal(
         <div ref={viewRef} className="g-viewer" role="dialog" aria-modal="true" aria-label={`${title}, images`} onClick={close}>
-          <div className="g-v-sliver" aria-hidden="true" />
           <div className="g-v-bg" aria-hidden="true" />
           <div className="g-v-head" onClick={e => e.stopPropagation()}>
             <div className="min-w-0">

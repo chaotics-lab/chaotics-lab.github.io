@@ -1030,9 +1030,7 @@ html[data-quality="0"] .ocean-layer { display: none; }
 /* while the image zooms in or out, it may pass outside the strip: let it, and hide the other slides */
 .g-viewer[data-zoom] .g-v-stage { overflow: visible; }
 .g-viewer[data-zoom] .g-v-slide[aria-hidden="true"] { visibility: hidden; }
-/* the backdrop and the cream sliver leading it are their own layers, swept in by clip path (Gallery.tsx) */
-.g-v-sliver { position: absolute; inset: 0; z-index: -2; background: var(--h-cream); clip-path: polygon(112% 0, 252% 0, 252% 100%, 100% 100%); }
-.g-v-bg { clip-path: polygon(112% 0, 252% 0, 252% 100%, 100% 100%); }
+/* the backdrop is its own layer, so it fades while the image zooms (Gallery.tsx) */
 .g-v-bg { position: absolute; inset: 0; z-index: -1; background: radial-gradient(90% 70% at 85% 0%, rgb(var(--h-c2-rgb) / 0.22), transparent 70%), linear-gradient(180deg, var(--h-deep), var(--h-night)); }
 .g-v-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; }
 .g-v-title { margin-top: 0.3rem; font-size: clamp(1.4rem, 3.2vw, 2.6rem); line-height: 0.95; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -1219,7 +1217,6 @@ html[data-quality="0"] .ocean-layer { display: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .g-v-bg { clip-path: none; } .g-v-sliver { display: none; }
   .ai-guide-panel, .ai-guide-row, .ai-guide-row::before { animation: none !important; }
   .e-hint, .g-fill[data-run], .h-line > span, .h-marquee, .h-swap-in, .p-logo, .pt-page, .h-bob, .h-bob-up, .w-card { animation: none !important; }
   .pt { display: none; }
