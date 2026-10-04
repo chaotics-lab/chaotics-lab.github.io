@@ -675,7 +675,7 @@ function aqua(): Fx {
         b.moveTo(f.x + f.s / 2, f.y); b.arc(f.x, f.y, f.s / 2, 0, TAU);
       }
       bands.forEach((pa, i) => { g.fillStyle = `rgba(255,255,255,${0.3 + i * 0.25})`; g.fill(pa); });
-      // the seabed: the caustic band along the end of the page, redrawn 15 times a second
+      // the seabed: the caustic band along the end of the page, redrawn with every frame
       const band = Math.min(320, h * 0.4), horizon = floor - band;
       if (horizon < h) {
         const B = Math.round(band);
@@ -686,7 +686,7 @@ function aqua(): Fx {
         const M = WARP_SWAY + 2, CW = Math.round(w) + 2 * M, CH = B + 2 * M;
         if (floorBuf.width !== CW || floorBuf.height !== CH) { bed.size(CW, CH); floorT = 0; }
         if ((floorT -= dt) <= 0) {
-          floorT = 1 / 15;
+          floorT = 0; // every drawn frame (30 a second while still, every frame while scrolling), as the other effects
           fg.setTransform(1, 0, 0, 1, 0, 0);
           const ws = t * 0.25 * CAUSTIC_TUNE.warpSpeed;
           wx = Math.round(WARP_SWAY * Math.sin(ws)); wy = Math.round(WARP_SWAY * 0.6 * Math.sin(ws * 0.73 + 1.3)); // whole px, as the canvas is placed
