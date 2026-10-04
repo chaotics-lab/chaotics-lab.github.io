@@ -113,9 +113,8 @@ export const Gallery = ({ frames, title }: { frames: string[]; title: string }) 
   const alt = (i: number) => `${title}, image ${i + 1}`;
   const pad = (n: number) => String(n).padStart(2, '0');
 
-  // progress bars, counter, then the controls as a header-style pill (with
-  // the full-screen button under the inline gallery)
-  const bar = (inline: boolean) => (
+  // progress bars and counter under the images
+  const bar = () => (
     <div className="g-bar">
       {count > 1 && (
         <div className="g-dots">
@@ -139,16 +138,17 @@ export const Gallery = ({ frames, title }: { frames: string[]; title: string }) 
         </div>
       )}
       {count > 1 && <span className="g-count" aria-live="polite">{pad(current + 1)} <span>/ {pad(count)}</span></span>}
-      <div className="s-nav flex g-ctrl">
-        {count > 1 && (
-          <>
-            <button type="button" className="s-nav-item s-top-item" onClick={() => go(-1)} aria-label="Previous image"><CaretLeft size={16} weight="bold" className="s-icon" /></button>
-            <button type="button" className="s-nav-item s-top-item" onClick={() => go(1)} aria-label="Next image"><CaretRight size={16} weight="bold" className="s-icon" /></button>
-          </>
-        )}
-        {inline && <button type="button" className="s-nav-item s-top-item" onClick={() => setViewer(true)} aria-label="View full screen"><ArrowsOut size={16} weight="bold" className="s-icon" /></button>}
-      </div>
     </div>
+  );
+
+  // previous / next inside the frame, on its sides (shown on hover, always on touch screens)
+  const arrows = (
+    count > 1 && (
+      <>
+        <button type="button" className="g-arrow left-3" onClick={e => { e.stopPropagation(); go(-1); }} aria-label="Previous image"><CaretLeft size={18} weight="bold" /></button>
+        <button type="button" className="g-arrow right-3" onClick={e => { e.stopPropagation(); go(1); }} aria-label="Next image"><CaretRight size={18} weight="bold" /></button>
+      </>
+    )
   );
 
   return (
@@ -169,9 +169,11 @@ export const Gallery = ({ frames, title }: { frames: string[]; title: string }) 
             </div>
           ))}
         </div>
+        {arrows}
+        <button type="button" className="g-arrow g-full" onClick={() => setViewer(true)} aria-label="View full screen"><ArrowsOut size={16} weight="bold" /></button>
       </div>
 
-      {bar(true)}
+      {bar()}
 
       {/* Full screen: the page's deep colours, title and close on top, the
           slides moving sideways like above, the same bars and pill below.
@@ -202,8 +204,9 @@ export const Gallery = ({ frames, title }: { frames: string[]; title: string }) 
                 </div>
               ))}
             </div>
+            {arrows}
           </div>
-          <div className="g-v-fade" onClick={e => e.stopPropagation()}>{bar(false)}</div>
+          <div className="g-v-fade" onClick={e => e.stopPropagation()}>{bar()}</div>
         </div>,
         document.body,
       )}

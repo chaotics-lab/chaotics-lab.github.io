@@ -992,12 +992,11 @@ html[data-quality="0"] .ocean-layer { display: none; }
   transform: translateY(-50%); opacity: 0; transition: opacity 200ms ease, background 200ms ease, color 200ms ease;
 }
 .g-arrow.g-full { top: auto; bottom: 0.75rem; right: 0.75rem; transform: none; }
-@media (hover: hover) { .g-stage:hover .g-arrow, .g-arrow:focus-visible { opacity: 1; } }
+@media (hover: hover) { .g-stage:hover .g-arrow, .g-v-stage:hover .g-arrow, .g-arrow:focus-visible { opacity: 1; } }
 @media (hover: hover) { .g-arrow:hover { background: var(--h-cream); color: var(--h-ink); } }
 @media (hover: none) { .g-arrow { opacity: 1; } }
 /* Slanted progress bars + counter */
 .g-bar { display: flex; align-items: center; gap: 1rem; margin-top: 0.9rem; }
-.g-ctrl { flex: none; margin-left: auto; } /* prev / next / full screen, header-style pill */
 .g-dots { display: flex; flex: 1; gap: 0.35rem; }
 .g-dot { position: relative; flex: 1; max-width: 3.5rem; height: 0.9rem; cursor: pointer; }
 .g-dot::before, .g-fill { content: ""; position: absolute; left: 0; top: 50%; height: 4px; margin-top: -2px; transform: skewX(-20deg); }
