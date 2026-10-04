@@ -129,16 +129,6 @@ const ProjectPage = () => {
   const stack = project.tags?.length ? project.tags : project.technologies ?? [];
   const ai = project.AIUsed ? parseInt(project.AIUsed, 10) : null;
 
-  const back = (cls = '') => (
-    <TransitionLink to="/#projects" transition={backToProjects} className={`h-btn h-btn-line h-swap-host ${cls}`}>
-      <ArrowLeft size={16} weight="bold" />
-      <span className="h-swap">
-        <span>All projects</span>
-        <span className="h-serif text-[1.1rem] leading-[1.05]" aria-hidden="true">All projects</span>
-      </span>
-    </TransitionLink>
-  );
-
   return (
     <SiteLayout>
       <main className="relative pt-24 md:pt-28">
@@ -229,29 +219,30 @@ const ProjectPage = () => {
           </div>
         </section>
 
-        {/* Footer row: previous project, back to the grid, next project (also the arrow keys) */}
+        {/* Footer row: previous and next project, a matching pair (also the
+            arrow keys); the way back to the grid is the header's pill */}
         <nav className="container mx-auto px-5 sm:px-8 mt-24 md:mt-28" aria-label="Projects">
           <div className="p-next">
-            {back()}
-            {/* previous just left of next, its label in the same small caps as "Next" */}
-            <div className="p-next-pair">
-              {prev && (
-                <TransitionLink to={`/project/${prev.id}`} className="h-btn h-btn-line p-prev-link" transition={slashTo(prev, 'left')} aria-label={`Previous: ${withoutCompany(prev.title)}`}>
-                  <ArrowLeft size={16} weight="bold" className="p-prev-arrow" />
-                  <span className="h-caps text-[0.62rem] opacity-70">Previous</span>
-                </TransitionLink>
-              )}
-              {next && (
-                <TransitionLink to={`/project/${next.id}`} className="h-btn h-btn-line h-swap-host p-next-link" transition={slashTo(next)}>
-                  <span className="h-caps text-[0.62rem] opacity-70">Next</span>
-                  <span className="h-swap p-next-title">
-                    <span>{withoutCompany(next.title)}</span>
-                    <span className="h-serif text-[1.1rem] leading-[1.05]" aria-hidden="true">{withoutCompany(next.title)}</span>
-                  </span>
-                  <ArrowRight size={16} weight="bold" className="p-next-arrow" />
-                </TransitionLink>
-              )}
-            </div>
+            {prev && (
+              <TransitionLink to={`/project/${prev.id}`} className="h-btn h-btn-line h-swap-host p-next-link p-prev-link" transition={slashTo(prev, 'left')}>
+                <ArrowLeft size={16} weight="bold" className="p-prev-arrow" />
+                <span className="h-caps text-[0.62rem] opacity-70">Previous</span>
+                <span className="h-swap p-next-title">
+                  <span>{withoutCompany(prev.title)}</span>
+                  <span className="h-serif text-[1.1rem] leading-[1.05]" aria-hidden="true">{withoutCompany(prev.title)}</span>
+                </span>
+              </TransitionLink>
+            )}
+            {next && (
+              <TransitionLink to={`/project/${next.id}`} className="h-btn h-btn-line h-swap-host p-next-link" transition={slashTo(next)}>
+                <span className="h-caps text-[0.62rem] opacity-70">Next</span>
+                <span className="h-swap p-next-title">
+                  <span>{withoutCompany(next.title)}</span>
+                  <span className="h-serif text-[1.1rem] leading-[1.05]" aria-hidden="true">{withoutCompany(next.title)}</span>
+                </span>
+                <ArrowRight size={16} weight="bold" className="p-next-arrow" />
+              </TransitionLink>
+            )}
           </div>
         </nav>
       </main>
