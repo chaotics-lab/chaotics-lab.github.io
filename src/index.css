@@ -1011,6 +1011,9 @@ html[data-quality="0"] .ocean-layer { display: none; }
 /* Facts strip: label over value, one rule above and below */
 .h-pill-static { padding: 0.3rem 0.75rem; font-size: 0.82rem; cursor: default; } /* filter-pill look, read-only */
 @media (hover: hover) { .h-pill-static:hover { border-color: rgb(var(--h-c2-rgb) / 0.45); color: var(--h-c3); } }
+/* The stack under a project's images: read-only chips, a soft tint and no
+   outline, so they don't pass for buttons (outlined pills are clickable) */
+.p-chip { display: inline-flex; align-items: center; padding: 0.22rem 0.6rem; border-radius: 0.4rem; font-size: 0.76rem; font-weight: 600; letter-spacing: 0.01em; color: var(--h-c3); background: rgb(var(--h-c2-rgb) / 0.12); cursor: default; }
 @media (hover: hover) { .h-pill-stat, .h-pill-stat:hover { align-items: center; gap: 0.4rem; color: #fff; border-color: rgb(var(--h-c2-rgb) / 0.6); background: rgb(var(--h-night-rgb) / 0.35); font-variant-numeric: tabular-nums; } }
 /* Bottom row: back link on the left, next project on the right */
 /* Bottom row: previous and next project at the two ends, each as wide as its text (up to half the row) */

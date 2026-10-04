@@ -53,7 +53,7 @@ const slashTo = (p: Project, dir: 'left' | 'right' = 'right'): TransitionOpts =>
 const StackRow = ({ stack }: { stack: string[] }) => (stack.length ? (
   <div className="mt-5 flex flex-wrap items-center gap-1.5" aria-label="Stack">
     <span className="h-caps text-[0.62rem] text-[var(--h-c2)] mr-2">Built with</span>
-    {stack.map(t => <span key={t} className="h-pill h-pill-static">{t}</span>)}
+    {stack.map(t => <span key={t} className="p-chip">{t}</span>)}
   </div>
 ) : null);
 
