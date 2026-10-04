@@ -14,7 +14,7 @@ const INK = '#121212';
 
 export const ELEMENTS: ElementInfo[] = [
   { id: 'aqua',  name: 'Aqua',  color: '#0053B4', on: CREAM },
-  { id: 'pyra',  name: 'Pyra',  color: '#C90C27', on: CREAM },
+  { id: 'pyra',  name: 'Pyra',  color: '#C9120D', on: CREAM }, // the icon's red moved to hue 29 (themes.ts)
   { id: 'cryo',  name: 'Cryo',  color: '#00CFE4', on: INK },
   { id: 'volta', name: 'Volta', color: '#B7DD00', on: INK },
   { id: 'aero',  name: 'Aero',  color: '#8EACA2', on: INK },
