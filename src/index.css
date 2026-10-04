@@ -662,18 +662,19 @@ All colors MUST be HSL.
   --h-line: rgb(var(--h-c2-rgb) / 0.22);
 }
 
+:root { --f-body: "Archivo"; --f-display: "Archivo"; --f-serif: "Instrument Serif"; } /* the three site fonts (a #debug panel can swap them, FontDebug.tsx) */
 .h-page {
   position: relative;
   isolation: isolate; /* so the ocean layer (z-index -1) sits on the page background, behind the content */
   clip-path: inset(0); /* clips the fixed ocean canvases to the page too, so an overscroll bounce shows only black past it */
   color: #fff;
-  font-family: "Archivo", system-ui, sans-serif;
+  font-family: var(--f-body), system-ui, sans-serif;
   background: linear-gradient(180deg, var(--h-top) 0%, var(--h-mid) 18%, var(--h-deep) 45%, var(--h-night) 80%);
   overflow-x: clip;
 }
 
 .h-display {
-  font-family: "Archivo", "Arial Black", sans-serif;
+  font-family: var(--f-display), "Arial Black", sans-serif;
   font-weight: 900;
   font-style: italic;
   font-stretch: 75%;
@@ -681,7 +682,7 @@ All colors MUST be HSL.
   line-height: 0.86;
   letter-spacing: -0.01em;
 }
-.h-serif { font-family: "Instrument Serif", Georgia, serif; font-style: italic; font-weight: 400; }
+.h-serif { font-family: var(--f-serif), Georgia, serif; font-style: italic; font-weight: 400; }
 .h-caps { font-weight: 700; text-transform: uppercase; letter-spacing: 0.18em; }
 
 /* Text that rises out of a mask */
@@ -959,7 +960,7 @@ html[data-quality="0"] .ocean-layer { display: none; }
 .repo-stats { display: flex; flex-wrap: wrap; row-gap: 1rem; }
 .repo-stats > div { display: flex; flex-direction: column-reverse; padding: 0 1.5rem; border-left: 1.5px solid var(--h-line); }
 .repo-stats dd {
-  font-family: "Archivo", sans-serif;
+  font-family: var(--f-display), sans-serif;
   font-weight: 900;
   font-style: italic;
   font-stretch: 75%;
@@ -1047,7 +1048,7 @@ html[data-quality="0"] .ocean-layer { display: none; }
 .p-prose > * + * { margin-top: 1.1em; }
 .p-prose h2 {
   margin-top: 2.2em;
-  font-family: "Archivo", sans-serif;
+  font-family: var(--f-display), sans-serif;
   font-weight: 900;
   font-style: italic;
   font-stretch: 75%;
