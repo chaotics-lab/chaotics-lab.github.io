@@ -7,7 +7,6 @@ import { AIUsedShowcase } from '@/components/portfolio/AIUsedShowcase';
 import { ElementMarquee } from '@/components/portfolio/ElementMarquee';
 import { HomeHero } from './HomeHero';
 import { ProjectGrid } from './ProjectGrid';
-import { CausticDebug } from './CausticDebug';
 
 // Filter change: the sea transition over the whole page, with the
 // "Projects" title and the pills kept above it, in three steps:
@@ -125,7 +124,6 @@ export const Home = () => {
 
   return (
     <main>
-      <CausticDebug />
       <HomeHero />
       <ElementMarquee />
 

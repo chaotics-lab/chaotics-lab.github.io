@@ -586,10 +586,10 @@ const CAUSTIC_LAYERS = [['/caustic-deep.jpg', 1.5, 0.55, -7, 5, 0.75], ['/causti
 // where their bright lines meet survives, as sharp shifting shapes rather
 // than a soft sum. Done by an SVG filter on the seabed canvas (no per-pixel
 // work in JS): alpha below ~0.3 goes to 0, then ramps up steeply.
-// Tuning (temporary, #debug on the home page: CausticDebug.tsx). lo / hi:
-// where the cutout starts and reaches full; alpha, scale, flat, speed:
-// multipliers on both layers.
-export const CAUSTIC_TUNE = { lo: 0.3, hi: 0.75, alpha: 1, scale: 1, flat: 1, speed: 1, warp: 30, warpSize: 220, warpSpeed: 1 };
+// Tuning, set by eye: lo / hi: where the cutout starts and reaches full;
+// alpha, scale, flat, speed: multipliers on both layers; warp, warpSize,
+// warpSpeed: strength, noise size (px) and sway speed of the displacement.
+const CAUSTIC_TUNE = { lo: 0, hi: 0.69, alpha: 0.8, scale: 1.05, flat: 0.55, speed: 2.3, warp: 8, warpSize: 40, warpSpeed: 3 };
 const WARP_SWAY = 140; // px the seabed canvas sways each way, which carries the warp noise along
 // The displacement map (the video's first technique): smooth noise, red
 // pushing x and green pushing y, made by the filter itself (feTurbulence)
@@ -601,12 +601,6 @@ const WARP_SWAY = 140; // px the seabed canvas sways each way, which carries the
 function cutTable() {
   const { lo, hi } = CAUSTIC_TUNE, n = 16;
   return Array.from({ length: n }, (_, i) => { const x = i / (n - 1), k = Math.min(1, Math.max(0, (x - lo) / Math.max(0.01, hi - lo))); return (k * k * (3 - 2 * k)).toFixed(3); }).join(' ');
-}
-export function retuneCaustics() {
-  const T = CAUSTIC_TUNE;
-  document.querySelector('#fx-caustic-cut feFuncA')?.setAttribute('tableValues', cutTable());
-  document.querySelector('#fx-caustic-cut feDisplacementMap')?.setAttribute('scale', String(T.warp));
-  document.getElementById('fx-caustic-warp-noise')?.setAttribute('baseFrequency', (1 / T.warpSize).toFixed(4));
 }
 function causticCut() {
   const id = 'fx-caustic-cut';
