@@ -8,6 +8,7 @@
 // off it; the rest fills the screen.
 
 import { themeRgb } from './theme';
+import { CAUSTIC_LAYERS, CAUSTIC_TUNE, seabedGL } from './seabed';
 
 export interface Fx {
   // Elements the effect keeps itself, shown behind what it draws: parts that
@@ -558,9 +559,10 @@ function flora(): Fx {
   };
 }
 
-// The seabed's caustics: two seamless textures, light lines on black, each
-// turned once into white on transparent: /caustic.jpg (sharp, in front) and
-// /caustic-deep.jpg (blurred, deeper). Shared by every Aqua; null until loaded.
+// The seabed's caustics are drawn on the GPU (seabed.ts). Without WebGL they
+// fall back to Canvas2D: the two textures, each turned once into white on
+// transparent, scrolling and adding up (no displacement or cutout there).
+// Shared by every Aqua; null until loaded.
 const causticArt = new Map<string, HTMLCanvasElement | null>();
 function caustic(src: string) {
   if (causticArt.has(src)) return causticArt.get(src)!;
@@ -578,62 +580,33 @@ function caustic(src: string) {
   img.src = src;
   return null;
 }
-// [texture, scale, squash (height / width, lower lies flatter), drift x and y in px/s, alpha]:
-// the deep one first, larger and dimmer, drifting the other way
-const CAUSTIC_LAYERS = [['/caustic-deep.jpg', 1.5, 0.55, -7, 5, 0.75], ['/caustic.jpg', 1.6, 0.38, 9, 3, 0.75]] as const;
-// The cutout, as in Super Mario Galaxy's pooled water: the two layers are
-// added, then everything under a brightness threshold is cut away, so only
-// where their bright lines meet survives, as sharp shifting shapes rather
-// than a soft sum. Done by an SVG filter on the seabed canvas (no per-pixel
-// work in JS): alpha below ~0.3 goes to 0, then ramps up steeply.
-// Tuning, set by eye: lo / hi: where the cutout starts and reaches full;
-// alpha, scale, flat, speed: multipliers on both layers; warp, warpSize,
-// warpSpeed: strength, noise size (px) and sway speed of the displacement.
-const CAUSTIC_TUNE = { lo: 0, hi: 0.69, alpha: 0.8, scale: 1.05, flat: 0.55, speed: 2.3, warp: 8, warpSize: 40, warpSpeed: 3 };
-const WARP_SWAY = 140; // px the seabed canvas sways each way, which carries the warp noise along
-// The displacement map (the video's first technique): smooth noise, red
-// pushing x and green pushing y, made by the filter itself (feTurbulence)
-// as one continuous field over the whole seabed: nothing is tiled or
-// shifted inside the filter, so it has no seams whatever the sizes; it is
-// carried along by swaying the canvas itself (in aqua() below), and the
-// caustic layers drift through it too. That breaks up the repeats and the
-// straight drift directions.
-function cutTable() {
-  const { lo, hi } = CAUSTIC_TUNE, n = 16;
-  return Array.from({ length: n }, (_, i) => { const x = i / (n - 1), k = Math.min(1, Math.max(0, (x - lo) / Math.max(0.01, hi - lo))); return (k * k * (3 - 2 * k)).toFixed(3); }).join(' ');
-}
-function causticCut() {
-  const id = 'fx-caustic-cut';
-  if (!document.getElementById(id)) {
-    const ns = 'http://www.w3.org/2000/svg', svg = document.createElementNS(ns, 'svg');
-    svg.setAttribute('width', '0'); svg.setAttribute('height', '0'); svg.setAttribute('aria-hidden', 'true');
-    svg.style.position = 'absolute';
-    const T = CAUSTIC_TUNE;
-    svg.innerHTML = `<filter id="${id}" color-interpolation-filters="sRGB" x="0" y="0" width="100%" height="100%">`
-      + `<feTurbulence id="fx-caustic-warp-noise" type="fractalNoise" baseFrequency="${(1 / T.warpSize).toFixed(4)}" numOctaves="2" seed="7" result="warp"/>`
-      + `<feDisplacementMap in="SourceGraphic" in2="warp" scale="${T.warp}" xChannelSelector="R" yChannelSelector="G" result="moved"/>`
-      + `<feComponentTransfer in="moved"><feFuncA type="table" tableValues="${cutTable()}"/></feComponentTransfer></filter>`;
-    document.body.appendChild(svg);
-  }
-  return `url(#${id})`;
-}
 
 // ---- Aqua: under water. Slanted light shafts from the surface sway and
 // breathe; marine snow drifts in a slow current and swirls away from the
-// pointer; on the seabed, caustics: the two textures above, squashed a little
-// so they lie flat, the sharp one in front of the blurred one, drifting
-// different ways and adding up. A click sends a ripple ring and scatters the snow.
+// pointer; on the seabed, caustics (seabed.ts): two scrolling textures pushed
+// around by a scrolling displacement texture, added up and cut to a
+// threshold. A click sends a ripple ring and scatters the snow.
 type Ray = { x: number; w: number; ph: number; sp: number };
 type Flake = { x: number; y: number; s: number; ph: number; vx: number; vy: number };
 function aqua(): Fx {
   let rays: Ray[] = [], snow: Flake[] = [], rings: { x: number; y: number; age: number }[] = [], t = 0, W = 0, H = 0, ptr: Ptr = null;
-  let floorT = 0;
   const pats: (CanvasPattern | null)[] = CAUSTIC_LAYERS.map(() => null);
-  // soft light at a quarter of the resolution; the seabed rendered 15 times a second and reused in between
-  const rays4 = sprite(false), rayBuf = rays4.c, rg = rays4.g, bed = sprite(), floorBuf = bed.c, fg = bed.g;
-  rayBuf.style.width = rayBuf.style.height = '100%'; // a quarter of the resolution, stretched by the compositor
-  let wx = 0, wy = 0; // how far the seabed canvas has swayed (see below)
-  floorBuf.style.filter = causticCut();
+  // soft light at a quarter of the resolution, stretched by the compositor
+  const rays4 = sprite(false), rayBuf = rays4.c, rg = rays4.g;
+  rayBuf.style.width = rayBuf.style.height = '100%';
+  // the seabed: WebGL when there is, else a Canvas2D sprite
+  const gl = seabedGL(), flat = gl ? null : sprite();
+  const floorBuf = gl ? gl.el : flat!.c;
+  if (gl) gl.el.style.cssText = 'position:absolute;left:0;top:0;display:none;will-change:transform';
+  else floorBuf.style.maskImage = floorBuf.style.webkitMaskImage = 'linear-gradient(to bottom, transparent, #000 70%)';
+  let bedAt = 'none';
+  const placeBed = (y: number | null) => {
+    const v = y === null ? 'none' : `translate3d(0,${Math.round(y)}px,0)`;
+    if (v === bedAt) return;
+    if (gl) { floorBuf.style.display = y === null ? 'none' : ''; if (y !== null) floorBuf.style.transform = v; }
+    else flat!.at(0, y);
+    bedAt = v;
+  };
   const setup = (w: number, h: number) => {
     const n = Math.max(4, Math.round(w / 220));
     rays = Array.from({ length: n }, (_, i) => ({ x: ((i + 0.5 + rnd(-0.3, 0.3)) / n) * w * 1.1 - w * 0.05, w: rnd(30, 110), ph: rnd(0, TAU), sp: rnd(0.15, 0.3) }));
@@ -679,39 +652,29 @@ function aqua(): Fx {
       const band = Math.min(320, h * 0.4), horizon = floor - band;
       if (horizon < h) {
         const B = Math.round(band);
-        // The warp noise is fixed to the canvas, so to make it move the whole
-        // canvas sways (a slow loop, so it never jumps) while the caustics are
-        // drawn shifted back by the same amount: the light stays put on screen
-        // and the ripples travel under it. M: margin so the edges never show.
-        const M = WARP_SWAY + 2, CW = Math.round(w) + 2 * M, CH = B + 2 * M;
-        if (floorBuf.width !== CW || floorBuf.height !== CH) { bed.size(CW, CH); floorT = 0; }
-        if ((floorT -= dt) <= 0) {
-          floorT = 0; // every drawn frame (30 a second while still, every frame while scrolling), as the other effects
+        if (gl) gl.render(w, B, t);
+        else {
+          const fg = flat!.g;
+          if (floorBuf.width !== Math.round(w) || floorBuf.height !== B) flat!.size(w, B);
           fg.setTransform(1, 0, 0, 1, 0, 0);
-          const ws = t * 0.25 * CAUSTIC_TUNE.warpSpeed;
-          wx = Math.round(WARP_SWAY * Math.sin(ws)); wy = Math.round(WARP_SWAY * 0.6 * Math.sin(ws * 0.73 + 1.3)); // whole px, as the canvas is placed
-          fg.clearRect(0, 0, CW, CH);
-          // the caustics in screen space: the canvas sits at (wx - M, wy - M) from the band's corner
-          const ox = M - wx, oy = M - wy;
-          const m = `linear-gradient(to bottom, transparent ${oy.toFixed(1)}px, #000 ${(oy + B * 0.7).toFixed(1)}px)`;
-          floorBuf.style.maskImage = floorBuf.style.webkitMaskImage = m;
+          fg.clearRect(0, 0, w, B);
           fg.globalCompositeOperation = 'lighter';
-          CAUSTIC_LAYERS.forEach(([src, k, flat, vx, vy, al], i) => {
+          CAUSTIC_LAYERS.forEach(([src, , k, sq, vx, vy, al], i) => {
             const art = caustic(src);
             if (art && !pats[i]) pats[i] = fg.createPattern(art, 'repeat');
             const pat = pats[i];
             if (!pat) return;
             const T = CAUSTIC_TUNE, ks = k * T.scale, ts = t * T.speed;
-            pat.setTransform(new DOMMatrix([ks, 0, 0, ks * flat * T.flat, ox + w / 2 + ts * vx, oy + B + ts * vy])); // lies flat; anchored at the middle of the page end
-            fg.globalAlpha = Math.min(1, al * T.alpha);
+            pat.setTransform(new DOMMatrix([ks, 0, 0, ks * sq * T.flat, w / 2 + ts * vx, B + ts * vy]));
+            fg.globalAlpha = Math.min(1, al * T.alpha) * 0.6;
             fg.fillStyle = pat;
-            fg.fillRect(0, 0, CW, CH);
+            fg.fillRect(0, 0, w, B);
           });
           fg.globalCompositeOperation = 'source-over';
           fg.globalAlpha = 1;
         }
-        bed.at(wx - M, horizon + wy - M);
-      } else bed.at(0, null);
+        placeBed(horizon);
+      } else placeBed(null);
       // click ripples
       rings = rings.filter(r => (r.age += dt) < 1.4);
       for (const r of rings) { const k = r.age / 1.4; g.strokeStyle = `rgba(255,255,255,${0.6 * (1 - k)})`; g.lineWidth = 1.4; g.beginPath(); g.ellipse(r.x, r.y, 20 + k * 140, (20 + k * 140) * 0.35, 0, 0, TAU); g.stroke(); }
