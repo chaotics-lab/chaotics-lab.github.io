@@ -1030,13 +1030,15 @@ html[data-quality="0"] .ocean-layer { display: none; }
 /* while the image zooms in or out, it may pass outside the strip: let it, and hide the other slides */
 .g-viewer[data-zoom] .g-v-stage { overflow: visible; }
 .g-viewer[data-zoom] .g-v-slide[aria-hidden="true"] { visibility: hidden; }
-/* the backdrop is its own layer, so it fades while the image zooms (Gallery.tsx) */
+/* the backdrop and the cream sliver leading it are their own layers, swept in by clip path (Gallery.tsx) */
+.g-v-sliver { position: absolute; inset: 0; z-index: -2; background: var(--h-cream); clip-path: polygon(112% 0, 252% 0, 252% 100%, 100% 100%); }
+.g-v-bg { clip-path: polygon(112% 0, 252% 0, 252% 100%, 100% 100%); }
 .g-v-bg { position: absolute; inset: 0; z-index: -1; background: radial-gradient(90% 70% at 85% 0%, rgb(var(--h-c2-rgb) / 0.22), transparent 70%), linear-gradient(180deg, var(--h-deep), var(--h-night)); }
 .g-v-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; }
 .g-v-title { margin-top: 0.3rem; font-size: clamp(1.4rem, 3.2vw, 2.6rem); line-height: 0.95; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .g-v-stage { position: relative; flex: 1; min-height: 0; overflow: hidden; touch-action: pan-y; }
-.g-v-slide { flex: none; width: 100%; height: 100%; display: grid; place-items: center; padding: 0 0.5rem; }
-.g-v-slide img { max-width: 100%; max-height: 100%; object-fit: contain; user-select: none; box-shadow: 0 24px 60px -20px rgb(0 0 0 / 0.6); }
+.g-v-slide { flex: none; width: 100%; height: 100%; padding: 0 0.5rem; } /* the image fills it and contain-fits itself, centred */
+.g-v-slide img { width: 100%; height: 100%; object-fit: contain; user-select: none; } /* the whole image always fits the view, whatever its shape */
 .g-viewer .g-bar { margin-top: 0; }
 
 /* Write-ups (project markdown) */
@@ -1217,13 +1219,18 @@ html[data-quality="0"] .ocean-layer { display: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .g-v-bg { clip-path: none; } .g-v-sliver { display: none; }
+  .ai-guide-panel, .ai-guide-row, .ai-guide-row::before { animation: none !important; }
   .e-hint, .g-fill[data-run], .h-line > span, .h-marquee, .h-swap-in, .p-logo, .pt-page, .h-bob, .h-bob-up, .w-card { animation: none !important; }
   .pt { display: none; }
   .w-arrow, .w-rule > span, .h-swap > span, .h-btn, .h-pill, .s-nav-blob, .h-pill-blob, .s-top, .h-btn-line::before, .s-circle, .g-track, .g-arrow, .p-next-arrow, .ai-drop-body, .ai-drop-item, .ai-drop-plus, .ai-drop-title, .s-icon { transition: none; }
   .w-cursor { display: none; }
 }
 
-/* AI usage guide on project pages (AIGuide.tsx): a glass panel under the tag */
+/* AI usage guide on project pages (AIGuide.tsx): a glass panel under the
+   tag. Persona-style: it unfolds with a slanted wipe from the tag's side,
+   the rows cascade in (sliding and un-skewing, 35ms apart), and the
+   current level's slanted highlight slides in last; it wipes back out */
 .ai-guide { position: relative; display: inline-flex; }
 .ai-guide-btn { display: inline-flex; border-radius: 9999px; cursor: help; }
 .ai-guide-btn:focus-visible { outline: 2px solid var(--h-c2); outline-offset: 2px; }
@@ -1232,12 +1239,24 @@ html[data-quality="0"] .ocean-layer { display: none; }
   display: flex; flex-direction: column; gap: 0.55rem; padding: 0.9rem 1rem; border-radius: 1rem;
   background: rgb(var(--h-night-rgb) / 0.92); border: 1px solid rgb(var(--h-c2-rgb) / 0.25);
   -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); box-shadow: 0 18px 40px -16px rgb(0 0 0 / 0.6);
-  animation: ai-guide-in 180ms cubic-bezier(.2,.8,.2,1) both;
+  animation: ai-guide-in 300ms cubic-bezier(.7,0,.2,1) both;
 }
+.ai-guide-panel[data-leaving] { animation: ai-guide-out 160ms cubic-bezier(.6,0,.9,.4) both; }
 .ai-guide-panel::before { content: ""; position: absolute; left: 0; right: 0; top: -0.7rem; height: 0.7rem; } /* keeps the hover across the gap */
-.ai-guide-row { display: grid; grid-template-columns: auto 1fr; gap: 0.75rem; align-items: start; padding: 0.35rem 0.5rem; border-radius: 0.6rem; opacity: 0.7; }
+@keyframes ai-guide-in { from { clip-path: polygon(0 0, 0 0, -30% 100%, -30% 100%); } to { clip-path: polygon(0 0, 130% 0, 100% 100%, -30% 100%); } }
+@keyframes ai-guide-out { from { clip-path: polygon(0 0, 130% 0, 100% 100%, -30% 100%); opacity: 1; } to { clip-path: polygon(0 0, 0 0, -30% 100%, -30% 100%); opacity: 0.6; } }
+.ai-guide-row {
+  position: relative; display: grid; grid-template-columns: auto 1fr; gap: 0.75rem; align-items: start; padding: 0.35rem 0.5rem; border-radius: 0.6rem; opacity: 0.7;
+  animation: ai-row-in 320ms cubic-bezier(.2,.9,.25,1.1) calc(80ms + var(--i, 0) * 35ms) both;
+}
 .ai-guide-row .ai-tag-bars { margin-top: 0.3rem; }
-.ai-guide-row[data-current] { opacity: 1; background: rgb(var(--h-c2-rgb) / 0.14); }
+.ai-guide-row[data-current] { opacity: 1; }
+.ai-guide-row[data-current]::before {
+  content: ""; position: absolute; inset: 0; z-index: -1; border-radius: 0.3rem; background: rgb(var(--h-c2-rgb) / 0.16);
+  border-left: 3px solid var(--h-cream); transform: skewX(-10deg); transform-origin: left;
+  animation: ai-hl-in 300ms cubic-bezier(.2,.9,.25,1.1) 360ms both;
+}
 .ai-guide-name { display: block; font-weight: 700; font-size: 0.85rem; color: #fff; }
 .ai-guide-desc { display: block; font-size: 0.78rem; line-height: 1.4; color: var(--h-c3); }
-@keyframes ai-guide-in { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+@keyframes ai-row-in { from { opacity: 0; transform: translateX(-1.2rem) skewX(-14deg); } }
+@keyframes ai-hl-in { from { transform: skewX(-10deg) scaleX(0); } to { transform: skewX(-10deg) scaleX(1); } }
