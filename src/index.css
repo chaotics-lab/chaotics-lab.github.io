@@ -861,6 +861,7 @@ html[data-quality="1"] .s-nav, html[data-quality="1"] .s-circle, html[data-quali
 html[data-quality="0"] .s-nav, html[data-quality="0"] .s-circle, html[data-quality="0"] .g-arrow {
   -webkit-backdrop-filter: none; backdrop-filter: none; background: rgb(var(--h-night-rgb) / 0.85);
 }
+html[data-quality="1"] .g-stage, html[data-quality="0"] .g-stage { -webkit-backdrop-filter: none; backdrop-filter: none; background: rgb(var(--h-night-rgb) / 0.8); }
 html[data-quality="0"] .ocean-layer { display: none; }
 /* Element switch (footer): icon-only header items; hover and the active
    one lean towards the element's colour */
@@ -948,7 +949,18 @@ html[data-quality="0"] .ocean-layer { display: none; }
 }
 .repo-stats dt { display: flex; align-items: center; gap: 0.3rem; margin-top: 0.4rem; font-size: 0.62rem; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--h-c2); }
 .repo-stats dt svg { color: var(--h-c1); }
-.g-stage { position: relative; aspect-ratio: 16 / 10; overflow: hidden; touch-action: pan-y; }
+/* The frame is a P3R glass panel, like the header pills: the night colour
+   with a touch of the deep one, nearly opaque, blurred, a thin accent edge and a faint sheen on top;
+   it shows where an image doesn't fill the frame, so the frame stays the
+   same from slide to slide */
+.g-stage {
+  position: relative; aspect-ratio: 16 / 10; overflow: hidden; touch-action: pan-y;
+  background: linear-gradient(165deg, color-mix(in oklab, var(--h-deep) 45%, rgb(var(--h-night-rgb) / 0.9)), rgb(var(--h-night-rgb) / 0.92));
+  border: 1px solid rgb(var(--h-c2-rgb) / 0.2);
+  box-shadow: inset 0 1px 0 rgb(var(--h-c3-rgb) / 0.08);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
 .g-track { display: flex; height: 100%; transition: transform 650ms cubic-bezier(.65, 0, .35, 1); }
 .g-slide { flex: none; width: 100%; height: 100%; }
 .g-slide img { width: 100%; height: 100%; object-fit: contain; cursor: zoom-in; user-select: none; }
