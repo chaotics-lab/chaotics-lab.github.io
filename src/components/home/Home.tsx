@@ -17,9 +17,9 @@ import { ProjectGrid } from './ProjectGrid';
 //      short to stay at the same scroll position. The reveal waits until
 //      the new cards on screen have their images (at most READY_MAX_MS),
 //   3. the sea leaves (SWEEP_REVEAL_MS).
-// Three arrow-shaped bands (.f-chev in index.css) sweep toward the pill
-// that was picked, pointing that way: right or left along a row, down or up
-// when the pills wrap onto several rows (phones).
+// Three arrow-shaped bands (.f-chev in index.css) sweep against the way the
+// cream highlight moves: left when it goes right, up when it goes down (the
+// pills wrap onto several rows on phones), and so on.
 const SWEEP_COVER_MS = 260 + 2 * 45;
 const SWEEP_REVEAL_MS = 300 + 2 * 45;
 const READY_MAX_MS = 600;
@@ -44,12 +44,12 @@ export const Home = () => {
     const alive = () => run.current === me;
     const after = (ms: number, fn: () => void) => window.setTimeout(() => { if (alive()) fn(); }, ms);
 
-    // which way the picked pill lies from the current one
+    // which way the highlight moves, and the sweep goes the other way
     const pill = (c: string) => tabsRef.current?.querySelector<HTMLElement>(`[data-cat="${c}"]`);
     const from = pill(category), to = pill(id);
     if (from && to) {
       const dx = to.offsetLeft - from.offsetLeft, dy = to.offsetTop - from.offsetTop;
-      setSweepDir(Math.abs(dy) > from.offsetHeight / 2 ? (dy > 0 ? 'down' : 'up') : dx > 0 ? 'right' : 'left');
+      setSweepDir(Math.abs(dy) > from.offsetHeight / 2 ? (dy > 0 ? 'up' : 'down') : dx > 0 ? 'left' : 'right');
     } else setSweepDir('right');
     setSweep('cover');
     after(SWEEP_COVER_MS + 20, () => {
