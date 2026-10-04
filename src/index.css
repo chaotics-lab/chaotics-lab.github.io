@@ -1230,7 +1230,8 @@ html[data-quality="0"] .ocean-layer { display: none; }
 /* AI usage guide on project pages (AIGuide.tsx): a glass panel under the
    tag. Persona-style: it unfolds with a slanted wipe from the tag's side,
    the rows cascade in (sliding and un-skewing, 35ms apart), and the
-   current level's highlight sweeps in last; it wipes back out */
+   current level's highlight sweeps in last; on close the same slanted edge
+   carries on to the right and wipes it away */
 .ai-guide { position: relative; display: inline-flex; }
 .ai-guide-btn { display: inline-flex; border-radius: 9999px; cursor: help; }
 .ai-guide-btn:focus-visible { outline: 2px solid var(--h-c2); outline-offset: 2px; }
@@ -1241,10 +1242,10 @@ html[data-quality="0"] .ocean-layer { display: none; }
   -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); box-shadow: 0 18px 40px -16px rgb(0 0 0 / 0.6);
   animation: ai-guide-in 300ms cubic-bezier(.7,0,.2,1) both;
 }
-.ai-guide-panel[data-leaving] { animation: ai-guide-out 160ms cubic-bezier(.6,0,.9,.4) both; }
+.ai-guide-panel[data-leaving] { animation: ai-guide-out 240ms cubic-bezier(.7,0,.3,1) both; }
 .ai-guide-panel::before { content: ""; position: absolute; left: 0; right: 0; top: -0.7rem; height: 0.7rem; } /* keeps the hover across the gap */
 @keyframes ai-guide-in { from { clip-path: polygon(0 0, 0 0, -30% 100%, -30% 100%); } to { clip-path: polygon(0 0, 130% 0, 100% 100%, -30% 100%); } }
-@keyframes ai-guide-out { from { clip-path: polygon(0 0, 130% 0, 100% 100%, -30% 100%); opacity: 1; } to { clip-path: polygon(0 0, 0 0, -30% 100%, -30% 100%); opacity: 0.6; } }
+@keyframes ai-guide-out { from { clip-path: polygon(0 0, 130% 0, 100% 100%, -30% 100%); } to { clip-path: polygon(130% 0, 130% 0, 100% 100%, 100% 100%); transform: translateX(0.6rem); } } /* the same slanted edge carries on to the right */
 .ai-guide-row {
   position: relative; display: grid; grid-template-columns: auto 1fr; gap: 0.75rem; align-items: start; padding: 0.35rem 0.5rem; border-radius: 0.6rem; opacity: 0.7;
   animation: ai-row-in 320ms cubic-bezier(.2,.9,.25,1.1) calc(80ms + var(--i, 0) * 35ms) both;
