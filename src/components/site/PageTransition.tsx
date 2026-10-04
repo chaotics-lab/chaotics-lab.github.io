@@ -15,13 +15,20 @@ import { WAVE, WAVE_V } from '@/lib/wave';
 // shape follows the blot cut mask of github.com/Ultipuk/persona_3_reload_pause_menu
 // (assets/shaders/blot_cut_mask.gdshader): radius progress * (R - amp *
 // sin(lobes * (angle - progress * turn))), with R reaching the far corner.
+// 'circles': Persona 3 Reload's go-back cut (a double circle mask): two
+// circles roll in from the side `dir` points away from, growing as they
+// travel, a crescent of the accent leading the main colour, until they
+// cover the screen; then a circular hole comes the same way, growing, with
+// the accent trailing at its edge. Used for "All projects".
 // Keep the timings in sync with .pt-layer / .pts-band in index.css.
 const BLOT = { in: 320, out: 380, gap: 75 }; // ms per blot, and between them
+const CIRC = { in: 380, out: 420, gap: 70 }; // ms per circle, and between the two
 const TIMING = {
   sea: { cover: 260 + 2 * 45, hold: 40, reveal: 300 + 2 * 45 },
   slash: { cover: 280 + 2 * 60, hold: 320, reveal: 320 + 2 * 60 }, // hold: time to read the title
   blot: { cover: BLOT.gap * 2 + BLOT.in, hold: 120, reveal: BLOT.gap * 2 + BLOT.out },
   fade: { cover: 160, hold: 30, reveal: 220 }, // minimal quality: one plain fade (.pt-fade)
+  circles: { cover: CIRC.in + CIRC.gap, hold: 70, reveal: CIRC.out + CIRC.gap },
 };
 
 const LAYERS = ['var(--h-c1)', 'var(--h-top)', 'var(--h-deep)'];
@@ -66,10 +73,12 @@ export const PageTransition = ({ children }: { children: ReactNode }) => {
     setOpts(o);
     setPhase('cover');
     if (o.kind === 'blot') runBlots('cover', BLOT, o.origin);
+    if (o.kind === 'circles') runCircles('cover', o.dir === 'right' ? 1 : -1);
     timers.current.push(window.setTimeout(() => {
       swap();
       setPhase('reveal');
       if (o.kind === 'blot') runBlots('reveal', BLOT);
+      if (o.kind === 'circles') runCircles('reveal', o.dir === 'right' ? 1 : -1);
       timers.current.push(window.setTimeout(() => {
         setPhase('idle');
         busy.current = false;
@@ -106,6 +115,39 @@ export const PageTransition = ({ children }: { children: ReactNode }) => {
     blotRaf.current = requestAnimationFrame(frame);
   };
   useEffect(() => () => cancelAnimationFrame(blotRaf.current), []);
+
+  // Circles: layer 0 the accent, layer 1 the main colour. `way` is the
+  // direction of travel (-1: right to left). The centre travels from beyond
+  // one edge to a third of the way in from the other; the radius grows
+  // from a sixth of the screen to what covers it from there.
+  const runCircles = (step: 'cover' | 'reveal', way: 1 | -1) => {
+    cancelAnimationFrame(blotRaf.current);
+    const w = window.innerWidth, h = window.innerHeight, cy = h / 2, dur = step === 'cover' ? CIRC.in : CIRC.out;
+    const x0 = way < 0 ? w * 1.15 : -w * 0.15, x1 = way < 0 ? w * 0.35 : w * 0.65;
+    const R1 = Math.hypot(Math.max(x1, w - x1), h / 2) * 1.03, R0 = Math.max(w, h) / 6;
+    const circle = (k: number, hole: boolean) => {
+      const e = easeInOut(k), cx = x0 + (x1 - x0) * e, r = R0 + (R1 - R0) * e;
+      const d = `M${(cx - r).toFixed(1)} ${cy}a${r.toFixed(1)} ${r.toFixed(1)} 0 1 0 ${(2 * r).toFixed(1)} 0a${r.toFixed(1)} ${r.toFixed(1)} 0 1 0 ${(-2 * r).toFixed(1)} 0Z`;
+      return `path(evenodd, "${hole ? `M-2 -2H${w + 2}V${h + 2}H-2Z` : ''}${d}")`;
+    };
+    let start = -1;
+    const frame = () => {
+      if (!blots.current[1]?.isConnected) { blotRaf.current = requestAnimationFrame(frame); return; }
+      if (start < 0) start = performance.now();
+      const ms = performance.now() - start;
+      let running = false;
+      blots.current.slice(0, 2).forEach((el, i) => {
+        if (!el) return;
+        // covering, the accent leads; uncovering, the main colour opens first and the accent trails
+        const delay = (step === 'cover' ? i : 1 - i) * CIRC.gap, k = Math.min(1, Math.max(0, (ms - delay) / dur));
+        if (k < 1) running = true;
+        el.style.visibility = step === 'reveal' && k === 1 ? 'hidden' : 'visible';
+        el.style.clipPath = step === 'cover' ? (k === 1 ? 'none' : k === 0 ? 'circle(0)' : circle(k, false)) : circle(k, true);
+      });
+      if (running) blotRaf.current = requestAnimationFrame(frame);
+    };
+    blotRaf.current = requestAnimationFrame(frame);
+  };
 
   const diveRef = useRef(dive);
   diveRef.current = dive;
@@ -151,6 +193,13 @@ export const PageTransition = ({ children }: { children: ReactNode }) => {
           ))}
         </div>
       )}
+      {opts.kind === 'circles' && phase !== 'idle' && (
+        <div className="pt" data-phase={phase} aria-hidden="true">
+          {(opts.colors ?? ['var(--h-c1)', 'var(--h-deep)']).slice(0, 2).map((color, i) => (
+            <div key={i} ref={el => { blots.current[i] = el; }} className="pt-blot" style={{ background: color, clipPath: 'circle(0)' }} />
+          ))}
+        </div>
+      )}
       {opts.kind === 'fade' && phase !== 'idle' && <div className="pt pt-fade" data-phase={phase} aria-hidden="true" />}
       {opts.kind === 'blot' && phase !== 'idle' && (
         <div className="pt" data-phase={phase} aria-hidden="true">
@@ -160,7 +209,7 @@ export const PageTransition = ({ children }: { children: ReactNode }) => {
         </div>
       )}
       {/* sideways sea (dir left/right), same layers as the filter sweep */}
-      <div className="pt" data-phase={opts.kind !== 'slash' && opts.kind !== 'fade' && sideways ? phase : 'idle'} data-dir={opts.dir} aria-hidden="true">
+      <div className="pt" data-phase={opts.kind !== 'slash' && opts.kind !== 'fade' && opts.kind !== 'circles' && sideways ? phase : 'idle'} data-dir={opts.dir} aria-hidden="true">
         {LAYERS.map((color, i) => (
           <div
             key={color}
@@ -173,7 +222,7 @@ export const PageTransition = ({ children }: { children: ReactNode }) => {
           </div>
         ))}
       </div>
-      <div className="pt" data-phase={opts.kind === 'slash' || opts.kind === 'fade' || sideways || opts.kind === 'blot' ? 'idle' : phase} data-dir={opts.dir ?? 'up'} aria-hidden="true">
+      <div className="pt" data-phase={opts.kind === 'slash' || opts.kind === 'fade' || sideways || opts.kind === 'blot' || opts.kind === 'circles' ? 'idle' : phase} data-dir={opts.dir ?? 'up'} aria-hidden="true">
         {LAYERS.map((color, i) => (
           <div
             key={color}

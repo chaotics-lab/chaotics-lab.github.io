@@ -43,8 +43,13 @@ function useFrames(base?: string) {
   return frames;
 }
 
-// Back to the projects: the sea sweeps across left to right.
-const BACK: TransitionOpts = { dir: 'right' };
+// Back to the projects: P3R's double circle rolling in from the right, in
+// this project's colours (read when clicked, so they don't change when the
+// page underneath takes the element's colours back).
+const backTo = (): TransitionOpts => {
+  const css = getComputedStyle(document.documentElement);
+  return { kind: 'circles', dir: 'left', colors: [css.getPropertyValue('--h-c1').trim(), css.getPropertyValue('--h-deep').trim()] };
+};
 
 // Project to project: slanted bands in that project's colours, from the
 // right going forward, from the left going back.
@@ -133,7 +138,7 @@ const ProjectPage = () => {
   const ai = project.AIUsed ? parseInt(project.AIUsed, 10) : null;
 
   const back = (cls = '') => (
-    <TransitionLink to="/#projects" transition={BACK} className={`h-btn h-btn-line h-swap-host ${cls}`}>
+    <TransitionLink to="/#projects" transition={backTo} className={`h-btn h-btn-line h-swap-host ${cls}`}>
       <ArrowLeft size={16} weight="bold" />
       <span className="h-swap">
         <span>All projects</span>
