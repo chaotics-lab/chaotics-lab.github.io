@@ -6,8 +6,8 @@ import { AITag } from '@/components/home/AITag';
 // its bars, name and what it means, this project's one highlighted. Opens
 // on hover (mouse) or click / tap; closes when the mouse leaves, on Escape
 // or a click outside. Persona-style: the panel unfolds with a slanted wipe,
-// the levels cascade in sliding and un-skewing, and a slanted highlight
-// slides in behind this project's level last; closing is a quick wipe back.
+// the levels cascade in sliding and un-skewing, and a plain highlight
+// sweeps in behind this project's level last; closing is a quick wipe back.
 const CLOSE_MS = 160;
 export const AIGuide = ({ value }: { value: number }) => {
   const [open, setOpenRaw] = useState(false);

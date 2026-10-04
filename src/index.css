@@ -1230,7 +1230,7 @@ html[data-quality="0"] .ocean-layer { display: none; }
 /* AI usage guide on project pages (AIGuide.tsx): a glass panel under the
    tag. Persona-style: it unfolds with a slanted wipe from the tag's side,
    the rows cascade in (sliding and un-skewing, 35ms apart), and the
-   current level's slanted highlight slides in last; it wipes back out */
+   current level's highlight sweeps in last; it wipes back out */
 .ai-guide { position: relative; display: inline-flex; }
 .ai-guide-btn { display: inline-flex; border-radius: 9999px; cursor: help; }
 .ai-guide-btn:focus-visible { outline: 2px solid var(--h-c2); outline-offset: 2px; }
@@ -1252,11 +1252,10 @@ html[data-quality="0"] .ocean-layer { display: none; }
 .ai-guide-row .ai-tag-bars { margin-top: 0.3rem; }
 .ai-guide-row[data-current] { opacity: 1; }
 .ai-guide-row[data-current]::before {
-  content: ""; position: absolute; inset: 0; z-index: -1; border-radius: 0.3rem; background: rgb(var(--h-c2-rgb) / 0.16);
-  border-left: 3px solid var(--h-cream); transform: skewX(-10deg); transform-origin: left;
-  animation: ai-hl-in 300ms cubic-bezier(.2,.9,.25,1.1) 360ms both;
+  content: ""; position: absolute; inset: 0; z-index: -1; border-radius: 0.6rem; background: rgb(var(--h-c2-rgb) / 0.16);
+  transform-origin: left; animation: ai-hl-in 300ms cubic-bezier(.2,.8,.2,1) 360ms both;
 }
 .ai-guide-name { display: block; font-weight: 700; font-size: 0.85rem; color: #fff; }
 .ai-guide-desc { display: block; font-size: 0.78rem; line-height: 1.4; color: var(--h-c3); }
 @keyframes ai-row-in { from { opacity: 0; transform: translateX(-1.2rem) skewX(-14deg); } }
-@keyframes ai-hl-in { from { transform: skewX(-10deg) scaleX(0); } to { transform: skewX(-10deg) scaleX(1); } }
+@keyframes ai-hl-in { from { transform: scaleX(0); opacity: 0; } to { transform: none; opacity: 1; } }
