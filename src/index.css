@@ -662,7 +662,7 @@ All colors MUST be HSL.
   --h-line: rgb(var(--h-c2-rgb) / 0.22);
 }
 
-:root { --f-body: "Sora"; --f-display: "Archivo"; --f-serif: "Instrument Serif"; } /* the three site fonts (a #debug panel can swap them, FontDebug.tsx) */
+:root { --f-body: "Sora"; --f-display: "Archivo"; --f-serif: "Instrument Serif"; } /* the three site fonts */
 .h-page {
   position: relative;
   isolation: isolate; /* so the ocean layer (z-index -1) sits on the page background, behind the content */

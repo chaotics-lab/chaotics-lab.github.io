@@ -1,6 +1,5 @@
 import type { ReactNode } from 'react';
 import { SiteHeader } from './SiteHeader';
-import { FontDebug } from './FontDebug';
 import { SiteFooter } from './SiteFooter';
 import { OceanLayer } from './OceanLayer';
 import { OceanFx } from './OceanFx';
@@ -11,7 +10,6 @@ export const SiteLayout = ({ children }: { children: ReactNode }) => (
     <OceanFx />
     <OceanLayer />
     <SiteHeader />
-    <FontDebug />
     <div className="flex-1">{children}</div>
     <SiteFooter />
     <ScrollTop />
