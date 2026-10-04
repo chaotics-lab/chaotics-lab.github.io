@@ -17,8 +17,9 @@ export const SiteFooter = () => {
   return (
   <footer className="relative mt-28">
     <div className="container mx-auto px-5 sm:px-8">
-      <div className="py-8 border-t-[1.5px] border-[rgb(var(--h-c2-rgb)/0.25)] flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-        <div className="flex flex-wrap items-center gap-3">
+      {/* one row when it fits; otherwise the element picker and back-to-top
+          wrap together onto the next line, picker left, back-to-top right */}
+      <div className="py-8 border-t-[1.5px] border-[rgb(var(--h-c2-rgb)/0.25)] flex flex-wrap items-center gap-x-3 gap-y-5">
         <nav className="flex flex-wrap gap-3" aria-label="Contact">
           {SOCIALS.map(({ name, url, icon: Icon }) => (
             <a
@@ -37,9 +38,9 @@ export const SiteFooter = () => {
             </a>
           ))}
         </nav>
+        <div className="flex flex-auto flex-wrap items-center justify-between gap-x-6 gap-y-5">
         {!onProject && <ElementSwitch />}
-        </div>
-        <div className="flex items-center justify-between lg:justify-end gap-6 text-sm text-[var(--h-c2)] whitespace-nowrap">
+        <div className="ml-auto flex items-center gap-6 text-sm text-[var(--h-c2)] whitespace-nowrap">
           <span>© {new Date().getFullYear()} Lox</span>
           {/* the floating back-to-top pill (ScrollTop) docks onto this one */}
           <div id="footer-top" className="s-nav">
@@ -55,6 +56,7 @@ export const SiteFooter = () => {
               </span>
             </button>
           </div>
+        </div>
         </div>
       </div>
     </div>
