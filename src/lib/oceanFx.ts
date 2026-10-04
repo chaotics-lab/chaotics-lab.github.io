@@ -586,13 +586,24 @@ const CAUSTIC_LAYERS = [['/caustic-deep.jpg', 1.5, 0.55, -7, 5, 0.75], ['/causti
 // where their bright lines meet survives, as sharp shifting shapes rather
 // than a soft sum. Done by an SVG filter on the seabed canvas (no per-pixel
 // work in JS): alpha below ~0.3 goes to 0, then ramps up steeply.
+// Tuning (temporary, #debug on the home page: CausticDebug.tsx). lo / hi:
+// where the cutout starts and reaches full; alpha, scale, flat, speed:
+// multipliers on both layers.
+export const CAUSTIC_TUNE = { lo: 0.3, hi: 0.75, alpha: 1, scale: 1, flat: 1, speed: 1 };
+function cutTable() {
+  const { lo, hi } = CAUSTIC_TUNE, n = 16;
+  return Array.from({ length: n }, (_, i) => { const x = i / (n - 1), k = Math.min(1, Math.max(0, (x - lo) / Math.max(0.01, hi - lo))); return (k * k * (3 - 2 * k)).toFixed(3); }).join(' ');
+}
+export function retuneCaustics() {
+  document.querySelector('#fx-caustic-cut feFuncA')?.setAttribute('tableValues', cutTable());
+}
 function causticCut() {
   const id = 'fx-caustic-cut';
   if (!document.getElementById(id)) {
     const ns = 'http://www.w3.org/2000/svg', svg = document.createElementNS(ns, 'svg');
     svg.setAttribute('width', '0'); svg.setAttribute('height', '0'); svg.setAttribute('aria-hidden', 'true');
     svg.style.position = 'absolute';
-    svg.innerHTML = `<filter id="${id}" color-interpolation-filters="sRGB"><feComponentTransfer><feFuncA type="table" tableValues="0 0 0 0.25 0.65 0.95 1 1"/></feComponentTransfer></filter>`;
+    svg.innerHTML = `<filter id="${id}" color-interpolation-filters="sRGB"><feComponentTransfer><feFuncA type="table" tableValues="${cutTable()}"/></feComponentTransfer></filter>`;
     document.body.appendChild(svg);
   }
   return `url(#${id})`;
@@ -670,8 +681,9 @@ function aqua(): Fx {
             if (art && !pats[i]) pats[i] = fg.createPattern(art, 'repeat');
             const pat = pats[i];
             if (!pat) return;
-            pat.setTransform(new DOMMatrix([k, 0, 0, k * flat, w / 2 + t * vx, B + t * vy])); // lies flat; anchored at the middle of the page end
-            fg.globalAlpha = al;
+            const T = CAUSTIC_TUNE, ks = k * T.scale, ts = t * T.speed;
+            pat.setTransform(new DOMMatrix([ks, 0, 0, ks * flat * T.flat, w / 2 + ts * vx, B + ts * vy])); // lies flat; anchored at the middle of the page end
+            fg.globalAlpha = Math.min(1, al * T.alpha);
             fg.fillStyle = pat;
             fg.fillRect(0, 0, w, B);
           });
