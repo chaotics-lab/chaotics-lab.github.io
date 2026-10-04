@@ -1135,19 +1135,31 @@ html[data-quality="0"] .ocean-layer { display: none; }
 @keyframes pt-hcover { from { transform: translateX(-110%); } to { transform: none; } }
 @keyframes pt-hreveal { from { transform: none; } to { transform: translateX(110%); } }
 .f-sweep { z-index: 60; } /* filter sweep: over the page and header, under the Projects title and pills (z 61) */
-/* Its bands: chevrons with the spike in the middle of the leading edge and
-   the same notch at the back, crossing left to right (data-dir="left"
-   mirrors it). --s is the spike's depth. */
-.f-chev {
-  --s: min(22vh, 18vw);
-  position: absolute; top: 0; bottom: 0; left: calc(-1 * var(--s)); width: calc(100vw + 2 * var(--s));
+/* Its bands: arrows, the spike in the middle of the leading edge and the
+   same notch at the back, crossing the screen toward the picked pill.
+   Drawn going right (or down); data-dir="left" / "up" mirrors them. --s is
+   the spike's depth. */
+.f-chev { --s: min(22vh, 18vw); position: absolute; }
+.f-sweep:is([data-dir="right"], [data-dir="left"]) .f-chev {
+  top: 0; bottom: 0; left: calc(-1 * var(--s)); width: calc(100vw + 2 * var(--s));
   clip-path: polygon(0 0, calc(100% - var(--s)) 0, 100% 50%, calc(100% - var(--s)) 100%, 0 100%, var(--s) 50%);
   transform: translateX(-100%);
 }
+.f-sweep:is([data-dir="down"], [data-dir="up"]) .f-chev {
+  left: 0; right: 0; top: calc(-1 * var(--s)); height: calc(100vh + 2 * var(--s));
+  clip-path: polygon(0 0, 50% var(--s), 100% 0, 100% calc(100% - var(--s)), 50% 100%, 0 calc(100% - var(--s)));
+  transform: translateY(-100%);
+}
 .f-sweep[data-dir="left"] { transform: scaleX(-1); }
-.f-sweep[data-phase="cover"] .f-chev { animation: pt-hcover 260ms cubic-bezier(.7,0,.3,1) var(--in) both; }
+.f-sweep[data-dir="up"] { transform: scaleY(-1); }
+.f-sweep[data-phase="cover"] .f-chev { animation: f-chev-in 260ms cubic-bezier(.7,0,.3,1) var(--in) both; }
 .f-sweep[data-phase="reveal"] .f-chev { animation: f-chev-out 300ms cubic-bezier(.7,0,.3,1) var(--out) both; }
+.f-sweep:is([data-dir="down"], [data-dir="up"])[data-phase="cover"] .f-chev { animation-name: f-chev-in-v; }
+.f-sweep:is([data-dir="down"], [data-dir="up"])[data-phase="reveal"] .f-chev { animation-name: f-chev-out-v; }
+@keyframes f-chev-in { from { transform: translateX(-100%); } to { transform: none; } }
 @keyframes f-chev-out { from { transform: none; } to { transform: translateX(100%); } }
+@keyframes f-chev-in-v { from { transform: translateY(-100%); } to { transform: none; } }
+@keyframes f-chev-out-v { from { transform: none; } to { transform: translateY(100%); } }
 .f-hold[data-swapped] .w-card { animation: none; } /* swapped in under the sea: shown as-is */
 .pt-page { animation: pt-fade 380ms ease-out both; }
 @keyframes pt-fade { from { opacity: 0; } to { opacity: 1; } }

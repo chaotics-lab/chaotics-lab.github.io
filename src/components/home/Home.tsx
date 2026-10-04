@@ -17,9 +17,9 @@ import { ProjectGrid } from './ProjectGrid';
 //      short to stay at the same scroll position. The reveal waits until
 //      the new cards on screen have their images (at most READY_MAX_MS),
 //   3. the sea leaves (SWEEP_REVEAL_MS).
-// Three chevron bands sweep sideways (spike first, .f-chev in index.css),
-// against the way the pill highlight moves: to the left when the new
-// category is to the right of the old one, else right.
+// Three arrow-shaped bands (.f-chev in index.css) sweep toward the pill
+// that was picked, pointing that way: right or left along a row, down or up
+// when the pills wrap onto several rows (phones).
 const SWEEP_COVER_MS = 260 + 2 * 45;
 const SWEEP_REVEAL_MS = 300 + 2 * 45;
 const READY_MAX_MS = 600;
@@ -32,7 +32,7 @@ export const Home = () => {
   const [shown, setShown] = useState('all');
   const [swapped, setSwapped] = useState(false);
   const [sweep, setSweep] = useState<'cover' | 'reveal' | null>(null);
-  const [sweepDir, setSweepDir] = useState<'right' | 'left'>('right');
+  const [sweepDir, setSweepDir] = useState<'right' | 'left' | 'down' | 'up'>('right');
   const [holdH, setHoldH] = useState<number | undefined>(undefined);
   const gridRef = useRef<HTMLDivElement>(null);
   const run = useRef(0); // id of the latest filter change; older steps stop
@@ -44,8 +44,13 @@ export const Home = () => {
     const alive = () => run.current === me;
     const after = (ms: number, fn: () => void) => window.setTimeout(() => { if (alive()) fn(); }, ms);
 
-    const order = (c: string) => CATEGORIES.findIndex(k => k.id === c);
-    setSweepDir(order(id) > order(category) ? 'left' : 'right');
+    // which way the picked pill lies from the current one
+    const pill = (c: string) => tabsRef.current?.querySelector<HTMLElement>(`[data-cat="${c}"]`);
+    const from = pill(category), to = pill(id);
+    if (from && to) {
+      const dx = to.offsetLeft - from.offsetLeft, dy = to.offsetTop - from.offsetTop;
+      setSweepDir(Math.abs(dy) > from.offsetHeight / 2 ? (dy > 0 ? 'down' : 'up') : dx > 0 ? 'right' : 'left');
+    } else setSweepDir('right');
     setSweep('cover');
     after(SWEEP_COVER_MS + 20, () => {
       // Smallest grid height that keeps the page long enough for the current
@@ -146,6 +151,7 @@ export const Home = () => {
                 key={t.id}
                 role="tab"
                 aria-selected={category === t.id}
+                data-cat={t.id}
                 onClick={() => pick(t.id)}
                 className="h-pill"
               >
