@@ -872,6 +872,9 @@ All colors MUST be HSL.
   .s-nav-item .s-nav-label { display: inline-grid; } /* .h-swap's grid, shown from this width */
 }
 .s-nav-item[data-on="true"] { color: var(--h-ink); }
+/* the project pages' back pill (top left): one item, so the cream highlight is its own background */
+.s-back { border-radius: 9999px; transition: color 200ms ease, background-color 200ms ease; }
+@media (hover: hover) { .s-back:hover, .s-back:focus-visible { background: var(--h-cream); color: var(--h-ink); outline: none; } }
 /* Lighter / minimal quality (src/lib/perf.ts): no backdrop blur, which is
    costly on phones; the pills get a more solid background instead. */
 html[data-quality="1"] .s-nav, html[data-quality="1"] .s-circle, html[data-quality="1"] .g-arrow,

@@ -13,7 +13,7 @@ import { useGithubStats } from '@/hooks/useGithubStats';
 import { categoryLabel } from '@/config/categories';
 import { aiLevel } from '@/config/aiLevels';
 import { PROJECTS, withoutCompany, type Project } from '@/lib/projects';
-import { usePageTransition, type TransitionOpts } from '@/lib/pageTransition';
+import { backToProjects, usePageTransition, type TransitionOpts } from '@/lib/pageTransition';
 import { projectPalette, setProjectPalette } from '@/lib/theme';
 
 // Finds the numbered images in a project's folder (1.png, 2.gif, ...),
@@ -42,14 +42,6 @@ function useFrames(base?: string) {
   }, [base]);
   return frames;
 }
-
-// Back to the projects: P3R's double circle rolling in from the right, in
-// this project's colours (read when clicked, so they don't change when the
-// page underneath takes the element's colours back).
-const backTo = (): TransitionOpts => {
-  const css = getComputedStyle(document.documentElement);
-  return { kind: 'circles', dir: 'left', colors: [css.getPropertyValue('--h-c1').trim(), css.getPropertyValue('--h-deep').trim()] };
-};
 
 // Project to project: slanted bands in that project's colours, from the
 // right going forward, from the left going back.
@@ -138,7 +130,7 @@ const ProjectPage = () => {
   const ai = project.AIUsed ? parseInt(project.AIUsed, 10) : null;
 
   const back = (cls = '') => (
-    <TransitionLink to="/#projects" transition={backTo} className={`h-btn h-btn-line h-swap-host ${cls}`}>
+    <TransitionLink to="/#projects" transition={backToProjects} className={`h-btn h-btn-line h-swap-host ${cls}`}>
       <ArrowLeft size={16} weight="bold" />
       <span className="h-swap">
         <span>All projects</span>
@@ -169,8 +161,8 @@ const ProjectPage = () => {
 
           <div className="min-w-0 lg:order-1">
             {/* buttons and pills are the home page's (h-btn-line, h-pill) */}
+            {/* the way back to the projects is the header's top-left pill */}
             <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
-              {back()}
               {/* the facts in one line: category, type, date, AI usage */}
               <p className="h-caps text-[0.68rem] text-[var(--h-c2)]">{[categories.join(' / '), project.type, when].filter(Boolean).join(' · ')}</p>
               {ai !== null && <span className="flex items-center gap-2 text-sm text-[var(--h-c3)]" title={`AI usage: ${aiLevel(ai).label}`}><AITag value={ai} /> {aiLevel(ai).label}</span>}

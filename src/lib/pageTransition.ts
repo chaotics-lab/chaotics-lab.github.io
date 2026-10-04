@@ -31,3 +31,12 @@ export const PageTransitionContext = createContext<PageTransition>({
 });
 
 export const usePageTransition = () => useContext(PageTransitionContext);
+
+// Back to the projects: P3R's double circle rolling in from the right, in
+// the project's colours (read when clicked, so they don't change when the
+// page underneath takes the element's colours back). Used by the header's
+// Projects pill and the project page's footer row.
+export const backToProjects = (): TransitionOpts => {
+  const css = getComputedStyle(document.documentElement);
+  return { kind: 'circles', dir: 'left', colors: [css.getPropertyValue('--h-c1').trim(), css.getPropertyValue('--h-deep').trim()] };
+};
